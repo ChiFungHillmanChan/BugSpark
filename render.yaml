@@ -20,7 +20,7 @@ services:
       - key: S3_SECRET_KEY
         sync: false
       - key: S3_BUCKET_NAME
-        value: bug-spark
+        value: bugspark-uploads
       - key: S3_PUBLIC_URL
         sync: false
       - key: CORS_ORIGINS

@@ -10,7 +10,7 @@ from app.schemas import CamelModel
 
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
-    domain: str = Field(min_length=1, max_length=255)
+    domain: str | None = Field(default=None, max_length=255)
 
 
 class ProjectUpdate(BaseModel):

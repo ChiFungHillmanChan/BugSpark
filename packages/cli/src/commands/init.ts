@@ -2,6 +2,7 @@ import chalk from "chalk";
 import prompts from "prompts";
 import { createClient } from "../lib/api-client.js";
 import { getConfigOrExit } from "../lib/config.js";
+import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
 
 interface ProjectResponse {
@@ -59,15 +60,34 @@ export async function initCommand(): Promise<void> {
       project = await createNewProject(client, config.apiUrl);
     }
 
+    // Detect masked API keys from existing projects
+    const isMaskedKey = project.apiKey.includes("...");
+    const keyForSnippet = isMaskedKey ? "YOUR_API_KEY_HERE" : project.apiKey;
+
     // Show installation instructions
     console.log(chalk.bold("  📋 Installation Instructions"));
     console.log();
+
+    if (isMaskedKey) {
+      console.log(
+        chalk.yellow(
+          "  ⚠  The API key below is a placeholder — existing keys are masked for security."
+        )
+      );
+      console.log(
+        chalk.yellow(
+          "     Replace YOUR_API_KEY_HERE with the real key you saved when the project was created."
+        )
+      );
+      console.log();
+    }
+
     console.log(chalk.bold("  HTML / Django / WordPress / PHP:"));
     console.log();
     console.log(
       chalk.cyan(`  <script
     src="https://unpkg.com/@bugspark/widget@0.1.0/dist/bugspark.iife.js"
-    data-api-key="${project.apiKey}"
+    data-api-key="${keyForSnippet}"
     data-endpoint="${config.apiUrl}"
   ></script>`)
     );
@@ -79,13 +99,13 @@ export async function initCommand(): Promise<void> {
     console.log(
       chalk.cyan(`  import BugSpark from '@bugspark/widget';
   BugSpark.init({
-    apiKey: '${project.apiKey}',
+    apiKey: '${keyForSnippet}',
     endpoint: '${config.apiUrl}',
   });`)
     );
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }
@@ -109,10 +129,10 @@ async function createNewProject(
     initial: "",
   });
 
-  const project = await client.post<ProjectResponse>("/projects", {
-    name,
-    domain: domain || "",
-  });
+  const body: Record<string, string> = { name };
+  if (domain) body.domain = domain;
+
+  const project = await client.post<ProjectResponse>("/projects", body);
 
   console.log();
   success(`Project "${project.name}" created!`);

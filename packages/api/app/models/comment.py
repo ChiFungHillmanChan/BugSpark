@@ -17,7 +17,7 @@ class Comment(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     report_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("reports.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("reports.id"), nullable=False, index=True
     )
     author_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False

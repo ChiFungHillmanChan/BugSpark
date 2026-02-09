@@ -15,6 +15,13 @@ from app.routers import admin, analysis, auth, comments, integrations, projects,
 
 settings = get_settings()
 
+# Fail fast: reject weak JWT secret in production
+if settings.COOKIE_SECURE and settings.JWT_SECRET == "change-me-in-production":
+    raise RuntimeError(
+        "FATAL: JWT_SECRET must be changed from the default value in production. "
+        "Set a strong random secret via the JWT_SECRET environment variable."
+    )
+
 
 def _get_rate_limit_key(request: Request) -> str:
     api_key = request.headers.get("X-API-Key")
@@ -39,8 +46,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-CSRF-Token", "Accept-Language"],
 )
 app.add_middleware(CSRFMiddleware)
 

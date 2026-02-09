@@ -3,6 +3,7 @@ import open from "open";
 import prompts from "prompts";
 import { createClient } from "../lib/api-client.js";
 import { DEFAULT_API_URL, saveConfig } from "../lib/config.js";
+import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
 
 interface UserResponse {
@@ -75,9 +76,7 @@ export async function loginCommand(): Promise<void> {
     console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);
     console.log();
   } catch (err) {
-    error(
-      `Failed to verify token: ${err instanceof Error ? err.message : String(err)}`
-    );
+    error(`Failed to verify token: ${formatError(err)}`);
     process.exit(1);
   }
 }

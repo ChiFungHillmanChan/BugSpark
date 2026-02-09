@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { createClient } from "../lib/api-client.js";
 import { getConfigOrExit } from "../lib/config.js";
+import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
 
 interface ReportResponse {
@@ -12,6 +13,13 @@ interface ReportResponse {
   category: string;
   createdAt: string;
   reporterIdentifier?: string;
+}
+
+interface PaginatedReports {
+  items: ReportResponse[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 
 const SEVERITY_COLORS: Record<string, (s: string) => string> = {
@@ -46,7 +54,8 @@ export async function listReportsCommand(options: {
 
     const qs = params.toString();
     const path = `/reports${qs ? `?${qs}` : ""}`;
-    const reports = await client.get<ReportResponse[]>(path);
+    const response = await client.get<PaginatedReports>(path);
+    const reports = response.items;
 
     if (reports.length === 0) {
       console.log();
@@ -57,12 +66,13 @@ export async function listReportsCommand(options: {
 
     console.log();
     table(
-      ["ID", "Title", "Severity", "Status", "Date"],
+      ["Tracking ID", "UUID", "Title", "Severity", "Status", "Date"],
       reports.map((r) => {
         const sevColor = SEVERITY_COLORS[r.severity] || chalk.white;
         const statColor = STATUS_COLORS[r.status] || chalk.white;
         return [
-          r.trackingId || r.id.slice(0, 8),
+          r.trackingId || "-",
+          r.id.slice(0, 8),
           r.title.length > 40 ? r.title.slice(0, 37) + "..." : r.title,
           sevColor(r.severity),
           statColor(r.status),
@@ -71,10 +81,10 @@ export async function listReportsCommand(options: {
       })
     );
     console.log();
-    console.log(chalk.dim(`  ${reports.length} report(s)`));
+    console.log(chalk.dim(`  ${reports.length} of ${response.total} report(s)`));
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }
@@ -122,7 +132,7 @@ export async function viewReportCommand(reportId: string): Promise<void> {
     }
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }
@@ -147,7 +157,7 @@ export async function updateReportCommand(
     await client.patch(`/reports/${reportId}`, body);
     success(`Report ${reportId} updated.`);
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }

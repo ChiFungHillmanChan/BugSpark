@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { createClient } from "../lib/api-client.js";
 import { getConfigOrExit } from "../lib/config.js";
+import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
 
 interface ProjectResponse {
@@ -39,7 +40,7 @@ export async function listProjectsCommand(): Promise<void> {
     );
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }
@@ -52,10 +53,10 @@ export async function createProjectCommand(
   const client = createClient(config);
 
   try {
-    const project = await client.post<ProjectResponse>("/projects", {
-      name,
-      domain: options.domain || "",
-    });
+    const body: Record<string, string> = { name };
+    if (options.domain) body.domain = options.domain;
+
+    const project = await client.post<ProjectResponse>("/projects", body);
 
     console.log();
     success(`Project "${project.name}" created!`);
@@ -76,7 +77,7 @@ export async function createProjectCommand(
     );
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }
@@ -89,7 +90,7 @@ export async function deleteProjectCommand(projectId: string): Promise<void> {
     await client.delete(`/projects/${projectId}`);
     success(`Project ${projectId} deleted.`);
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }

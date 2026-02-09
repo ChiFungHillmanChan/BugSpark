@@ -53,9 +53,9 @@ async def _authenticate_via_pat(
             if pat.expires_at is not None and pat.expires_at < datetime.now(timezone.utc):
                 raise UnauthorizedException(translate("auth.token_expired", locale))
 
-            # Update last_used_at within the current transaction
+            # Persist last_used_at — flush alone would roll back on read-only routes
             pat.last_used_at = datetime.now(timezone.utc)
-            await db.flush()
+            await db.commit()
 
             # Load the user
             user_result = await db.execute(select(User).where(User.id == pat.user_id))

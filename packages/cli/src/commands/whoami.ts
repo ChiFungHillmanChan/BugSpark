@@ -1,6 +1,7 @@
 import chalk from "chalk";
 import { createClient } from "../lib/api-client.js";
 import { getConfigOrExit } from "../lib/config.js";
+import { formatError } from "../lib/errors.js";
 import { error } from "../lib/output.js";
 
 interface UserResponse {
@@ -25,7 +26,7 @@ export async function whoamiCommand(): Promise<void> {
     console.log(`  ${chalk.bold("API:")}    ${config.apiUrl}`);
     console.log();
   } catch (err) {
-    error(err instanceof Error ? err.message : String(err));
+    error(formatError(err));
     process.exit(1);
   }
 }

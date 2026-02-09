@@ -55,7 +55,7 @@ app.include_router(analysis.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check() -> dict[str, str]:
     return {"status": "healthy"}
 

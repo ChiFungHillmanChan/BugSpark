@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BugSpark Widget Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 { color: #e94560; margin-bottom: 8px; }
+    p.subtitle { color: #666; margin-bottom: 32px; }
+    .test-section {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .test-section h2 { font-size: 16px; margin-bottom: 12px; }
+    button {
+      padding: 8px 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      margin: 4px;
+      font-size: 14px;
+    }
+    button:hover { background: #f0f0f0; }
+    button.danger { border-color: #e94560; color: #e94560; }
+    button.danger:hover { background: #fff5f5; }
+    .sample-ui {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px;
+    }
+    .card {
+      padding: 16px; border: 1px solid #eee; border-radius: 8px;
+      flex: 1; min-width: 200px;
+    }
+    .card h3 { font-size: 14px; margin-bottom: 8px; }
+    .card p { font-size: 13px; color: #666; }
+    #log-output {
+      background: #1a1a2e; color: #4caf50; padding: 12px;
+      border-radius: 6px; font-family: monospace; font-size: 13px;
+      min-height: 60px; margin-top: 12px; white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>BugSpark Test Page</h1>
+  <p class="subtitle">Use this page to test the BugSpark widget</p>
+
+  <div class="test-section">
+    <h2>Trigger Errors</h2>
+    <button class="danger" id="btn-console-error">Console Error</button>
+    <button class="danger" id="btn-failed-fetch">Failed Fetch</button>
+    <button class="danger" id="btn-unhandled-rejection">Unhandled Rejection</button>
+    <button class="danger" id="btn-type-error">Type Error</button>
+    <div id="log-output">Errors will appear here...</div>
+  </div>
+
+  <div class="test-section">
+    <h2>Sample UI Elements</h2>
+    <div class="sample-ui">
+      <div class="card">
+        <h3>User Profile</h3>
+        <p>Click various elements to generate session events</p>
+        <button id="btn-action-1">Action 1</button>
+        <button id="btn-action-2">Action 2</button>
+      </div>
+      <div class="card">
+        <h3>Navigation</h3>
+        <p>Test navigation tracking</p>
+        <button id="btn-pushstate">Push State</button>
+        <button id="btn-scroll">Scroll Down</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>Manual Control</h2>
+    <button id="btn-open">Open Widget</button>
+    <button id="btn-destroy">Destroy Widget</button>
+  </div>
+
+  <!-- Replace data-api-key with your project's API key from the dashboard -->
+  <script src="../dist/bugspark.iife.js"
+          data-api-key="bsk_pub_your_api_key_here"
+          data-endpoint="http://localhost:8000/api/v1">
+  </script>
+  <script>
+    var logOutput = document.getElementById('log-output');
+    function log(msg) { logOutput.textContent += '\n' + msg; }
+
+    document.getElementById('btn-console-error').addEventListener('click', function() {
+      console.error('Test error:', new Error('Something went wrong'));
+      log('[error] Test error triggered');
+    });
+
+    document.getElementById('btn-failed-fetch').addEventListener('click', function() {
+      fetch('http://localhost:99999/nonexistent').catch(function() {
+        log('[fetch] Failed fetch triggered');
+      });
+    });
+
+    document.getElementById('btn-unhandled-rejection').addEventListener('click', function() {
+      Promise.reject(new Error('Unhandled promise rejection test'));
+      log('[rejection] Unhandled rejection triggered');
+    });
+
+    document.getElementById('btn-type-error').addEventListener('click', function() {
+      try { null.toString(); } catch(e) { throw e; }
+    });
+
+    document.getElementById('btn-action-1').addEventListener('click', function() {
+      log('[action] Action 1 clicked');
+    });
+
+    document.getElementById('btn-action-2').addEventListener('click', function() {
+      log('[action] Action 2 clicked');
+    });
+
+    document.getElementById('btn-pushstate').addEventListener('click', function() {
+      history.pushState({}, '', '/test-' + Date.now());
+      log('[nav] Push state triggered: ' + location.pathname);
+    });
+
+    document.getElementById('btn-scroll').addEventListener('click', function() {
+      window.scrollBy({ top: 300, behavior: 'smooth' });
+      log('[scroll] Scroll triggered');
+    });
+
+    document.getElementById('btn-open').addEventListener('click', function() {
+      if (window.BugSpark) window.BugSpark.open();
+    });
+
+    document.getElementById('btn-destroy').addEventListener('click', function() {
+      if (window.BugSpark) {
+        window.BugSpark.destroy();
+        log('[widget] Widget destroyed');
+      }
+    });
+  </script>
+</body>
+</html>

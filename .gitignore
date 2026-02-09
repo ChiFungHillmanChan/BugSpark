@@ -14,10 +14,23 @@ __pycache__/
 .venv/
 venv/
 
-# Environment
+# Environment (all variants)
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+.ENV
+*.env
+!*.env.example
+
+# Certificates and keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.cert
+*.crt
+*.jks
+*.keystore
 
 # IDE
 .vscode/

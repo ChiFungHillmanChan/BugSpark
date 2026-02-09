@@ -29,6 +29,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if request.headers.get("X-API-Key"):
             return await call_next(request)
 
+        # Bearer token auth (CLI / PAT) doesn't use cookies, exempt from CSRF
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            return await call_next(request)
+
         if request.url.path in CSRF_EXEMPT_PATHS:
             return await call_next(request)
 

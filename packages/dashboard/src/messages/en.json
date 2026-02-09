@@ -168,7 +168,9 @@
     "language": "Language",
     "integrations": "Integrations",
     "issueTrackers": "Issue Trackers",
-    "issueTrackersDesc": "Connect GitHub Issues and export bugs"
+    "issueTrackersDesc": "Connect GitHub Issues and export bugs",
+    "switchTheme": "Switch theme",
+    "switchLanguage": "Switch language"
   },
   "integrations": {
     "title": "Integrations",

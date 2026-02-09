@@ -31,15 +31,15 @@ export function SeverityChart({ data, isLoading }: SeverityChartProps) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400">
+      <div className="h-64 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">
         {t("noDataYet")}
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-      <h3 className="text-sm font-medium text-gray-500 mb-4">
+    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-6 shadow-sm">
+      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
         {t("severityBreakdown")}
       </h3>
       <ResponsiveContainer width="100%" height={250}>

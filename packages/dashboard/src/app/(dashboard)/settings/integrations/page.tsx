@@ -66,7 +66,7 @@ export default function IntegrationsPage() {
     return (
       <div className="max-w-xl">
         <PageHeader title={t("title")} />
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-gray-400">
           {t("createProjectFirst")}
         </p>
       </div>
@@ -82,8 +82,8 @@ export default function IntegrationsPage() {
 
       <div className="space-y-4">
         {isLoading && (
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-sm text-gray-500">{t("loadingIntegrations")}</p>
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t("loadingIntegrations")}</p>
           </div>
         )}
 
@@ -129,9 +129,9 @@ export default function IntegrationsPage() {
         ))}
 
         {!isLoading && integrations?.length === 0 && !isFormOpen && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
-            <Github className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 mb-4">
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-6 text-center">
+            <Github className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {t("noIntegrations")}
             </p>
           </div>
@@ -140,14 +140,14 @@ export default function IntegrationsPage() {
         {isFormOpen ? (
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4"
+            className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4 space-y-4"
           >
-            <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
               <Github className="w-4 h-4" />
               {t("connectGithub")}
             </h3>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                 {t("repoOwner")}
               </label>
               <input
@@ -156,11 +156,11 @@ export default function IntegrationsPage() {
                 onChange={(e) => setOwner(e.target.value)}
                 placeholder={t("repoOwnerPlaceholder")}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                 {t("repoName")}
               </label>
               <input
@@ -169,11 +169,11 @@ export default function IntegrationsPage() {
                 onChange={(e) => setRepo(e.target.value)}
                 placeholder={t("repoNamePlaceholder")}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">
                 {t("personalAccessToken")}
               </label>
               <input
@@ -182,9 +182,9 @@ export default function IntegrationsPage() {
                 onChange={(e) => setToken(e.target.value)}
                 placeholder={t("tokenPlaceholder")}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
               />
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 {t("tokenHint")}
               </p>
             </div>
@@ -199,7 +199,7 @@ export default function IntegrationsPage() {
               <button
                 type="button"
                 onClick={() => setIsFormOpen(false)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-navy-700 dark:hover:bg-navy-700 dark:text-gray-300 rounded-lg text-sm font-medium"
               >
                 {t("cancel")}
               </button>
@@ -208,7 +208,7 @@ export default function IntegrationsPage() {
         ) : (
           <button
             onClick={() => setIsFormOpen(true)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-accent hover:text-accent transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 dark:border-navy-700 rounded-lg text-sm text-gray-500 dark:text-gray-400 hover:border-accent hover:text-accent transition-colors"
           >
             <Plus className="w-4 h-4" />
             {t("addIntegration")}

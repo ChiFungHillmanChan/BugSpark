@@ -168,7 +168,9 @@
     "language": "語言",
     "integrations": "整合",
     "issueTrackers": "問題追蹤器",
-    "issueTrackersDesc": "連接 GitHub Issues 並匯出錯誤"
+    "issueTrackersDesc": "連接 GitHub Issues 並匯出錯誤",
+    "switchTheme": "切換主題",
+    "switchLanguage": "切換語言"
   },
   "integrations": {
     "title": "整合",

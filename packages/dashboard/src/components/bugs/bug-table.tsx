@@ -29,10 +29,10 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm overflow-hidden">
       <table className="w-full">
         <thead>
-          <tr className="text-left text-xs text-gray-500 border-b border-gray-200 bg-gray-50">
+          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-navy-700 bg-gray-50 dark:bg-navy-700">
             <th className="px-4 py-3 font-medium">{t("trackingId")}</th>
             <th className="px-4 py-3 font-medium">{t("bugTitle")}</th>
             <th className="px-4 py-3 font-medium">{t("severity")}</th>
@@ -49,7 +49,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
             : bugs?.map((bug) => (
                 <tr
                   key={bug.id}
-                  className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  className="border-b border-gray-50 dark:border-navy-700 hover:bg-gray-50 dark:hover:bg-navy-700 transition-colors"
                 >
                   <td className="px-4 py-3">
                     <Link
@@ -59,7 +59,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                       {bug.trackingId}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 max-w-[300px] truncate">
+                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-[300px] truncate">
                     <Link href={`/bugs/${bug.id}`} className="hover:underline">
                       {bug.title}
                     </Link>
@@ -70,10 +70,10 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                   <td className="px-4 py-3">
                     <StatusBadge status={bug.status} />
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-500">
+                  <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                     {bug.assigneeId ? t("assigned") : t("unassigned")}
                   </td>
-                  <td className="px-4 py-3 text-xs text-gray-500">
+                  <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(bug.createdAt)}
                   </td>
                 </tr>

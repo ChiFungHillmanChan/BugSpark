@@ -11,7 +11,7 @@ from slowapi.util import get_remote_address
 from app.config import get_settings
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
-from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, upload, webhooks
+from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, tokens, upload, webhooks
 
 settings = get_settings()
 
@@ -47,6 +47,7 @@ app.add_middleware(CSRFMiddleware)
 register_exception_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(tokens.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(reports.router, prefix="/api/v1")

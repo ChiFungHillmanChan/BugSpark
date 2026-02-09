@@ -1,16 +1,48 @@
 {
   "name": "@bugspark/widget",
   "version": "0.1.0",
-  "private": true,
+  "description": "Embeddable bug reporting widget with auto screenshot, console logs, network logs, and session recording",
   "type": "module",
   "main": "dist/bugspark.iife.js",
   "module": "dist/bugspark.esm.js",
   "types": "dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist/bugspark.iife.js",
+    "dist/bugspark.iife.js.map",
+    "dist/bugspark.esm.js",
+    "dist/bugspark.esm.js.map",
+    "dist/index.d.ts",
+    "dist/types.d.ts",
+    "dist/config.d.ts"
+  ],
+  "keywords": [
+    "bug-reporting",
+    "bug-tracker",
+    "widget",
+    "screenshot",
+    "error-tracking",
+    "feedback",
+    "session-recording",
+    "console-logs",
+    "network-logs",
+    "embeddable"
+  ],
+  "author": "BugSpark",
+  "license": "MIT",
+  "homepage": "https://github.com/hillmanchan/BugSpark",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hillmanchan/BugSpark.git",
+    "directory": "packages/widget"
+  },
+  "bugs": {
+    "url": "https://github.com/hillmanchan/BugSpark/issues"
+  },
   "scripts": {
     "dev": "rollup -c -w",
     "build": "rollup -c",
     "lint": "tsc --noEmit",
+    "prepublishOnly": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"

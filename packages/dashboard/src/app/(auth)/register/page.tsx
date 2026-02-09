@@ -32,13 +32,13 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      <div className="bg-white dark:bg-navy-800 rounded-lg shadow-sm border border-gray-200 dark:border-navy-700 p-8">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
           {t("createAccount")}
         </h2>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm">
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
             {error}
           </div>
         )}
@@ -60,7 +60,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t("email")}
             </label>
             <input
@@ -69,13 +69,13 @@ export default function RegisterPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400"
               placeholder={t("emailPlaceholder")}
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t("password")}
             </label>
             <div className="relative">
@@ -86,13 +86,13 @@ export default function RegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 placeholder={t("passwordHint")}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
                 tabIndex={-1}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -111,7 +111,7 @@ export default function RegisterPage() {
         </form>
       </div>
 
-      <p className="mt-4 text-center text-sm text-gray-500">
+      <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
         {t("hasAccount")}{" "}
         <Link href="/login" className="text-accent hover:underline font-medium">
           {t("signIn")}

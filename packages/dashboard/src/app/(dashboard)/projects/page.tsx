@@ -81,8 +81,8 @@ export default function ProjectsPage() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="relative bg-white dark:bg-navy-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               {t("createProject")}
             </h3>
             <form onSubmit={handleCreate} className="space-y-4">
@@ -100,7 +100,7 @@ export default function ProjectsPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t("domain")}
                 </label>
                 <input
@@ -108,7 +108,7 @@ export default function ProjectsPage() {
                   value={projectDomain}
                   onChange={(e) => setProjectDomain(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
                   placeholder={t("domainPlaceholder")}
                 />
               </div>

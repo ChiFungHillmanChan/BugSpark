@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await logoutApi();
     setUser(null);
-    router.push("/login");
+    router.push("/");
   }, [router]);
 
   const isSuperadmin = useMemo(() => user?.role === "superadmin", [user]);

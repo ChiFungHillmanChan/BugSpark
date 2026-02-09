@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { loadMDXContent, getDocSlugs } from "@/lib/docs-loader";
@@ -10,15 +10,16 @@ interface DocsPageProps {
 }
 
 export async function generateStaticParams() {
-  return getDocSlugs().map((slug) => ({
-    slug: slug.split("/"),
-  }));
+  return [
+    { slug: undefined },
+    ...getDocSlugs().map((s) => ({ slug: s.split("/") })),
+  ];
 }
 
 export default async function DocsSlugPage({ params }: DocsPageProps) {
   const { slug } = await params;
   if (!slug || slug.length === 0) {
-    notFound();
+    redirect("/docs/getting-started");
   }
 
   const slugPath = slug.join("/");

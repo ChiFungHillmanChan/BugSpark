@@ -3,23 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { docsNavConfig, type DocNavItem } from "./docs-nav-config";
 
-interface DocsSidebarProps {
-  basePath: string;
-}
-
-function NavItem({
-  item,
-  basePath,
-  pathname,
-}: {
+interface NavItemProps {
   item: DocNavItem;
   basePath: string;
   pathname: string;
-}) {
+  t: (key: string) => string;
+}
+
+function NavItem({ item, basePath, pathname, t }: NavItemProps) {
   const fullPath = `${basePath}/${item.slug}`;
   const isActive = pathname === fullPath;
   const hasChildren = item.children && item.children.length > 0;
@@ -33,7 +29,7 @@ function NavItem({
           onClick={() => setIsOpen(!isOpen)}
           className="w-full flex items-center justify-between px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
         >
-          {item.title}
+          {t(item.titleKey)}
           <ChevronRight
             className={cn(
               "w-3.5 h-3.5 transition-transform",
@@ -49,6 +45,7 @@ function NavItem({
                 item={child}
                 basePath={basePath}
                 pathname={pathname}
+                t={t}
               />
             ))}
           </div>
@@ -67,13 +64,18 @@ function NavItem({
           : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
       )}
     >
-      {item.title}
+      {t(item.titleKey)}
     </Link>
   );
 }
 
+interface DocsSidebarProps {
+  basePath: string;
+}
+
 export function DocsSidebar({ basePath }: DocsSidebarProps) {
   const pathname = usePathname();
+  const t = useTranslations("docs");
 
   return (
     <nav className="w-56 shrink-0 space-y-1 pr-6 border-r border-gray-200">
@@ -83,6 +85,7 @@ export function DocsSidebar({ basePath }: DocsSidebarProps) {
           item={item}
           basePath={basePath}
           pathname={pathname}
+          t={t}
         />
       ))}
     </nav>

@@ -1,41 +1,41 @@
 export interface DocNavItem {
-  title: string;
+  titleKey: string;
   slug: string;
   children?: DocNavItem[];
 }
 
 export const docsNavConfig: DocNavItem[] = [
   {
-    title: "Getting Started",
+    titleKey: "gettingStarted",
     slug: "getting-started",
   },
   {
-    title: "Widget",
+    titleKey: "widget",
     slug: "widget",
     children: [
-      { title: "Installation", slug: "widget/installation" },
-      { title: "Configuration", slug: "widget/configuration" },
-      { title: "Annotation Tools", slug: "widget/annotation-tools" },
-      { title: "Advanced", slug: "widget/advanced" },
+      { titleKey: "installation", slug: "widget/installation" },
+      { titleKey: "configuration", slug: "widget/configuration" },
+      { titleKey: "annotationTools", slug: "widget/annotation-tools" },
+      { titleKey: "advanced", slug: "widget/advanced" },
     ],
   },
   {
-    title: "API Reference",
+    titleKey: "apiReference",
     slug: "api",
     children: [
-      { title: "Authentication", slug: "api/authentication" },
-      { title: "Reports", slug: "api/reports" },
-      { title: "Projects", slug: "api/projects" },
-      { title: "Webhooks", slug: "api/webhooks" },
+      { titleKey: "authentication", slug: "api/authentication" },
+      { titleKey: "reports", slug: "api/reports" },
+      { titleKey: "projects", slug: "api/projects" },
+      { titleKey: "webhooks", slug: "api/webhooks" },
     ],
   },
   {
-    title: "Dashboard",
+    titleKey: "dashboard",
     slug: "dashboard",
     children: [
-      { title: "Overview", slug: "dashboard/overview" },
-      { title: "Bug Management", slug: "dashboard/bug-management" },
-      { title: "Project Setup", slug: "dashboard/project-setup" },
+      { titleKey: "overview", slug: "dashboard/overview" },
+      { titleKey: "bugManagement", slug: "dashboard/bug-management" },
+      { titleKey: "projectSetup", slug: "dashboard/project-setup" },
     ],
   },
 ];

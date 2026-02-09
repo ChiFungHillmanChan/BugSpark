@@ -245,14 +245,24 @@
   },
   "docs": {
     "title": "Documentation",
+    "searchPlaceholder": "Search docs...",
+    "previousPage": "Previous",
+    "nextPage": "Next",
     "gettingStarted": "Getting Started",
+    "widget": "Widget",
     "installation": "Installation",
     "configuration": "Configuration",
-    "widgetSetup": "Widget Setup",
+    "annotationTools": "Annotation Tools",
+    "advanced": "Advanced",
     "apiReference": "API Reference",
     "authentication": "Authentication",
-    "endpoints": "Endpoints",
-    "webhooks": "Webhooks"
+    "reports": "Reports",
+    "projects": "Projects",
+    "webhooks": "Webhooks",
+    "dashboard": "Dashboard",
+    "overview": "Overview",
+    "bugManagement": "Bug Management",
+    "projectSetup": "Project Setup"
   },
   "common": {
     "loading": "Loading...",

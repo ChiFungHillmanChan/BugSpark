@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { docsNavConfig, flattenNavItems } from "./docs-nav-config";
 
@@ -12,6 +13,7 @@ interface DocsSearchProps {
 export function DocsSearch({ basePath }: DocsSearchProps) {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const t = useTranslations("docs");
 
   const allItems = useMemo(() => flattenNavItems(docsNavConfig), []);
 
@@ -20,10 +22,10 @@ export function DocsSearch({ basePath }: DocsSearchProps) {
     const lower = query.toLowerCase();
     return allItems.filter(
       (item) =>
-        item.title.toLowerCase().includes(lower) ||
+        t(item.titleKey).toLowerCase().includes(lower) ||
         item.slug.toLowerCase().includes(lower),
     );
-  }, [query, allItems]);
+  }, [query, allItems, t]);
 
   return (
     <div className="relative mb-6">
@@ -35,7 +37,7 @@ export function DocsSearch({ basePath }: DocsSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-          placeholder="Search docs..."
+          placeholder={t("searchPlaceholder")}
           className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
         />
       </div>
@@ -48,7 +50,7 @@ export function DocsSearch({ basePath }: DocsSearchProps) {
               href={`${basePath}/${item.slug}`}
               className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-accent"
             >
-              {item.title}
+              {t(item.titleKey)}
               <span className="ml-2 text-xs text-gray-400">{item.slug}</span>
             </Link>
           ))}

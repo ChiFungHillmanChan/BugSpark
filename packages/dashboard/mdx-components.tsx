@@ -68,19 +68,27 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </code>
     ),
     table: ({ children }) => (
-      <div className="overflow-x-auto mb-4">
-        <table className="w-full text-sm border-collapse">{children}</table>
+      <div className="overflow-x-auto mb-6 rounded-lg border border-gray-200 shadow-sm">
+        <table className="w-full text-sm">{children}</table>
       </div>
     ),
+    thead: ({ children }) => (
+      <thead className="bg-gray-50/80 border-b border-gray-200">
+        {children}
+      </thead>
+    ),
+    tr: ({ children }) => (
+      <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+        {children}
+      </tr>
+    ),
     th: ({ children }) => (
-      <th className="text-left px-3 py-2 border-b-2 border-gray-200 font-semibold text-gray-900">
+      <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
         {children}
       </th>
     ),
     td: ({ children }) => (
-      <td className="px-3 py-2 border-b border-gray-100 text-gray-600">
-        {children}
-      </td>
+      <td className="px-4 py-3 text-gray-600 align-top">{children}</td>
     ),
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-accent/30 pl-4 my-4 text-gray-500 italic">

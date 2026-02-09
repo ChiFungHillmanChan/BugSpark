@@ -21,8 +21,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard },
   { href: "/bugs", labelKey: "bugs" as const, icon: Bug },
   { href: "/projects", labelKey: "projects" as const, icon: FolderKanban },
-  { href: "/settings", labelKey: "settings" as const, icon: Settings },
-  { href: "/docs", labelKey: "docs" as const, icon: BookOpen },
+  { href: "/docs", labelKey: "docs" as const, icon: BookOpen, external: true },
 ];
 
 interface SidebarProps {
@@ -99,6 +98,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
+                {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
@@ -115,12 +115,30 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className="p-4 border-t border-navy-700">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-bold">
+            <Link
+              href="/settings"
+              onClick={onClose}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
+                pathname.startsWith("/settings")
+                  ? "bg-accent text-white"
+                  : "bg-navy-700 text-gray-300 hover:bg-accent hover:text-white",
+              )}
+              title={t("settings")}
+            >
               {userInitials}
-            </div>
+            </Link>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.name}</p>
             </div>
+            <Link
+              href="/settings"
+              onClick={onClose}
+              className="text-gray-400 hover:text-white"
+              title={t("settings")}
+            >
+              <Settings className="w-4 h-4" />
+            </Link>
             <button
               onClick={logout}
               className="text-gray-400 hover:text-white"

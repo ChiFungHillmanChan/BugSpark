@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
 import { loadMDXContent, getDocSlugs } from "@/lib/docs-loader";
 import { DocsContent } from "@/components/docs/docs-content";
 import { getAdjacentDocs } from "@/lib/docs";
@@ -22,8 +23,10 @@ export default async function DocsSlugPage({ params }: DocsPageProps) {
     redirect("/docs/getting-started");
   }
 
+  const locale = await getLocale();
+  const t = await getTranslations("docs");
   const slugPath = slug.join("/");
-  const Content = await loadMDXContent(slugPath);
+  const Content = await loadMDXContent(slugPath, locale);
 
   if (!Content) {
     notFound();
@@ -41,7 +44,7 @@ export default async function DocsSlugPage({ params }: DocsPageProps) {
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-accent"
           >
             <ChevronLeft className="w-4 h-4" />
-            {previous.title}
+            {t(previous.titleKey)}
           </Link>
         ) : (
           <div />
@@ -51,7 +54,7 @@ export default async function DocsSlugPage({ params }: DocsPageProps) {
             href={`/docs/${next.slug}`}
             className="flex items-center gap-1 text-sm text-gray-500 hover:text-accent"
           >
-            {next.title}
+            {t(next.titleKey)}
             <ChevronRight className="w-4 h-4" />
           </Link>
         ) : (

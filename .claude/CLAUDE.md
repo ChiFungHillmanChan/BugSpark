@@ -79,11 +79,14 @@ pnpm test             # vitest run
 - Alembic migrations in `packages/api/migrations/versions/`
 
 ### Dashboard Patterns
-- App Router with `(auth)` and `(dashboard)` route groups
+- App Router with three route groups: `(public)` (landing page, docs), `(auth)` (login, register), `(dashboard)` (protected app)
 - `src/lib/api-client.ts` — Axios instance with CSRF token injection and 401 auto-refresh interceptor
 - `src/hooks/` — TanStack Query hooks for data fetching
 - `src/types/index.ts` — Shared TypeScript interfaces (Project, Report, User, Comment, etc.)
-- `src/i18n/` + `src/messages/` — next-intl for English and Chinese
+- `src/i18n/` + `src/messages/` — next-intl for English and Traditional Chinese (cookie-based, no URL prefix)
+- `content/docs/` — MDX documentation rendered via `@next/mdx` at `/docs/[[...slug]]`
+- `src/components/landing/` — Public landing page components (hero, features, CTA, footer)
+- Auth forms use password visibility toggle (Eye/EyeOff icons) and loading spinners (Loader2 animate-spin) on submit buttons
 
 ### Widget Initialization
 The widget auto-initializes from script tag data attributes:
@@ -106,6 +109,7 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 ### Dashboard Tests
 - Vitest + React Testing Library with jsdom environment
 - Tests in `packages/dashboard/tests/`
+- Use `renderWithIntl` from `tests/test-utils.tsx` for components that use `useTranslations()` (wraps with NextIntlClientProvider)
 
 ### Widget Tests
 - Vitest with browser environment

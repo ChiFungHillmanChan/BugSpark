@@ -6,16 +6,16 @@ import {
   LayoutDashboard,
   Bug,
   FolderKanban,
-  Settings,
+  BookOpen,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/bugs", label: "Bugs", icon: Bug },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, external: false },
+  { href: "/bugs", label: "Bugs", icon: Bug, external: false },
+  { href: "/projects", label: "Projects", icon: FolderKanban, external: false },
+  { href: "/docs", label: "Docs", icon: BookOpen, external: true },
 ];
 
 interface MobileNavProps {
@@ -46,6 +46,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
+                {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium",
                   isActive

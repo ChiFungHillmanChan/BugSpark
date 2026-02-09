@@ -245,14 +245,24 @@
   },
   "docs": {
     "title": "文件",
+    "searchPlaceholder": "搜尋文件...",
+    "previousPage": "上一頁",
+    "nextPage": "下一頁",
     "gettingStarted": "快速開始",
+    "widget": "小工具",
     "installation": "安裝",
     "configuration": "設定",
-    "widgetSetup": "小工具設定",
+    "annotationTools": "標註工具",
+    "advanced": "進階",
     "apiReference": "API 參考",
     "authentication": "身份驗證",
-    "endpoints": "端點",
-    "webhooks": "Webhooks"
+    "reports": "報告",
+    "projects": "專案",
+    "webhooks": "Webhooks",
+    "dashboard": "儀表板",
+    "overview": "總覽",
+    "bugManagement": "錯誤管理",
+    "projectSetup": "專案設定"
   },
   "common": {
     "loading": "載入中...",

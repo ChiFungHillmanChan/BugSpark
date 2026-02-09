@@ -13,6 +13,12 @@ export const queryKeys = {
   comments: {
     list: (reportId: string) => ["comments", reportId] as const,
   },
+  similarBugs: {
+    list: (reportId: string) => ["similarBugs", reportId] as const,
+  },
+  integrations: {
+    list: (projectId: string) => ["integrations", projectId] as const,
+  },
   stats: {
     overview: ["stats", "overview"] as const,
     project: (id: string) => ["stats", "project", id] as const,

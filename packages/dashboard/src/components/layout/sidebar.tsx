@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Bug,
   FolderKanban,
   Settings,
+  BookOpen,
   LogOut,
   ChevronDown,
 } from "lucide-react";
@@ -16,10 +18,11 @@ import { useProjects } from "@/hooks/use-projects";
 import { useState } from "react";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/bugs", label: "Bugs", icon: Bug },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard },
+  { href: "/bugs", labelKey: "bugs" as const, icon: Bug },
+  { href: "/projects", labelKey: "projects" as const, icon: FolderKanban },
+  { href: "/settings", labelKey: "settings" as const, icon: Settings },
+  { href: "/docs", labelKey: "docs" as const, icon: BookOpen },
 ];
 
 interface SidebarProps {
@@ -32,6 +35,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const { data: projects } = useProjects();
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+  const t = useTranslations("nav");
 
   const userInitials = user?.name
     ?.split(" ")
@@ -67,7 +71,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-navy-800 text-sm hover:bg-navy-700"
             >
               <span className="truncate">
-                {projects[0]?.name ?? "Select Project"}
+                {projects[0]?.name ?? t("selectProject")}
               </span>
               <ChevronDown className="w-4 h-4 shrink-0" />
             </button>
@@ -103,7 +107,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 )}
               >
                 <item.icon className="w-5 h-5" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}
@@ -120,7 +124,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <button
               onClick={logout}
               className="text-gray-400 hover:text-white"
-              title="Log out"
+              title={t("logOut")}
             >
               <LogOut className="w-4 h-4" />
             </button>

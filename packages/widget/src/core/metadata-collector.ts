@@ -1,4 +1,5 @@
 import type { DeviceMetadata } from '../types';
+import { getPerformanceMetrics } from './performance-collector';
 
 interface NavigatorWithExtras extends Navigator {
   connection?: { effectiveType?: string };
@@ -7,6 +8,8 @@ interface NavigatorWithExtras extends Navigator {
 
 export function collectMetadata(): DeviceMetadata {
   const nav = navigator as NavigatorWithExtras;
+  const perfMetrics = getPerformanceMetrics();
+  const hasPerformanceData = Object.keys(perfMetrics).length > 0;
 
   return {
     userAgent: navigator.userAgent,
@@ -25,5 +28,6 @@ export function collectMetadata(): DeviceMetadata {
     connection: nav.connection?.effectiveType,
     memory: nav.deviceMemory,
     platform: navigator.platform,
+    performance: hasPerformanceData ? perfMetrics : undefined,
   };
 }

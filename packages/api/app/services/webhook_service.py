@@ -6,6 +6,9 @@ import json
 import logging
 
 import httpx
+from fastapi import BackgroundTasks
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook import Webhook
 
@@ -39,3 +42,23 @@ async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
             )
     except httpx.HTTPError as exc:
         logger.warning("Webhook delivery to %s failed: %s", webhook.url, exc)
+
+
+async def dispatch_webhooks(
+    db: AsyncSession,
+    background_tasks: BackgroundTasks,
+    project_id: str,
+    event: str,
+    payload: dict,
+) -> None:
+    result = await db.execute(
+        select(Webhook).where(
+            Webhook.project_id == project_id,
+            Webhook.is_active.is_(True),
+        )
+    )
+    webhooks = result.scalars().all()
+
+    for webhook in webhooks:
+        if event in webhook.events:
+            background_tasks.add_task(deliver_webhook, webhook, event, payload)

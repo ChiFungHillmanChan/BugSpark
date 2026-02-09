@@ -1,0 +1,98 @@
+# Advanced Widget Usage
+
+Advanced configuration options for the BugSpark widget.
+
+## Custom Metadata
+
+Attach custom metadata to every report from your app:
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  metadata: {
+    appVersion: "2.1.0",
+    environment: "production",
+    featureFlags: { newCheckout: true },
+  },
+});
+```
+
+Metadata is stored as JSON and visible in the report detail view.
+
+## Event Hooks
+
+Listen to widget lifecycle events:
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  onOpen: () => {
+    console.log("Widget opened");
+  },
+  onClose: () => {
+    console.log("Widget closed");
+  },
+  onSubmit: (report) => {
+    console.log("Report submitted:", report.trackingId);
+  },
+  onError: (error) => {
+    console.error("Submission failed:", error);
+  },
+});
+```
+
+## Network Log Filtering
+
+Filter sensitive headers or request bodies from network logs:
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  networkFilter: (entry) => {
+    // Remove Authorization headers
+    delete entry.requestHeaders?.Authorization;
+    // Skip internal endpoints
+    if (entry.url.includes("/internal/")) return null;
+    return entry;
+  },
+});
+```
+
+Returning `null` from the filter function excludes the entry entirely.
+
+## Console Log Filtering
+
+Filter console logs before they are captured:
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  consoleFilter: (entry) => {
+    // Skip verbose debug logs
+    if (entry.level === "debug") return null;
+    return entry;
+  },
+});
+```
+
+## Content Security Policy
+
+If your site uses CSP headers, add the BugSpark domains:
+
+```
+script-src 'self' https://cdn.bugspark.dev;
+connect-src 'self' https://api.bugspark.dev;
+```
+
+For self-hosted deployments, replace with your own API domain.
+
+## Self-Hosted Setup
+
+Point the widget at your own BugSpark API server:
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  apiUrl: "https://bugs.yourcompany.com/api/v1",
+});
+```

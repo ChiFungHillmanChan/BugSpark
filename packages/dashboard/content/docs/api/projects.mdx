@@ -1,0 +1,65 @@
+# Projects API
+
+Manage projects and API keys. All project endpoints require cookie-based authentication.
+
+## Create Project
+
+<ApiEndpoint method="POST" path="/api/v1/projects" description="Create a new project" />
+
+```json
+{
+  "name": "My Web App",
+  "domain": "myapp.com"
+}
+```
+
+### Response (201)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "My Web App",
+  "domain": "myapp.com",
+  "apiKey": "bsk_pub_a1b2c3d4e5f6...",
+  "isActive": true,
+  "createdAt": "2026-01-15T10:30:00Z",
+  "settings": {}
+}
+```
+
+## List Projects
+
+<ApiEndpoint method="GET" path="/api/v1/projects" description="List all active projects for the current user" />
+
+Returns an array of project objects.
+
+## Get Project
+
+<ApiEndpoint method="GET" path="/api/v1/projects/:id" description="Get a single project by ID" />
+
+## Update Project
+
+<ApiEndpoint method="PATCH" path="/api/v1/projects/:id" description="Update project fields" />
+
+```json
+{
+  "name": "Updated Name",
+  "domain": "newdomain.com",
+  "settings": {
+    "webhookUrl": "https://hooks.slack.com/...",
+    "notifyOnCritical": true
+  }
+}
+```
+
+## Delete Project
+
+<ApiEndpoint method="DELETE" path="/api/v1/projects/:id" description="Soft-delete a project (204 No Content)" />
+
+Deleted projects are deactivated, not permanently removed. Their reports are preserved.
+
+## Rotate API Key
+
+<ApiEndpoint method="POST" path="/api/v1/projects/:id/rotate-key" description="Generate a new API key (invalidates the old one)" />
+
+Returns the updated project with the new API key. Make sure to update your widget configuration after rotating.

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
-import type { Project, ProjectWithSecret } from "@/types";
+import type { Project } from "@/types";
 
 export function useProjects() {
   return useQuery({
@@ -16,8 +16,8 @@ export function useProjects() {
 export function useProject(id: string) {
   return useQuery({
     queryKey: queryKeys.projects.detail(id),
-    queryFn: async (): Promise<ProjectWithSecret> => {
-      const response = await apiClient.get<ProjectWithSecret>(
+    queryFn: async (): Promise<Project> => {
+      const response = await apiClient.get<Project>(
         `/projects/${id}`,
       );
       return response.data;
@@ -33,8 +33,8 @@ export function useCreateProject() {
     mutationFn: async (data: {
       name: string;
       domain: string;
-    }): Promise<ProjectWithSecret> => {
-      const response = await apiClient.post<ProjectWithSecret>(
+    }): Promise<Project> => {
+      const response = await apiClient.post<Project>(
         "/projects",
         data,
       );

@@ -2,19 +2,33 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db, validate_api_key
 from app.exceptions import ForbiddenException, NotFoundException
+from app.i18n import get_locale, translate
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
+from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
+from app.services.similarity_service import find_similar_reports
+from app.services.storage_service import generate_presigned_url
 from app.services.tracking_id_service import generate_tracking_id
+from app.services.webhook_service import dispatch_webhooks
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+
+def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
+    """Generate a presigned URL from an S3 object key. Handles legacy full URLs gracefully."""
+    if not key_or_url:
+        return None
+    if key_or_url.startswith("http://") or key_or_url.startswith("https://"):
+        return key_or_url
+    return generate_presigned_url(key_or_url)
 
 
 def _report_to_response(report: Report) -> ReportResponse:
@@ -29,8 +43,8 @@ def _report_to_response(report: Report) -> ReportResponse:
         category=report.category.value if isinstance(report.category, Category) else report.category,
         status=report.status.value if isinstance(report.status, Status) else report.status,
         assignee_id=report.assignee_id,
-        screenshot_url=report.screenshot_url,
-        annotated_screenshot_url=report.annotated_screenshot_url,
+        screenshot_url=_resolve_screenshot_url(report.screenshot_url),
+        annotated_screenshot_url=_resolve_screenshot_url(report.annotated_screenshot_url),
         console_logs=report.console_logs,
         network_logs=report.network_logs,
         user_actions=report.user_actions,
@@ -44,6 +58,7 @@ def _report_to_response(report: Report) -> ReportResponse:
 @router.post("", response_model=ReportResponse, status_code=201)
 async def create_report(
     body: ReportCreate,
+    background_tasks: BackgroundTasks,
     project: Project = Depends(validate_api_key),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
@@ -68,7 +83,12 @@ async def create_report(
     await db.commit()
     await db.refresh(report)
 
-    return _report_to_response(report)
+    response = _report_to_response(report)
+    await dispatch_webhooks(
+        db, background_tasks, str(project.id), "report.created", response.model_dump(mode="json")
+    )
+
+    return response
 
 
 @router.get("", response_model=ReportListResponse)
@@ -115,21 +135,23 @@ async def list_reports(
 @router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
     report_id: str,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
+    locale = get_locale(request)
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:
-        raise NotFoundException("Report not found")
+        raise NotFoundException(translate("report.not_found", locale))
 
     user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
     project_check = await db.execute(
         select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
     )
     if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException("Not authorized to view this report")
+        raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     return _report_to_response(report)
 
@@ -138,21 +160,24 @@ async def get_report(
 async def update_report(
     report_id: str,
     body: ReportUpdate,
+    request: Request,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
+    locale = get_locale(request)
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:
-        raise NotFoundException("Report not found")
+        raise NotFoundException(translate("report.not_found", locale))
 
     user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
     project_check = await db.execute(
         select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
     )
     if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException("Not authorized to update this report")
+        raise ForbiddenException(translate("report.not_authorized_update", locale))
 
     update_data = body.model_dump(exclude_unset=True)
     if "severity" in update_data and update_data["severity"] is not None:
@@ -168,27 +193,85 @@ async def update_report(
     await db.commit()
     await db.refresh(report)
 
-    return _report_to_response(report)
+    response = _report_to_response(report)
+    await dispatch_webhooks(
+        db, background_tasks, str(report.project_id), "report.updated", response.model_dump(mode="json")
+    )
+
+    return response
 
 
 @router.delete("/{report_id}", status_code=204)
 async def delete_report(
     report_id: str,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
+    locale = get_locale(request)
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
     if report is None:
-        raise NotFoundException("Report not found")
+        raise NotFoundException(translate("report.not_found", locale))
 
     user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
     project_check = await db.execute(
         select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
     )
     if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException("Not authorized to delete this report")
+        raise ForbiddenException(translate("report.not_authorized_delete", locale))
 
     await db.delete(report)
     await db.commit()
+
+
+@router.get("/{report_id}/similar", response_model=SimilarReportsResponse)
+async def get_similar_reports(
+    report_id: str,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    threshold: float = Query(0.3, ge=0.0, le=1.0),
+    limit: int = Query(5, ge=1, le=20),
+) -> SimilarReportsResponse:
+    locale = get_locale(request)
+    result = await db.execute(select(Report).where(Report.id == report_id))
+    report = result.scalar_one_or_none()
+
+    if report is None:
+        raise NotFoundException(translate("report.not_found", locale))
+
+    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+    project_check = await db.execute(
+        select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
+    )
+    if project_check.scalar_one_or_none() is None:
+        raise ForbiddenException(translate("report.not_authorized_view", locale))
+
+    similar = await find_similar_reports(
+        db, report.id, report.project_id, threshold=threshold, limit=limit
+    )
+
+    items = [
+        SimilarReportItem(
+            id=entry["report"].id,
+            tracking_id=entry["report"].tracking_id,
+            title=entry["report"].title,
+            severity=(
+                entry["report"].severity.value
+                if isinstance(entry["report"].severity, Severity)
+                else entry["report"].severity
+            ),
+            status=(
+                entry["report"].status.value
+                if isinstance(entry["report"].status, Status)
+                else entry["report"].status
+            ),
+            created_at=entry["report"].created_at,
+            similarity_score=entry["similarity_score"],
+        )
+        for entry in similar
+    ]
+
+    return SimilarReportsResponse(items=items)

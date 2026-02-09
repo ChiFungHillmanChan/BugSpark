@@ -1,0 +1,70 @@
+# Webhooks
+
+BugSpark can send real-time notifications to external services when events occur.
+
+## Supported Events
+
+| Event | Description |
+|-------|-------------|
+| `report.created` | A new bug report was submitted |
+| `report.updated` | A report was updated (status change, assignment, etc.) |
+
+## Webhook Payload
+
+When an event fires, BugSpark sends a `POST` request to your configured URL with this payload:
+
+```json
+{
+  "event": "report.created",
+  "timestamp": "2026-01-15T10:30:00Z",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "projectId": "...",
+    "trackingId": "BSK-42",
+    "title": "Checkout button unresponsive",
+    "description": "Clicking Pay Now does nothing",
+    "severity": "high",
+    "category": "bug",
+    "status": "new",
+    "reporterIdentifier": "user@example.com",
+    "createdAt": "2026-01-15T10:30:00Z",
+    "updatedAt": "2026-01-15T10:30:00Z"
+  }
+}
+```
+
+## Configuring Webhooks
+
+Set the webhook URL in your project settings:
+
+```json
+PATCH /api/v1/projects/:id
+{
+  "settings": {
+    "webhookUrl": "https://hooks.slack.com/services/T00/B00/xxx"
+  }
+}
+```
+
+## Slack Integration
+
+To send bug reports to a Slack channel:
+
+1. Create an [Incoming Webhook](https://api.slack.com/messaging/webhooks) in your Slack workspace
+2. Copy the webhook URL
+3. Set it in your project settings via the API or dashboard
+4. New reports will post to your channel automatically
+
+## Retry Policy
+
+Failed webhook deliveries are retried up to 3 times with exponential backoff:
+
+- 1st retry: 10 seconds
+- 2nd retry: 60 seconds
+- 3rd retry: 5 minutes
+
+After 3 failures, the webhook is marked as failed and no further retries are attempted for that event.
+
+## Security
+
+Webhook payloads are sent over HTTPS only. Verify the source by checking the `X-BugSpark-Signature` header, which contains an HMAC-SHA256 signature of the request body using your project's API key as the secret.

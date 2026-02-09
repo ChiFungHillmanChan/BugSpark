@@ -57,6 +57,14 @@ export interface SessionEvent {
   data?: Record<string, unknown>;
 }
 
+export interface PerformanceMetrics {
+  lcp?: number;
+  fid?: number;
+  cls?: number;
+  ttfb?: number;
+  inp?: number;
+}
+
 export interface DeviceMetadata {
   userAgent: string;
   viewport: { width: number; height: number };
@@ -68,6 +76,7 @@ export interface DeviceMetadata {
   connection?: string;
   memory?: number;
   platform: string;
+  performance?: PerformanceMetrics;
 }
 
 export type AnnotationToolType =

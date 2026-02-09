@@ -3,6 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { ScreenshotViewer } from "@/components/bug-detail/screenshot-viewer";
@@ -11,6 +12,8 @@ import { NetworkWaterfall } from "@/components/bug-detail/network-waterfall";
 import { SessionTimeline } from "@/components/bug-detail/session-timeline";
 import { MetadataPanel } from "@/components/bug-detail/metadata-panel";
 import { CommentThread } from "@/components/bug-detail/comment-thread";
+import { ExportToTracker } from "@/components/bug-detail/export-to-tracker";
+import { UserFlowDiagram } from "@/components/bug-detail/user-flow-diagram";
 import { useBug, useUpdateBug } from "@/hooks/use-bugs";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/shared/skeleton-loader";
@@ -18,11 +21,11 @@ import type { Status, Severity } from "@/types";
 
 type Tab = "console" | "network" | "session" | "device";
 
-const TABS: { key: Tab; label: string }[] = [
-  { key: "console", label: "Console Logs" },
-  { key: "network", label: "Network" },
-  { key: "session", label: "Session" },
-  { key: "device", label: "Device Info" },
+const TAB_KEYS: { key: Tab; labelKey: string }[] = [
+  { key: "console", labelKey: "consoleLogs" },
+  { key: "network", labelKey: "network" },
+  { key: "session", labelKey: "session" },
+  { key: "device", labelKey: "deviceInfo" },
 ];
 
 const STATUS_OPTIONS: Status[] = [
@@ -37,6 +40,7 @@ export default function BugDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useTranslations("bugs");
   const { data: bug, isLoading } = useBug(id);
   const updateBug = useUpdateBug();
   const [activeTab, setActiveTab] = useState<Tab>("console");
@@ -62,9 +66,9 @@ export default function BugDetailPage({
   if (!bug) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">Bug report not found.</p>
+        <p className="text-gray-500">{t("notFound")}</p>
         <Link href="/bugs" className="text-accent hover:underline text-sm mt-2 inline-block">
-          Back to bugs
+          {t("backToBugs")}
         </Link>
       </div>
     );
@@ -92,9 +96,11 @@ export default function BugDetailPage({
             annotatedScreenshotUrl={bug.annotatedScreenshotUrl}
           />
 
+          <UserFlowDiagram userActions={bug.userActions} />
+
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
             <div className="flex border-b border-gray-200">
-              {TABS.map((tab) => (
+              {TAB_KEYS.map((tab) => (
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
@@ -104,7 +110,7 @@ export default function BugDetailPage({
                       : "text-gray-500 border-transparent hover:text-gray-700"
                   }`}
                 >
-                  {tab.label}
+                  {t(tab.labelKey)}
                 </button>
               ))}
             </div>
@@ -128,7 +134,7 @@ export default function BugDetailPage({
         <div className="space-y-6">
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4">
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">Status</label>
+              <label className="text-xs font-medium text-gray-500 block mb-1">{t("status")}</label>
               <select
                 value={bug.status}
                 onChange={(e) =>
@@ -139,16 +145,25 @@ export default function BugDetailPage({
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {status.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </option>
-                ))}
+                {STATUS_OPTIONS.map((status) => {
+                  const statusKeyMap: Record<Status, string> = {
+                    new: "statusNew",
+                    triaging: "statusTriaging",
+                    in_progress: "statusInProgress",
+                    resolved: "statusResolved",
+                    closed: "statusClosed",
+                  };
+                  return (
+                    <option key={status} value={status}>
+                      {t(statusKeyMap[status])}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">Severity</label>
+              <label className="text-xs font-medium text-gray-500 block mb-1">{t("severity")}</label>
               <select
                 value={bug.severity}
                 onChange={(e) =>
@@ -159,27 +174,40 @@ export default function BugDetailPage({
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               >
-                {SEVERITY_OPTIONS.map((severity) => (
-                  <option key={severity} value={severity}>
-                    {severity.charAt(0).toUpperCase() + severity.slice(1)}
-                  </option>
-                ))}
+                {SEVERITY_OPTIONS.map((severity) => {
+                  const severityKeyMap: Record<Severity, string> = {
+                    critical: "severityCritical",
+                    high: "severityHigh",
+                    medium: "severityMedium",
+                    low: "severityLow",
+                  };
+                  return (
+                    <option key={severity} value={severity}>
+                      {t(severityKeyMap[severity])}
+                    </option>
+                  );
+                })}
               </select>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">Assignee</label>
-              <p className="text-sm text-gray-900">{bug.assigneeId ? "Assigned" : "Unassigned"}</p>
+              <label className="text-xs font-medium text-gray-500 block mb-1">{t("assignee")}</label>
+              <p className="text-sm text-gray-900">{bug.assigneeId ? t("assigned") : t("unassigned")}</p>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">Created</label>
+              <label className="text-xs font-medium text-gray-500 block mb-1">{t("created")}</label>
               <p className="text-sm text-gray-900">{formatDate(bug.createdAt)}</p>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">Reporter</label>
-              <p className="text-sm text-gray-900">{bug.reporterIdentifier ?? "Anonymous"}</p>
+              <label className="text-xs font-medium text-gray-500 block mb-1">{t("reporter")}</label>
+              <p className="text-sm text-gray-900">{bug.reporterIdentifier ?? t("anonymous")}</p>
+            </div>
+
+            <div className="pt-2 border-t border-gray-100">
+              <label className="text-xs font-medium text-gray-500 block mb-2">{t("export")}</label>
+              <ExportToTracker reportId={bug.id} projectId={bug.projectId} />
             </div>
           </div>
 

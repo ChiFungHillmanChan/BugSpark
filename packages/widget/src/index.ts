@@ -4,6 +4,7 @@ import * as consoleInterceptor from './core/console-interceptor';
 import * as networkInterceptor from './core/network-interceptor';
 import * as errorTracker from './core/error-tracker';
 import * as sessionRecorder from './core/session-recorder';
+import * as performanceCollector from './core/performance-collector';
 import { collectMetadata } from './core/metadata-collector';
 import { captureScreenshot } from './core/screenshot-engine';
 import * as widgetContainer from './ui/widget-container';
@@ -40,6 +41,7 @@ function init(userConfig: Partial<BugSparkConfig>): void {
   if (config.enableConsoleLogs) consoleInterceptor.start();
   if (config.enableNetworkLogs) networkInterceptor.start(config.endpoint);
   errorTracker.start();
+  performanceCollector.initPerformanceObservers();
   if (config.enableSessionRecording) sessionRecorder.start();
 
   widgetContainer.mount(config.primaryColor, config.theme);
@@ -144,6 +146,7 @@ function destroy(): void {
   networkInterceptor.stop();
   errorTracker.stop();
   sessionRecorder.stop();
+  performanceCollector.stop();
   reportModal.unmount();
   annotationOverlay.unmount();
   floatingButton.unmount();

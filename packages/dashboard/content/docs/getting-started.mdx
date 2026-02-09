@@ -1,0 +1,64 @@
+# Getting Started
+
+Get BugSpark running in your project in three steps.
+
+## 1. Create a Project
+
+Sign up at [BugSpark Dashboard](/register) and create your first project.
+You will need:
+
+- A **project name** (e.g. "My Web App")
+- The **domain** where your app runs (e.g. `myapp.com`)
+
+After creation, you will receive an **API key** that looks like `bsk_pub_...`. Keep this key handy.
+
+## 2. Install the Widget
+
+Add the BugSpark widget to your frontend. Choose the method that fits your stack:
+
+### Script Tag (simplest)
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+### NPM Package
+
+```bash
+npm install @bugspark/widget
+```
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+## 3. Start Receiving Reports
+
+Once the widget is installed, your users can click the bug button to submit reports.
+Each report automatically includes:
+
+- **Screenshot** with optional annotations
+- **Console logs** (errors, warnings, info)
+- **Network requests** (failed calls, slow responses)
+- **Device metadata** (browser, OS, viewport size)
+- **User action timeline** (clicks, navigations, form submissions)
+
+View all reports in the [Dashboard](/dashboard). Reports are organized by project and can be filtered by severity, status, and date range.
+
+---
+
+## Next Steps
+
+- [Widget Configuration](/docs/widget/configuration) — Customize theme, position, and behavior
+- [API Authentication](/docs/api/authentication) — Use the REST API directly
+- [Dashboard Overview](/docs/dashboard/overview) — Learn the dashboard features

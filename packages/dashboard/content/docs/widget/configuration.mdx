@@ -1,0 +1,82 @@
+# Widget Configuration
+
+Customize the widget appearance, behavior, and data collection.
+
+## Configuration Options
+
+Pass options to `BugSpark.init()` or use `data-*` attributes on the script tag:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `projectKey` | `string` | required | Your project API key (`bsk_pub_...`) |
+| `position` | `string` | `"bottom-right"` | Widget position: `bottom-right`, `bottom-left`, `top-right`, `top-left` |
+| `theme.accent` | `string` | `"#e94560"` | Accent color for the widget button and UI |
+| `theme.darkMode` | `boolean` | `false` | Use dark theme for the widget modal |
+| `collectConsole` | `boolean` | `true` | Capture console logs automatically |
+| `collectNetwork` | `boolean` | `true` | Capture network requests |
+| `collectActions` | `boolean` | `true` | Track user actions (clicks, inputs) |
+| `maxConsoleLogs` | `number` | `50` | Maximum number of console entries to capture |
+| `maxNetworkLogs` | `number` | `30` | Maximum number of network requests to capture |
+| `reporterIdentifier` | `string` | `undefined` | Identify the user submitting the report |
+
+## JavaScript Example
+
+```typescript
+BugSpark.init({
+  projectKey: "bsk_pub_abc123",
+  position: "bottom-left",
+  theme: {
+    accent: "#6366f1",
+    darkMode: true,
+  },
+  collectConsole: true,
+  collectNetwork: true,
+  collectActions: true,
+  maxConsoleLogs: 100,
+  reporterIdentifier: currentUser.email,
+});
+```
+
+## Script Tag Attributes
+
+When using the script tag, pass options as `data-*` attributes:
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="bsk_pub_abc123"
+  data-position="bottom-left"
+  data-accent="#6366f1"
+  data-dark-mode="true"
+  data-reporter="user@example.com"
+  async
+></script>
+```
+
+## Identifying Users
+
+Set `reporterIdentifier` to associate bug reports with specific users. This is useful for follow-up and deduplication:
+
+```typescript
+// After user logs in
+BugSpark.setReporter(user.email);
+
+// Or during init
+BugSpark.init({
+  projectKey: "...",
+  reporterIdentifier: user.email,
+});
+```
+
+## Programmatic Control
+
+```typescript
+// Open the report form
+BugSpark.open();
+
+// Close the report form
+BugSpark.close();
+
+// Destroy the widget
+BugSpark.destroy();
+```

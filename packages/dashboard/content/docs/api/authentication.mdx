@@ -1,0 +1,82 @@
+# Authentication
+
+BugSpark uses two authentication methods depending on the context:
+
+- **Cookie-based auth** for the dashboard (browser sessions)
+- **API key auth** for the widget and external integrations
+
+## API Base URL
+
+All API endpoints are prefixed with:
+
+```
+https://api.bugspark.dev/api/v1
+```
+
+For self-hosted instances, replace with your own domain.
+
+## Cookie-Based Authentication
+
+The dashboard uses httpOnly cookies for secure session management.
+
+### Register
+
+<ApiEndpoint method="POST" path="/api/v1/auth/register" description="Create a new user account" />
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+Returns the user object and sets `bugspark_access_token` and `bugspark_refresh_token` cookies.
+
+### Login
+
+<ApiEndpoint method="POST" path="/api/v1/auth/login" description="Authenticate and receive session cookies" />
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+### Refresh Token
+
+<ApiEndpoint method="POST" path="/api/v1/auth/refresh" description="Rotate access token using refresh cookie" />
+
+No request body required. The refresh token is read from the `bugspark_refresh_token` cookie.
+
+### Get Current User
+
+<ApiEndpoint method="GET" path="/api/v1/auth/me" description="Get authenticated user profile" />
+
+### Logout
+
+<ApiEndpoint method="POST" path="/api/v1/auth/logout" description="Clear session cookies" />
+
+## API Key Authentication
+
+The widget and external integrations authenticate using a project API key passed in the `X-API-Key` header:
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/reports \
+  -H "X-API-Key: bsk_pub_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Button broken", "description": "...", "severity": "high", "category": "bug"}'
+```
+
+API keys are scoped to a single project. You can find your key in the project settings or rotate it via the API.
+
+## Error Responses
+
+Authentication errors return HTTP 401:
+
+```json
+{
+  "detail": "Invalid email or password."
+}
+```

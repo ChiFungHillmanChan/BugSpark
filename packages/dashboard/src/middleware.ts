@@ -1,21 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { LOCALE_COOKIE_NAME, defaultLocale, locales } from "@/i18n/config";
+import type { Locale } from "@/i18n/config";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+const PUBLIC_PATHS = ["/login", "/register", "/docs"];
 
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
-  const isPublicPath = PUBLIC_PATHS.some((path) =>
-    pathname.startsWith(path),
-  );
+  const isPublicPath =
+    pathname === "/" ||
+    PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+
+  const response = NextResponse.next();
+
+  const cookieLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+  if (!cookieLocale || !locales.includes(cookieLocale as Locale)) {
+    response.cookies.set(LOCALE_COOKIE_NAME, defaultLocale, {
+      path: "/",
+      maxAge: 31536000,
+      sameSite: "lax",
+    });
+  }
 
   if (isPublicPath) {
-    return NextResponse.next();
+    return response;
   }
 
   // Client-side auth check handles redirects via AuthProvider
   // Middleware only ensures static/api paths are not intercepted
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

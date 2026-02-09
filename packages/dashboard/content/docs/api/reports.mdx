@@ -1,0 +1,115 @@
+# Reports API
+
+Manage bug reports programmatically.
+
+## Create Report
+
+<ApiEndpoint method="POST" path="/api/v1/reports" description="Submit a new bug report (requires API key)" />
+
+**Authentication:** API key via `X-API-Key` header.
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `title` | `string` | yes | Short summary of the bug |
+| `description` | `string` | yes | Detailed description |
+| `severity` | `string` | yes | `critical`, `high`, `medium`, or `low` |
+| `category` | `string` | yes | `bug`, `ui`, `performance`, `crash`, or `other` |
+| `reporter_identifier` | `string` | no | Email or ID of the reporter |
+| `screenshot_url` | `string` | no | S3 object key from the upload endpoint |
+| `annotated_screenshot_url` | `string` | no | Annotated screenshot key |
+| `console_logs` | `array` | no | Captured console entries |
+| `network_logs` | `array` | no | Captured network requests |
+| `user_actions` | `array` | no | Recorded user actions |
+| `metadata` | `object` | no | Custom key-value pairs |
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/reports \
+  -H "X-API-Key: bsk_pub_abc123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Checkout button unresponsive",
+    "description": "Clicking Pay Now does nothing on mobile Safari",
+    "severity": "high",
+    "category": "bug",
+    "reporter_identifier": "user@example.com",
+    "metadata": {"page": "/checkout", "cart_total": 49.99}
+  }'
+```
+
+### Response (201)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "projectId": "...",
+  "trackingId": "BSK-42",
+  "title": "Checkout button unresponsive",
+  "severity": "high",
+  "category": "bug",
+  "status": "new",
+  "createdAt": "2026-01-15T10:30:00Z",
+  "updatedAt": "2026-01-15T10:30:00Z"
+}
+```
+
+## List Reports
+
+<ApiEndpoint method="GET" path="/api/v1/reports" description="List reports for your projects (requires auth cookie)" />
+
+### Query Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `project_id` | `uuid` | all | Filter by project |
+| `status` | `string` | all | Filter by status |
+| `severity` | `string` | all | Filter by severity |
+| `search` | `string` | none | Search title and description |
+| `page` | `int` | 1 | Page number |
+| `page_size` | `int` | 20 | Items per page (max 100) |
+
+### Response
+
+```json
+{
+  "items": [...],
+  "total": 142,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+## Get Report
+
+<ApiEndpoint method="GET" path="/api/v1/reports/:id" description="Get a single report by ID" />
+
+## Update Report
+
+<ApiEndpoint method="PATCH" path="/api/v1/reports/:id" description="Update report fields" />
+
+```json
+{
+  "status": "in_progress",
+  "severity": "critical",
+  "assignee_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Delete Report
+
+<ApiEndpoint method="DELETE" path="/api/v1/reports/:id" description="Delete a report (204 No Content)" />
+
+## Upload Screenshot
+
+<ApiEndpoint method="POST" path="/api/v1/upload/screenshot" description="Upload a screenshot file (requires API key)" />
+
+Send as `multipart/form-data` with a `file` field:
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/upload/screenshot \
+  -H "X-API-Key: bsk_pub_abc123" \
+  -F "file=@screenshot.png"
+```
+
+Returns `{"key": "screenshots/abc123.png"}` — pass this key as `screenshot_url` when creating a report.

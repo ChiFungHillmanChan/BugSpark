@@ -3,9 +3,10 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.schemas import CamelModel
+from app.utils.sanitize import sanitize_text
 
 
 class ReportCreate(BaseModel):
@@ -21,6 +22,11 @@ class ReportCreate(BaseModel):
     user_actions: dict | list | None = None
     metadata: dict | None = None
 
+    @field_validator("title", "description")
+    @classmethod
+    def sanitize_fields(cls, value: str) -> str:
+        return sanitize_text(value)
+
 
 class ReportUpdate(BaseModel):
     title: str | None = None
@@ -29,6 +35,13 @@ class ReportUpdate(BaseModel):
     category: str | None = None
     status: str | None = None
     assignee_id: uuid.UUID | None = None
+
+    @field_validator("title", "description")
+    @classmethod
+    def sanitize_fields(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return sanitize_text(value)
 
 
 class ReportResponse(CamelModel):

@@ -19,7 +19,13 @@ class Settings(BaseSettings):
     S3_BUCKET_NAME: str = "bugspark-uploads"
     S3_PUBLIC_URL: str = "http://localhost:9000/bugspark-uploads"
 
+    ANTHROPIC_API_KEY: str = ""
+
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: str = "lax"
 
     @property
     def cors_origins_list(self) -> list[str]:

@@ -9,6 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+import { useTranslations } from "next-intl";
 import type { BugTrend } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -18,19 +19,21 @@ interface BugTrendChartProps {
 }
 
 export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
+  const t = useTranslations("dashboard");
+
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-sm text-gray-400">
-        No trend data available
+        {t("noDataYet")}
       </div>
     );
   }
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-      <h3 className="text-sm font-medium text-gray-500 mb-4">Bug Trend (30d)</h3>
+      <h3 className="text-sm font-medium text-gray-500 mb-4">{t("bugTrend")}</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

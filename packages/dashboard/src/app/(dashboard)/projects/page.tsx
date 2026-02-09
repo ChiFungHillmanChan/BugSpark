@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { Plus, FolderKanban } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -9,6 +10,7 @@ import { SkeletonCard } from "@/components/shared/skeleton-loader";
 import { useProjects, useCreateProject } from "@/hooks/use-projects";
 
 export default function ProjectsPage() {
+  const t = useTranslations("projects");
   const { data: projects, isLoading } = useProjects();
   const createProject = useCreateProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,14 +35,14 @@ export default function ProjectsPage() {
   return (
     <div>
       <PageHeader
-        title="Projects"
+        title={t("title")}
         actions={
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium"
           >
             <Plus className="w-4 h-4" />
-            Create Project
+            {t("createProject")}
           </button>
         }
       />
@@ -53,15 +55,15 @@ export default function ProjectsPage() {
         </div>
       ) : !projects || projects.length === 0 ? (
         <EmptyState
-          title="No projects yet"
-          description="Create your first project to start tracking bugs."
+          title={t("noProjects")}
+          description={t("noProjectsDescription")}
           icon={<FolderKanban />}
           action={
             <button
               onClick={() => setIsModalOpen(true)}
               className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium"
             >
-              Create Project
+              {t("createProject")}
             </button>
           }
         />
@@ -81,12 +83,12 @@ export default function ProjectsPage() {
           />
           <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Create Project
+              {t("createProject")}
             </h3>
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Project Name
+                  {t("projectName")}
                 </label>
                 <input
                   type="text"
@@ -94,12 +96,12 @@ export default function ProjectsPage() {
                   onChange={(e) => setProjectName(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  placeholder="My App"
+                  placeholder={t("projectNamePlaceholder")}
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Domain
+                  {t("domain")}
                 </label>
                 <input
                   type="text"
@@ -107,7 +109,7 @@ export default function ProjectsPage() {
                   onChange={(e) => setProjectDomain(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  placeholder="myapp.com"
+                  placeholder={t("domainPlaceholder")}
                 />
               </div>
               <div className="flex justify-end gap-3">
@@ -116,14 +118,14 @@ export default function ProjectsPage() {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="submit"
                   disabled={createProject.isPending}
                   className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50"
                 >
-                  {createProject.isPending ? "Creating..." : "Create"}
+                  {createProject.isPending ? t("creating") : t("create")}
                 </button>
               </div>
             </form>

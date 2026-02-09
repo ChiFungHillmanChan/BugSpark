@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { useComments, useAddComment } from "@/hooks/use-comments";
 
@@ -9,6 +10,7 @@ interface CommentThreadProps {
 }
 
 export function CommentThread({ reportId }: CommentThreadProps) {
+  const t = useTranslations("bugs");
   const { data: comments, isLoading } = useComments(reportId);
   const addComment = useAddComment();
   const [commentBody, setCommentBody] = useState("");
@@ -25,7 +27,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-900 mb-4">Comments</h3>
+      <h3 className="text-sm font-medium text-gray-900 mb-4">{t("comments")}</h3>
 
       <div className="space-y-4 mb-4 max-h-64 overflow-y-auto">
         {isLoading && (
@@ -41,7 +43,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
 
         {!isLoading && comments?.length === 0 && (
           <p className="text-sm text-gray-400 text-center py-4">
-            No comments yet. Be the first to comment.
+            {t("noCommentsYet")}
           </p>
         )}
 
@@ -73,7 +75,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
         <textarea
           value={commentBody}
           onChange={(e) => setCommentBody(e.target.value)}
-          placeholder="Add a comment..."
+          placeholder={t("addComment")}
           rows={2}
           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
         />
@@ -82,7 +84,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
           disabled={!commentBody.trim() || addComment.isPending}
           className="self-end px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50"
         >
-          Send
+          {t("send")}
         </button>
       </form>
     </div>

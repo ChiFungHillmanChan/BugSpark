@@ -1,11 +1,34 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useAuth } from "@/providers/auth-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
+import { Bug } from "lucide-react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
+  const t = useTranslations("common");
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-3">
+          <Bug className="w-10 h-10 text-accent animate-pulse" />
+          <span className="text-sm text-gray-500">{t("loading")}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    router.replace("/login");
+    return null;
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">

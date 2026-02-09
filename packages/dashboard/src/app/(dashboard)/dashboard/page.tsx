@@ -1,6 +1,7 @@
 "use client";
 
 import { Bug, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { BugTrendChart } from "@/components/dashboard/bug-trend-chart";
@@ -17,6 +18,7 @@ function formatHours(hours: number): string {
 }
 
 export default function DashboardPage() {
+  const t = useTranslations("dashboard");
   const { data: stats, isLoading: isStatsLoading } = useDashboardStats();
   const { data: bugsData, isLoading: isBugsLoading } = useBugs({
     pageSize: 5,
@@ -26,7 +28,7 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <PageHeader title="Dashboard" />
+      <PageHeader title={t("title")} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {isStatsLoading ? (
@@ -36,22 +38,22 @@ export default function DashboardPage() {
         ) : (
           <>
             <StatCard
-              label="Total Bugs"
+              label={t("totalBugs")}
               value={stats?.totalBugs ?? 0}
               icon={Bug}
             />
             <StatCard
-              label="Open Bugs"
+              label={t("openBugs")}
               value={stats?.openBugs ?? 0}
               icon={AlertCircle}
             />
             <StatCard
-              label="Resolved Today"
+              label={t("resolvedToday")}
               value={stats?.resolvedToday ?? 0}
               icon={CheckCircle2}
             />
             <StatCard
-              label="Avg Resolution"
+              label={t("avgResolution")}
               value={formatHours(stats?.avgResolutionHours ?? 0)}
               icon={Clock}
             />

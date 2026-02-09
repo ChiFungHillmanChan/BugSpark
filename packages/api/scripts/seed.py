@@ -22,7 +22,7 @@ from app.models.comment import Comment
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
-from app.routers.projects import _generate_api_key, _generate_api_secret
+from app.routers.projects import _generate_api_key
 from app.services.auth_service import hash_password
 
 DEMO_EMAIL = "test@bugspark.dev"
@@ -122,7 +122,6 @@ async def seed() -> None:
                 name=project_data["name"],
                 domain=project_data["domain"],
                 api_key=_generate_api_key(),
-                api_secret=_generate_api_secret(),
             )
             db.add(project)
             created_projects.append(project)

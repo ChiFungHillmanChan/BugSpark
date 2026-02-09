@@ -1,13 +1,17 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+import secrets
+
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.dependencies import get_current_user, get_db
 from app.exceptions import BadRequestException, UnauthorizedException
+from app.i18n import get_locale, translate
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import LoginRequest, RegisterRequest
 from app.schemas.user import UserResponse
 from app.services.auth_service import (
     create_access_token,
@@ -20,11 +24,69 @@ from app.services.auth_service import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/register", response_model=TokenResponse)
-async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
+    settings = get_settings()
+    csrf_token = secrets.token_hex(32)
+
+    response.set_cookie(
+        key="bugspark_access_token",
+        value=access_token,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+    response.set_cookie(
+        key="bugspark_refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/api/v1/auth/refresh",
+        max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+    response.set_cookie(
+        key="bugspark_csrf_token",
+        value=csrf_token,
+        httponly=False,
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+        path="/",
+        max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+    )
+
+
+def _clear_auth_cookies(response: Response) -> None:
+    settings = get_settings()
+    response.delete_cookie(
+        key="bugspark_access_token",
+        path="/",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+    )
+    response.delete_cookie(
+        key="bugspark_refresh_token",
+        path="/api/v1/auth/refresh",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+    )
+    response.delete_cookie(
+        key="bugspark_csrf_token",
+        path="/",
+        secure=settings.COOKIE_SECURE,
+        samesite=settings.COOKIE_SAMESITE,
+    )
+
+
+@router.post("/register", response_model=UserResponse)
+async def register(
+    body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
+) -> UserResponse:
+    locale = get_locale(request)
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
-        raise BadRequestException("Email already registered")
+        raise BadRequestException(translate("auth.email_registered", locale))
 
     user = User(
         email=body.email,
@@ -37,58 +99,65 @@ async def register(body: RegisterRequest, db: AsyncSession = Depends(get_db)) ->
 
     access_token = create_access_token(str(user.id), user.email)
     refresh_token = create_refresh_token(str(user.id))
+    _set_auth_cookies(response, access_token, refresh_token)
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        user=UserResponse.model_validate(user),
-    )
+    return UserResponse.model_validate(user)
 
 
-@router.post("/login", response_model=TokenResponse)
-async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+@router.post("/login", response_model=UserResponse)
+async def login(
+    body: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
+) -> UserResponse:
+    locale = get_locale(request)
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
     if user is None or not verify_password(body.password, user.hashed_password):
-        raise UnauthorizedException("Invalid email or password")
+        raise UnauthorizedException(translate("auth.invalid_credentials", locale))
 
     access_token = create_access_token(str(user.id), user.email)
     refresh_token = create_refresh_token(str(user.id))
+    _set_auth_cookies(response, access_token, refresh_token)
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        user=UserResponse.model_validate(user),
-    )
+    return UserResponse.model_validate(user)
 
 
-@router.post("/refresh", response_model=TokenResponse)
-async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)) -> TokenResponse:
+@router.post("/refresh", response_model=UserResponse)
+async def refresh(
+    request: Request, response: Response, db: AsyncSession = Depends(get_db)
+) -> UserResponse:
+    locale = get_locale(request)
+    token = request.cookies.get("bugspark_refresh_token")
+    if not token:
+        raise UnauthorizedException(translate("auth.missing_refresh", locale))
+
     try:
-        token = body.get_token()
         payload = verify_token(token)
-    except (ValueError, Exception):
-        raise UnauthorizedException("Invalid refresh token")
+    except ValueError:
+        raise UnauthorizedException(translate("auth.invalid_refresh", locale))
 
     if payload.get("type") != "refresh":
-        raise UnauthorizedException("Invalid token type")
+        raise UnauthorizedException(translate("auth.invalid_token_type", locale))
 
     user_id = payload.get("sub")
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
 
     if user is None:
-        raise UnauthorizedException("User not found")
+        raise UnauthorizedException(translate("auth.user_not_found", locale))
 
     access_token = create_access_token(str(user.id), user.email)
     new_refresh_token = create_refresh_token(str(user.id))
+    _set_auth_cookies(response, access_token, new_refresh_token)
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
-        user=UserResponse.model_validate(user),
-    )
+    return UserResponse.model_validate(user)
+
+
+@router.post("/logout")
+async def logout(request: Request, response: Response) -> dict[str, str]:
+    locale = get_locale(request)
+    _clear_auth_cookies(response)
+    return {"detail": translate("auth.logged_out", locale)}
 
 
 @router.get("/me", response_model=UserResponse)

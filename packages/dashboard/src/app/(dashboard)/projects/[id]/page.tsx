@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, use, type FormEvent } from "react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { ApiKeyDisplay } from "@/components/projects/api-key-display";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -15,6 +16,7 @@ export default function ProjectDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useTranslations("projects");
   const { data: project, isLoading, refetch } = useProject(id);
   const updateProject = useUpdateProject();
   const [name, setName] = useState("");
@@ -65,16 +67,16 @@ export default function ProjectDetailPage({
   }
 
   if (!project) {
-    return <p className="text-gray-500 text-center py-16">Project not found.</p>;
+    return <p className="text-gray-500 text-center py-16">{t("notFound")}</p>;
   }
 
   return (
     <div className="max-w-2xl">
-      <PageHeader title="Project Settings" />
+      <PageHeader title={t("projectSettings")} />
 
       <form onSubmit={handleSave} className="space-y-6 mb-8">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("projectName")}</label>
           <input
             type="text"
             value={name}
@@ -83,7 +85,7 @@ export default function ProjectDetailPage({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Domain</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">{t("domain")}</label>
           <input
             type="text"
             value={domain}
@@ -96,7 +98,7 @@ export default function ProjectDetailPage({
           disabled={updateProject.isPending}
           className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50"
         >
-          {updateProject.isPending ? "Saving..." : "Save Changes"}
+          {updateProject.isPending ? t("creating") : t("saveChanges")}
         </button>
       </form>
 
@@ -105,7 +107,7 @@ export default function ProjectDetailPage({
       </div>
 
       <div className="border-t border-gray-200 pt-8 mb-8">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Integration Snippet</h3>
+        <h3 className="text-sm font-medium text-gray-700 mb-2">{t("integrationSnippet")}</h3>
         <div className="relative">
           <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs font-mono overflow-x-auto">
             {snippetCode}
@@ -124,23 +126,23 @@ export default function ProjectDetailPage({
       </div>
 
       <div className="border-t border-red-200 pt-8">
-        <h3 className="text-sm font-medium text-red-600 mb-2">Danger Zone</h3>
+        <h3 className="text-sm font-medium text-red-600 mb-2">{t("dangerZone")}</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Deactivating this project will stop collecting new bug reports.
+          {t("deactivateMessage")}
         </p>
         <button
           onClick={() => setIsDeactivateOpen(true)}
           className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
         >
-          Deactivate Project
+          {t("deactivateProject")}
         </button>
       </div>
 
       <ConfirmDialog
         isOpen={isDeactivateOpen}
-        title="Deactivate Project"
-        message="Are you sure? This will stop collecting bug reports for this project. You can reactivate later."
-        confirmLabel="Deactivate"
+        title={t("deactivateProject")}
+        message={t("deactivateConfirm")}
+        confirmLabel={t("deactivateProject")}
         isDestructive
         onConfirm={handleDeactivate}
         onCancel={() => setIsDeactivateOpen(false)}

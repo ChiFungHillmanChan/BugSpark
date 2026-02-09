@@ -15,9 +15,9 @@ async def upload_screenshot(
     _project: Project = Depends(validate_api_key),
 ) -> dict[str, str]:
     file_content = await file.read()
-    url = upload_file(
+    object_key = upload_file(
         file_content=file_content,
         filename=file.filename or "screenshot.png",
         content_type=file.content_type or "image/png",
     )
-    return {"url": url}
+    return {"key": object_key}

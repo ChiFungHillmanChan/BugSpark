@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { BugFilters, Severity, Status } from "@/types";
 
 interface BugFiltersBarProps {
@@ -17,22 +18,27 @@ const STATUS_OPTIONS: Status[] = [
   "resolved",
   "closed",
 ];
-const DATE_OPTIONS = [
-  { label: "Last 7 days", value: "7d" as const },
-  { label: "Last 30 days", value: "30d" as const },
-  { label: "Last 90 days", value: "90d" as const },
-  { label: "All time", value: "all" as const },
+const DATE_OPTION_KEYS = [
+  { labelKey: "last7days", value: "7d" as const },
+  { labelKey: "last30days", value: "30d" as const },
+  { labelKey: "last90days", value: "90d" as const },
+  { labelKey: "allTime", value: "all" as const },
 ];
 
 export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) {
+  const t = useTranslations("bugs");
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const filtersRef = useRef(filters);
+  const onChangeRef = useRef(onFiltersChange);
+  filtersRef.current = filters;
+  onChangeRef.current = onFiltersChange;
 
   useEffect(() => {
     const timeout = setTimeout(() => {
-      onFiltersChange({ ...filters, search: searchInput || undefined });
+      onChangeRef.current({ ...filtersRef.current, search: searchInput || undefined });
     }, 300);
     return () => clearTimeout(timeout);
-  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [searchInput]);
 
   function toggleArrayFilter<T>(array: T[] | undefined, value: T): T[] {
     const current = array ?? [];
@@ -55,51 +61,68 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          placeholder="Search bugs..."
+          placeholder={t("searchPlaceholder")}
           className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
         />
       </div>
 
       <div className="flex flex-wrap gap-1">
-        {STATUS_OPTIONS.map((status) => (
-          <button
-            key={status}
-            onClick={() =>
-              onFiltersChange({
-                ...filters,
-                status: toggleArrayFilter(filters.status, status),
-              })
-            }
-            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-              filters.status?.includes(status)
-                ? "bg-accent text-white border-accent"
-                : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-            }`}
-          >
-            {status.replace("_", " ")}
-          </button>
-        ))}
+        {STATUS_OPTIONS.map((status) => {
+          const statusKeyMap: Record<Status, string> = {
+            new: "statusNew",
+            triaging: "statusTriaging",
+            in_progress: "statusInProgress",
+            resolved: "statusResolved",
+            closed: "statusClosed",
+          };
+          return (
+            <button
+              key={status}
+              onClick={() =>
+                onFiltersChange({
+                  ...filters,
+                  status: toggleArrayFilter(filters.status, status),
+                })
+              }
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                filters.status?.includes(status)
+                  ? "bg-accent text-white border-accent"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+              }`}
+            >
+              {t(statusKeyMap[status])}
+            </button>
+          );
+        })}
       </div>
 
       <div className="flex flex-wrap gap-1">
-        {SEVERITY_OPTIONS.map((severity) => (
-          <button
-            key={severity}
-            onClick={() =>
-              onFiltersChange({
-                ...filters,
-                severity: toggleArrayFilter(filters.severity, severity),
-              })
-            }
-            className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
-              filters.severity?.includes(severity)
-                ? "bg-accent text-white border-accent"
-                : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
-            }`}
-          >
-            {severity}
-          </button>
-        ))}
+        {SEVERITY_OPTIONS.map((severity) => {
+          const severityKeyMap: Record<Severity, string> = {
+            critical: "severityCritical",
+            high: "severityHigh",
+            medium: "severityMedium",
+            low: "severityLow",
+          };
+          return (
+            <button
+              key={severity}
+              onClick={() =>
+                onFiltersChange({
+                  ...filters,
+                  severity: toggleArrayFilter(filters.severity, severity),
+                })
+              }
+              className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                filters.severity?.includes(severity)
+                  ? "bg-accent text-white border-accent"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+              }`}
+            >
+              {t(severityKeyMap[severity])}
+            </button>
+          );
+        })}
       </div>
 
       <select
@@ -112,9 +135,9 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
         }
         className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
       >
-        {DATE_OPTIONS.map((option) => (
+        {DATE_OPTION_KEYS.map((option) => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {t(option.labelKey)}
           </option>
         ))}
       </select>
@@ -127,7 +150,7 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
           className="flex items-center gap-1 px-2.5 py-1 text-xs text-gray-500 hover:text-gray-700"
         >
           <X className="w-3 h-3" />
-          Clear
+          {t("clear")}
         </button>
       )}
     </div>

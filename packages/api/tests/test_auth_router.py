@@ -22,10 +22,10 @@ async def test_register_success(client: AsyncClient):
     )
     assert response.status_code == 200
     data = response.json()
-    assert "accessToken" in data
-    assert "refreshToken" in data
-    assert data["user"]["email"] == "newuser@example.com"
-    assert data["tokenType"] == "bearer"
+    assert data["email"] == "newuser@example.com"
+    assert data["name"] == "New User"
+    assert "bugspark_access_token" in response.cookies
+    assert "bugspark_csrf_token" in response.cookies
 
 
 async def test_register_duplicate_email(
@@ -50,8 +50,9 @@ async def test_login_success(client: AsyncClient, test_user: User):
     )
     assert response.status_code == 200
     data = response.json()
-    assert "accessToken" in data
-    assert data["user"]["email"] == test_user.email
+    assert data["email"] == test_user.email
+    assert "bugspark_access_token" in response.cookies
+    assert "bugspark_csrf_token" in response.cookies
 
 
 async def test_login_wrong_password(client: AsyncClient, test_user: User):
@@ -77,26 +78,26 @@ async def test_refresh_token_success(
     refresh_token = create_refresh_token(str(test_user.id))
     response = await client.post(
         f"{BASE}/refresh",
-        json={"refresh_token": refresh_token},
+        cookies={"bugspark_refresh_token": refresh_token},
     )
     assert response.status_code == 200
     data = response.json()
-    assert "accessToken" in data
-    assert "refreshToken" in data
+    assert data["email"] == test_user.email
+    assert "bugspark_access_token" in response.cookies
 
 
 async def test_refresh_token_invalid(client: AsyncClient):
     response = await client.post(
         f"{BASE}/refresh",
-        json={"refresh_token": "invalid-token-string"},
+        cookies={"bugspark_refresh_token": "invalid-token-string"},
     )
     assert response.status_code == 401
 
 
 async def test_get_me_authenticated(
-    client: AsyncClient, test_user: User, auth_headers: dict[str, str]
+    client: AsyncClient, test_user: User, auth_cookies: dict[str, str]
 ):
-    response = await client.get(f"{BASE}/me", headers=auth_headers)
+    response = await client.get(f"{BASE}/me", cookies=auth_cookies)
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == test_user.email
@@ -105,4 +106,10 @@ async def test_get_me_authenticated(
 
 async def test_get_me_unauthenticated(client: AsyncClient):
     response = await client.get(f"{BASE}/me")
-    assert response.status_code == 422  # Missing required header
+    assert response.status_code == 401
+
+
+async def test_logout(client: AsyncClient, auth_cookies: dict[str, str], csrf_headers: dict[str, str]):
+    response = await client.post(f"{BASE}/logout", cookies=auth_cookies, headers=csrf_headers)
+    assert response.status_code == 200
+    assert response.json()["detail"] == "Logged out"

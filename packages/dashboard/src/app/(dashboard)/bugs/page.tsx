@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { LayoutList, Columns3 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { BugFiltersBar } from "@/components/bugs/bug-filters";
 import { BugTable } from "@/components/bugs/bug-table";
@@ -13,6 +14,7 @@ import type { BugFilters } from "@/types";
 type ViewMode = "table" | "kanban";
 
 export default function BugsPage() {
+  const t = useTranslations("bugs");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [filters, setFilters] = useState<BugFilters>({
     page: 1,
@@ -26,7 +28,7 @@ export default function BugsPage() {
   return (
     <div>
       <PageHeader
-        title="Bugs"
+        title={t("title")}
         actions={
           <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
             <button
@@ -39,7 +41,7 @@ export default function BugsPage() {
               )}
             >
               <LayoutList className="w-4 h-4" />
-              Table
+              {t("table")}
             </button>
             <button
               onClick={() => setViewMode("kanban")}
@@ -51,7 +53,7 @@ export default function BugsPage() {
               )}
             >
               <Columns3 className="w-4 h-4" />
-              Kanban
+              {t("kanban")}
             </button>
           </div>
         }
@@ -76,10 +78,10 @@ export default function BugsPage() {
               disabled={(filters.page ?? 1) <= 1}
               className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
             >
-              Previous
+              {t("previous")}
             </button>
             <span className="text-sm text-gray-500">
-              Page {filters.page ?? 1} of {totalPages}
+              {t("pageOf", { page: filters.page ?? 1, total: totalPages })}
             </span>
             <button
               onClick={() =>
@@ -88,7 +90,7 @@ export default function BugsPage() {
               disabled={(filters.page ?? 1) >= totalPages}
               className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
             >
-              Next
+              {t("next")}
             </button>
           </div>
         );

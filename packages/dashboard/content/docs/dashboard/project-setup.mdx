@@ -1,0 +1,58 @@
+# Project Setup
+
+Projects are the top-level containers for bug reports in BugSpark. Each project has its own API key and configuration.
+
+## Creating a Project
+
+1. Navigate to **Projects** in the sidebar
+2. Click **Create Project**
+3. Enter a **Project Name** (e.g. "My Web App")
+4. Enter the **Domain** where your app runs (e.g. `myapp.com`)
+5. Click **Create**
+
+The project is created with a unique API key in the format `bsk_pub_...`.
+
+## API Key Management
+
+Each project has one active API key. Use it in the widget or API requests:
+
+```bash
+X-API-Key: bsk_pub_a1b2c3d4e5f6...
+```
+
+### Viewing Your API Key
+
+Go to **Projects**, click on a project, and the API key is displayed in the project detail page. Click the copy button to copy it to your clipboard.
+
+### Rotating Keys
+
+If an API key is compromised, rotate it immediately:
+
+1. Open the project detail page
+2. Click **Rotate API Key**
+3. Confirm the action
+4. Update the key in your widget configuration
+
+The old key is invalidated immediately.
+
+## Project Settings
+
+Project settings are stored as a JSON object. Current settings include:
+
+| Setting | Type | Description |
+|---------|------|-------------|
+| `webhookUrl` | `string` | URL for webhook notifications |
+| `notifyOnCritical` | `boolean` | Send alerts for critical bugs |
+
+Update settings via the API:
+
+```bash
+curl -X PATCH https://api.bugspark.dev/api/v1/projects/:id \
+  -H "Cookie: bugspark_access_token=..." \
+  -H "Content-Type: application/json" \
+  -d '{"settings": {"webhookUrl": "https://..."}}'
+```
+
+## Deleting a Project
+
+Deleting a project is a soft delete — the project is deactivated but its reports are preserved. You can delete a project from the project detail page.

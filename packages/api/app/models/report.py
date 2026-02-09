@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -36,12 +36,15 @@ class Status(str, enum.Enum):
 
 class Report(Base):
     __tablename__ = "reports"
+    __table_args__ = (
+        Index("ix_reports_project_status_created", "project_id", "status", "created_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False, index=True
     )
     tracking_id: Mapped[str] = mapped_column(String(20), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -49,6 +52,7 @@ class Report(Base):
     severity: Mapped[Severity] = mapped_column(
         Enum(Severity, name="severity_enum", values_callable=lambda e: [x.value for x in e]),
         nullable=False,
+        index=True,
     )
     category: Mapped[Category] = mapped_column(
         Enum(Category, name="category_enum", values_callable=lambda e: [x.value for x in e]),
@@ -59,6 +63,7 @@ class Report(Base):
         default=Status.NEW,
         server_default="new",
         nullable=False,
+        index=True,
     )
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
@@ -71,7 +76,7 @@ class Report(Base):
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
     reporter_identifier: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
     )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False

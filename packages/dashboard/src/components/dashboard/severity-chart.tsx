@@ -8,6 +8,7 @@ import {
   Legend,
   Tooltip,
 } from "recharts";
+import { useTranslations } from "next-intl";
 import type { Severity } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -24,12 +25,14 @@ const SEVERITY_COLORS: Record<Severity, string> = {
 };
 
 export function SeverityChart({ data, isLoading }: SeverityChartProps) {
+  const t = useTranslations("dashboard");
+
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
     return (
       <div className="h-64 flex items-center justify-center text-sm text-gray-400">
-        No severity data available
+        {t("noDataYet")}
       </div>
     );
   }
@@ -37,7 +40,7 @@ export function SeverityChart({ data, isLoading }: SeverityChartProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
       <h3 className="text-sm font-medium text-gray-500 mb-4">
-        Bugs by Severity
+        {t("severityBreakdown")}
       </h3>
       <ResponsiveContainer width="100%" height={250}>
         <PieChart>

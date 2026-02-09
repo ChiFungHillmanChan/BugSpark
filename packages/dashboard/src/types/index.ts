@@ -15,10 +15,6 @@ export interface Project {
   settings: Record<string, unknown>;
 }
 
-export interface ProjectWithSecret extends Project {
-  apiSecret: string;
-}
-
 export interface BugReport {
   id: string;
   trackingId: string;
@@ -64,6 +60,14 @@ export interface SessionEvent {
   data?: Record<string, unknown>;
 }
 
+export interface PerformanceMetrics {
+  lcp?: number;
+  fid?: number;
+  cls?: number;
+  ttfb?: number;
+  inp?: number;
+}
+
 export interface DeviceMetadata {
   userAgent: string;
   viewport: { width: number; height: number };
@@ -75,6 +79,7 @@ export interface DeviceMetadata {
   connection?: string;
   memory?: number;
   platform: string;
+  performance?: PerformanceMetrics;
 }
 
 export interface Comment {
@@ -128,6 +133,41 @@ export interface BugFilters {
   pageSize?: number;
   sortBy?: string;
   sortOrder?: "asc" | "desc";
+}
+
+export interface AnalysisResponse {
+  summary: string;
+  suggestedCategory: string;
+  suggestedSeverity: string;
+  reproductionSteps: string[];
+}
+
+export interface SimilarBug {
+  id: string;
+  trackingId: string;
+  title: string;
+  severity: Severity;
+  status: Status;
+  createdAt: string;
+  similarityScore: number;
+}
+
+export interface SimilarBugsResponse {
+  items: SimilarBug[];
+}
+
+export interface Integration {
+  id: string;
+  projectId: string;
+  provider: string;
+  isActive: boolean;
+  createdAt: string;
+  hasToken: boolean;
+}
+
+export interface ExportResult {
+  issueUrl: string;
+  issueNumber: number;
 }
 
 export type Severity = "critical" | "high" | "medium" | "low";

@@ -1,0 +1,92 @@
+# Widget Installation
+
+The BugSpark widget is a lightweight JavaScript snippet that adds a bug reporting button to your application.
+
+## Script Tag
+
+The simplest way to add BugSpark. Paste this before the closing `</body>` tag:
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+The widget loads asynchronously and does not block page rendering.
+
+## NPM / React
+
+Install the package:
+
+```bash
+npm install @bugspark/widget
+```
+
+Initialize in your app entry point:
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+For React apps, initialize inside a `useEffect`:
+
+```tsx
+import { useEffect } from "react";
+import { BugSpark } from "@bugspark/widget";
+
+function App() {
+  useEffect(() => {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }, []);
+
+  return <div>{/* your app */}</div>;
+}
+```
+
+## Vue
+
+```vue
+<script setup>
+import { onMounted } from "vue";
+import { BugSpark } from "@bugspark/widget";
+
+onMounted(() => {
+  BugSpark.init({
+    projectKey: "YOUR_API_KEY",
+    position: "bottom-right",
+  });
+});
+</script>
+```
+
+## Angular
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BugSpark } from "@bugspark/widget";
+
+@Component({ selector: "app-root", template: "<router-outlet />" })
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }
+}
+```
+
+## Verifying Installation
+
+Once installed, you should see a small bug icon in the corner of your page. Click it to open the report form and submit a test report. Check the [Dashboard](/dashboard) to confirm the report arrived.

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "./severity-badge";
 import { StatusBadge } from "./status-badge";
@@ -15,11 +16,13 @@ interface BugTableProps {
 }
 
 export function BugTable({ bugs, isLoading }: BugTableProps) {
+  const t = useTranslations("bugs");
+
   if (!isLoading && (!bugs || bugs.length === 0)) {
     return (
       <EmptyState
-        title="No bugs found"
-        description="No bug reports match your current filters. Try adjusting your search criteria."
+        title={t("noBugs")}
+        description={t("noBugsTableDescription")}
         icon={<Bug />}
       />
     );
@@ -30,12 +33,12 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
       <table className="w-full">
         <thead>
           <tr className="text-left text-xs text-gray-500 border-b border-gray-200 bg-gray-50">
-            <th className="px-4 py-3 font-medium">Tracking ID</th>
-            <th className="px-4 py-3 font-medium">Title</th>
-            <th className="px-4 py-3 font-medium">Severity</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Assignee</th>
-            <th className="px-4 py-3 font-medium">Created</th>
+            <th className="px-4 py-3 font-medium">{t("trackingId")}</th>
+            <th className="px-4 py-3 font-medium">{t("bugTitle")}</th>
+            <th className="px-4 py-3 font-medium">{t("severity")}</th>
+            <th className="px-4 py-3 font-medium">{t("status")}</th>
+            <th className="px-4 py-3 font-medium">{t("assignee")}</th>
+            <th className="px-4 py-3 font-medium">{t("created")}</th>
           </tr>
         </thead>
         <tbody>
@@ -68,7 +71,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                     <StatusBadge status={bug.status} />
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-500">
-                    {bug.assigneeId ? "Assigned" : "Unassigned"}
+                    {bug.assigneeId ? t("assigned") : t("unassigned")}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500">
                     {formatDate(bug.createdAt)}

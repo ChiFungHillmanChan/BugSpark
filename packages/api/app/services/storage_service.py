@@ -24,6 +24,7 @@ def _get_s3_client():
 
 
 def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
+    """Upload a file to S3 and return the object key (not the full URL)."""
     if content_type not in ALLOWED_CONTENT_TYPES:
         raise BadRequestException(
             f"Invalid file type '{content_type}'. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}"
@@ -44,14 +45,15 @@ def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
         ContentType=content_type,
     )
 
-    return f"{settings.S3_PUBLIC_URL}/{object_key}"
+    return object_key
 
 
-def generate_presigned_url(key: str) -> str:
+def generate_presigned_url(key: str, expires_in: int = 900) -> str:
+    """Generate a presigned URL for an S3 object key."""
     settings = get_settings()
     client = _get_s3_client()
     return client.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
-        ExpiresIn=3600,
+        ExpiresIn=expires_in,
     )

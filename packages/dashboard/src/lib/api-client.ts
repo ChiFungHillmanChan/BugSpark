@@ -1,29 +1,38 @@
 import axios from "axios";
 
-let accessToken: string | null = null;
-
-export function getAccessToken(): string | null {
-  return accessToken;
-}
-
-export function setAccessToken(token: string | null): void {
-  accessToken = token;
-}
-
 function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 }
 
+function getCsrfToken(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    /(?:^|;\s*)bugspark_csrf_token=([^;]*)/,
+  );
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function getLocale(): string {
+  if (typeof document === "undefined") return "en";
+  const match = document.cookie.match(/(?:^|;\s*)bugspark_locale=([^;]*)/);
+  return match ? decodeURIComponent(match[1]) : "en";
+}
+
 const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
   config.baseURL = getApiBaseUrl();
-  const token = getAccessToken();
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+
+  const csrfToken = getCsrfToken();
+  if (csrfToken) {
+    config.headers["X-CSRF-Token"] = csrfToken;
   }
+
+  config.headers["Accept-Language"] = getLocale();
+
   return config;
 });
 
@@ -35,30 +44,13 @@ apiClient.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._isRetry) {
       originalRequest._isRetry = true;
 
-      const refreshToken =
-        typeof window !== "undefined"
-          ? localStorage.getItem("bugspark_refresh_token")
-          : null;
-
-      if (refreshToken) {
-        try {
-          const response = await axios.post(
-            `${getApiBaseUrl()}/auth/refresh`,
-            { refreshToken },
-          );
-          const newAccessToken = response.data.accessToken as string;
-          setAccessToken(newAccessToken);
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return apiClient(originalRequest);
-        } catch {
-          setAccessToken(null);
-          if (typeof window !== "undefined") {
-            localStorage.removeItem("bugspark_refresh_token");
-            window.location.href = "/login";
-          }
-        }
-      } else if (typeof window !== "undefined") {
-        window.location.href = "/login";
+      try {
+        await axios.post(`${getApiBaseUrl()}/auth/refresh`, null, {
+          withCredentials: true,
+        });
+        return apiClient(originalRequest);
+      } catch {
+        // AuthProvider and dashboard layout guard handle redirect to /login
       }
     }
 

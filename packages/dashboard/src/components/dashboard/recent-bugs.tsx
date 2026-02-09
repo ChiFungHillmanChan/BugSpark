@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { StatusBadge } from "@/components/bugs/status-badge";
@@ -11,25 +14,28 @@ interface RecentBugsProps {
 }
 
 export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
+  const t = useTranslations("dashboard");
+  const tBugs = useTranslations("bugs");
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-sm font-medium text-gray-900">Recent Bugs</h3>
+        <h3 className="text-sm font-medium text-gray-900">{t("recentBugs")}</h3>
         <Link
           href="/bugs"
           className="text-xs text-accent hover:underline font-medium"
         >
-          View all
+          {t("viewAll")}
         </Link>
       </div>
       <table className="w-full">
         <thead>
           <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
-            <th className="px-4 py-3 font-medium">ID</th>
-            <th className="px-4 py-3 font-medium">Title</th>
-            <th className="px-4 py-3 font-medium">Severity</th>
-            <th className="px-4 py-3 font-medium">Status</th>
-            <th className="px-4 py-3 font-medium">Created</th>
+            <th className="px-4 py-3 font-medium">{tBugs("id")}</th>
+            <th className="px-4 py-3 font-medium">{tBugs("bugTitle")}</th>
+            <th className="px-4 py-3 font-medium">{tBugs("severity")}</th>
+            <th className="px-4 py-3 font-medium">{tBugs("status")}</th>
+            <th className="px-4 py-3 font-medium">{tBugs("created")}</th>
           </tr>
         </thead>
         <tbody>

@@ -77,12 +77,12 @@ async def test_create_report_without_api_key_fails(client: AsyncClient):
 
 async def test_list_reports(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
     await _create_report_in_db(db_session, test_project)
-    response = await client.get(BASE, headers=auth_headers)
+    response = await client.get(BASE, cookies=auth_cookies)
     assert response.status_code == 200
     data = response.json()
     assert "items" in data
@@ -92,7 +92,7 @@ async def test_list_reports(
 
 async def test_list_reports_with_filters(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
@@ -100,7 +100,7 @@ async def test_list_reports_with_filters(
     response = await client.get(
         BASE,
         params={"severity": "medium", "status": "new"},
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
     assert response.status_code == 200
     data = response.json()
@@ -111,13 +111,13 @@ async def test_list_reports_with_filters(
 
 async def test_get_report_detail(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
     report = await _create_report_in_db(db_session, test_project)
     response = await client.get(
-        f"{BASE}/{report.id}", headers=auth_headers
+        f"{BASE}/{report.id}", cookies=auth_cookies
     )
     assert response.status_code == 200
     data = response.json()
@@ -127,7 +127,8 @@ async def test_get_report_detail(
 
 async def test_update_report_status(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
+    csrf_headers: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
@@ -135,7 +136,8 @@ async def test_update_report_status(
     response = await client.patch(
         f"{BASE}/{report.id}",
         json={"status": "in_progress"},
-        headers=auth_headers,
+        cookies=auth_cookies,
+        headers=csrf_headers,
     )
     assert response.status_code == 200
     assert response.json()["status"] == "in_progress"
@@ -143,19 +145,20 @@ async def test_update_report_status(
 
 async def test_delete_report(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
+    csrf_headers: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
     report = await _create_report_in_db(db_session, test_project)
     response = await client.delete(
-        f"{BASE}/{report.id}", headers=auth_headers
+        f"{BASE}/{report.id}", cookies=auth_cookies, headers=csrf_headers
     )
     assert response.status_code == 204
 
     # Verify it is gone
     get_response = await client.get(
-        f"{BASE}/{report.id}", headers=auth_headers
+        f"{BASE}/{report.id}", cookies=auth_cookies
     )
     assert get_response.status_code == 404
 

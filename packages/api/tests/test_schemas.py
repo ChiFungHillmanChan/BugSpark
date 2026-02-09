@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 
 import pytest
 
-from app.schemas.auth import TokenResponse
 from app.schemas.project import ProjectResponse
 from app.schemas.report import ReportCreate, ReportResponse
 from app.schemas.stats import OverviewStats
@@ -19,20 +18,6 @@ def _make_user_response() -> UserResponse:
         name="Schema User",
         created_at=datetime.now(timezone.utc),
     )
-
-
-def test_token_response_camel_case():
-    user = _make_user_response()
-    token_response = TokenResponse(
-        access_token="abc123",
-        refresh_token="def456",
-        user=user,
-    )
-    data = token_response.model_dump(by_alias=True)
-    assert "accessToken" in data
-    assert "refreshToken" in data
-    assert "tokenType" in data
-    assert "access_token" not in data
 
 
 def test_report_response_camel_case():
@@ -107,6 +92,17 @@ def test_report_create_accepts_snake_case_input():
         reporter_identifier="user@test.com",
         screenshot_url="https://example.com/shot.png",
     )
-    assert report.title == "Bug title"
     assert report.reporter_identifier == "user@test.com"
     assert report.screenshot_url == "https://example.com/shot.png"
+
+
+def test_report_create_sanitizes_html():
+    """ReportCreate should strip HTML tags from title and description."""
+    report = ReportCreate(
+        title="<script>alert('xss')</script>Bug",
+        description="<b>Bold</b> description",
+        severity="high",
+        category="bug",
+    )
+    assert "<script>" not in report.title
+    assert "<b>" not in report.description

@@ -9,11 +9,10 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import { setAccessToken } from "@/lib/api-client";
 import {
   loginApi,
   registerApi,
-  refreshApi,
+  logoutApi,
   getMeApi,
 } from "@/lib/auth";
 import type { User } from "@/types";
@@ -35,31 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const refreshToken = localStorage.getItem("bugspark_refresh_token");
-    if (!refreshToken) {
-      setIsLoading(false);
-      return;
-    }
-
-    refreshApi(refreshToken)
-      .then((data) => {
-        setAccessToken(data.accessToken);
-        localStorage.setItem("bugspark_refresh_token", data.refreshToken);
-        setUser(data.user);
-      })
-      .catch(() => {
-        localStorage.removeItem("bugspark_refresh_token");
-        setAccessToken(null);
-      })
+    getMeApi()
+      .then((data) => setUser(data))
+      .catch(() => setUser(null))
       .finally(() => setIsLoading(false));
   }, []);
 
   const login = useCallback(
     async (email: string, password: string) => {
       const data = await loginApi(email, password);
-      setAccessToken(data.accessToken);
-      localStorage.setItem("bugspark_refresh_token", data.refreshToken);
-      setUser(data.user);
+      setUser(data);
       router.push("/dashboard");
     },
     [router],
@@ -68,17 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (name: string, email: string, password: string) => {
       const data = await registerApi(name, email, password);
-      setAccessToken(data.accessToken);
-      localStorage.setItem("bugspark_refresh_token", data.refreshToken);
-      setUser(data.user);
+      setUser(data);
       router.push("/dashboard");
     },
     [router],
   );
 
-  const logout = useCallback(() => {
-    setAccessToken(null);
-    localStorage.removeItem("bugspark_refresh_token");
+  const logout = useCallback(async () => {
+    await logoutApi();
     setUser(null);
     router.push("/login");
   }, [router]);

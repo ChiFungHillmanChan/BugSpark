@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye, EyeOff, Copy, Check, RefreshCw } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 
 interface ApiKeyDisplayProps {
@@ -10,6 +11,7 @@ interface ApiKeyDisplayProps {
 }
 
 export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
+  const t = useTranslations("projects");
   const [isRevealed, setIsRevealed] = useState(false);
   const [hasCopied, setHasCopied] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -25,7 +27,7 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
   return (
     <div>
       <label className="text-sm font-medium text-gray-700 block mb-2">
-        API Key
+        {t("apiKey")}
       </label>
       <div className="flex items-center gap-2">
         <code className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono">
@@ -64,9 +66,9 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
 
       <ConfirmDialog
         isOpen={isConfirmOpen}
-        title="Rotate API Key"
-        message="This will invalidate the current API key and generate a new one. Any integrations using the old key will stop working."
-        confirmLabel="Rotate Key"
+        title={t("rotateApiKey")}
+        message={t("rotateMessage")}
+        confirmLabel={t("rotateConfirm")}
         isDestructive
         onConfirm={() => {
           onRotate();

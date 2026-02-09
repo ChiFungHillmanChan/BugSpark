@@ -28,7 +28,3 @@ class ProjectResponse(CamelModel):
     is_active: bool
     created_at: datetime
     settings: dict
-
-
-class ProjectWithSecret(ProjectResponse):
-    api_secret: str

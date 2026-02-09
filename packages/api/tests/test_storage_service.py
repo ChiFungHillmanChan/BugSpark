@@ -29,7 +29,7 @@ def test_upload_file_valid_png(mock_get_client: MagicMock):
     file_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
     result = upload_file(file_content, "screenshot.png", "image/png")
 
-    assert "screenshots/" in result
+    assert result.startswith("screenshots/")
     assert result.endswith(".png")
     mock_client.put_object.assert_called_once()
     call_kwargs = mock_client.put_object.call_args.kwargs
@@ -60,5 +60,5 @@ def test_generate_presigned_url(mock_get_client: MagicMock):
     mock_client.generate_presigned_url.assert_called_once_with(
         "get_object",
         Params={"Bucket": "bugspark-uploads", "Key": "screenshots/abc.png"},
-        ExpiresIn=3600,
+        ExpiresIn=900,
     )

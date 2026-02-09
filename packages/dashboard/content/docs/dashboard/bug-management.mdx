@@ -1,0 +1,62 @@
+# Bug Management
+
+The Bugs page provides two views for managing reports: **Table** and **Kanban**.
+
+## Table View
+
+The default table view lists all bug reports with sortable columns:
+
+- **ID** — unique tracking ID (e.g. `BSK-42`)
+- **Title** — bug summary
+- **Severity** — `critical`, `high`, `medium`, or `low`
+- **Status** — current workflow status
+- **Created** — relative timestamp
+
+Click any row to open the full bug detail page.
+
+## Kanban View
+
+Switch to Kanban mode for a visual workflow board. Reports are organized into columns by status:
+
+- **New** — freshly submitted, unreviewed
+- **Triaging** — under investigation
+- **In Progress** — actively being fixed
+- **Resolved** — fix deployed
+- **Closed** — verified and archived
+
+## Filtering
+
+Use the filter bar to narrow results:
+
+- **Search** — text search across title and description
+- **Status chips** — toggle one or more status filters
+- **Severity chips** — toggle one or more severity filters
+- **Date range** — last 7 days, 30 days, 90 days, or all time
+- **Clear** — reset all filters
+
+## Bug Detail Page
+
+Clicking a report opens the detail page with:
+
+- **Metadata panel** — severity, status, assignee, reporter, timestamps, device info
+- **Screenshot viewer** — toggle between original and annotated screenshots
+- **Console logs** — expandable list of captured console entries
+- **Network waterfall** — timeline of HTTP requests with timing data
+- **Session timeline** — chronological list of user actions
+- **Comment thread** — team discussion and notes
+
+## Updating Status
+
+Change a report's status using the dropdown in the metadata panel. Available transitions:
+
+| From | To |
+|------|----|
+| new | triaging, in_progress, resolved, closed |
+| triaging | in_progress, resolved, closed |
+| in_progress | resolved, closed |
+| resolved | closed, in_progress (reopen) |
+| closed | in_progress (reopen) |
+
+## Assigning Reports
+
+Select a team member from the assignee dropdown to assign a report. The assignee receives a notification and the report appears in their filtered view.

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { loginApi, registerApi, refreshApi, getMeApi } from '@/lib/auth';
+import { loginApi, registerApi, logoutApi, getMeApi } from '@/lib/auth';
 import apiClient from '@/lib/api-client';
 
 vi.mock('@/lib/api-client', () => ({
@@ -12,10 +12,11 @@ vi.mock('@/lib/api-client', () => ({
 const mockApiClient = vi.mocked(apiClient);
 
 describe('auth API functions', () => {
-  const mockAuthResponse = {
-    accessToken: 'access-123',
-    refreshToken: 'refresh-456',
-    user: { id: 'u1', name: 'Test', email: 'test@example.com', createdAt: '2025-01-01' },
+  const mockUser = {
+    id: 'u1',
+    name: 'Test',
+    email: 'test@example.com',
+    createdAt: '2025-01-01',
   };
 
   beforeEach(() => {
@@ -23,21 +24,21 @@ describe('auth API functions', () => {
   });
 
   describe('loginApi', () => {
-    it('calls POST /auth/login with correct body', async () => {
-      mockApiClient.post.mockResolvedValueOnce({ data: mockAuthResponse });
+    it('calls POST /auth/login and returns user', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockUser });
       const result = await loginApi('test@example.com', 'password123');
 
       expect(mockApiClient.post).toHaveBeenCalledWith('/auth/login', {
         email: 'test@example.com',
         password: 'password123',
       });
-      expect(result).toEqual(mockAuthResponse);
+      expect(result).toEqual(mockUser);
     });
   });
 
   describe('registerApi', () => {
-    it('calls POST /auth/register with correct body', async () => {
-      mockApiClient.post.mockResolvedValueOnce({ data: mockAuthResponse });
+    it('calls POST /auth/register and returns user', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: mockUser });
       const result = await registerApi('Test', 'test@example.com', 'password123');
 
       expect(mockApiClient.post).toHaveBeenCalledWith('/auth/register', {
@@ -45,25 +46,21 @@ describe('auth API functions', () => {
         email: 'test@example.com',
         password: 'password123',
       });
-      expect(result).toEqual(mockAuthResponse);
+      expect(result).toEqual(mockUser);
     });
   });
 
-  describe('refreshApi', () => {
-    it('calls POST /auth/refresh with correct body', async () => {
-      mockApiClient.post.mockResolvedValueOnce({ data: mockAuthResponse });
-      const result = await refreshApi('refresh-token-xyz');
+  describe('logoutApi', () => {
+    it('calls POST /auth/logout', async () => {
+      mockApiClient.post.mockResolvedValueOnce({ data: { detail: 'Logged out' } });
+      await logoutApi();
 
-      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/refresh', {
-        refreshToken: 'refresh-token-xyz',
-      });
-      expect(result).toEqual(mockAuthResponse);
+      expect(mockApiClient.post).toHaveBeenCalledWith('/auth/logout');
     });
   });
 
   describe('getMeApi', () => {
     it('calls GET /auth/me', async () => {
-      const mockUser = { id: 'u1', name: 'Test', email: 'test@example.com', createdAt: '2025-01-01' };
       mockApiClient.get.mockResolvedValueOnce({ data: mockUser });
       const result = await getMeApi();
 

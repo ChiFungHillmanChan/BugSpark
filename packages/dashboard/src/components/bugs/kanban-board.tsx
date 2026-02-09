@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, type DragEvent } from "react";
+import { useTranslations } from "next-intl";
 import { cn, statusColor } from "@/lib/utils";
 import { BugCard } from "./bug-card";
 import { useUpdateBug } from "@/hooks/use-bugs";
@@ -13,14 +14,15 @@ interface KanbanBoardProps {
   isLoading: boolean;
 }
 
-const KANBAN_COLUMNS: { status: Status; label: string }[] = [
-  { status: "new", label: "New" },
-  { status: "triaging", label: "Triaging" },
-  { status: "in_progress", label: "In Progress" },
-  { status: "resolved", label: "Resolved" },
+const KANBAN_COLUMNS: { status: Status; labelKey: string }[] = [
+  { status: "new", labelKey: "statusNew" },
+  { status: "triaging", labelKey: "statusTriaging" },
+  { status: "in_progress", labelKey: "statusInProgress" },
+  { status: "resolved", labelKey: "statusResolved" },
 ];
 
 export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
+  const t = useTranslations("bugs");
   const updateBug = useUpdateBug();
 
   const handleDragStart = useCallback(
@@ -48,8 +50,8 @@ export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
   if (!isLoading && (!bugs || bugs.length === 0)) {
     return (
       <EmptyState
-        title="No bugs found"
-        description="No bug reports match your current filters."
+        title={t("noBugs")}
+        description={t("noBugsDescription")}
         icon={<Bug />}
       />
     );
@@ -78,7 +80,7 @@ export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
                   )}
                 />
                 <h3 className="text-sm font-medium text-gray-700">
-                  {column.label}
+                  {t(column.labelKey)}
                 </h3>
               </div>
               <span className="text-xs text-gray-400 font-medium">

@@ -14,8 +14,8 @@ async function uploadScreenshot(
     body: formData,
   });
 
-  const data = await response.json() as { url: string };
-  return data.url;
+  const data = await response.json() as { key: string };
+  return data.key;
 }
 
 async function fetchWithRetry(

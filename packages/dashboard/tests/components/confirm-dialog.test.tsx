@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithIntl } from '../test-utils';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 
 describe('ConfirmDialog', () => {
@@ -13,19 +14,19 @@ describe('ConfirmDialog', () => {
   };
 
   it('renders when open', () => {
-    render(<ConfirmDialog {...defaultProps} />);
+    renderWithIntl(<ConfirmDialog {...defaultProps} />);
     expect(screen.getByText('Delete bug?')).toBeInTheDocument();
     expect(screen.getByText('This action cannot be undone.')).toBeInTheDocument();
   });
 
   it('does not render when closed', () => {
-    render(<ConfirmDialog {...defaultProps} isOpen={false} />);
+    renderWithIntl(<ConfirmDialog {...defaultProps} isOpen={false} />);
     expect(screen.queryByText('Delete bug?')).not.toBeInTheDocument();
   });
 
   it('calls onConfirm when confirm button clicked', async () => {
     const onConfirm = vi.fn();
-    render(<ConfirmDialog {...defaultProps} onConfirm={onConfirm} />);
+    renderWithIntl(<ConfirmDialog {...defaultProps} onConfirm={onConfirm} />);
 
     await userEvent.click(screen.getByText('Confirm'));
     expect(onConfirm).toHaveBeenCalledOnce();
@@ -33,14 +34,14 @@ describe('ConfirmDialog', () => {
 
   it('calls onCancel when cancel button clicked', async () => {
     const onCancel = vi.fn();
-    render(<ConfirmDialog {...defaultProps} onCancel={onCancel} />);
+    renderWithIntl(<ConfirmDialog {...defaultProps} onCancel={onCancel} />);
 
     await userEvent.click(screen.getByText('Cancel'));
     expect(onCancel).toHaveBeenCalledOnce();
   });
 
   it('shows destructive variant styling', () => {
-    render(<ConfirmDialog {...defaultProps} isDestructive confirmLabel="Delete" />);
+    renderWithIntl(<ConfirmDialog {...defaultProps} isDestructive confirmLabel="Delete" />);
     const deleteButton = screen.getByText('Delete');
     expect(deleteButton).toHaveClass('bg-red-600');
   });

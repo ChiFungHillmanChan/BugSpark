@@ -27,7 +27,7 @@ from app.database import Base  # noqa: E402
 from app.dependencies import get_db  # noqa: E402
 from app.models.project import Project  # noqa: E402
 from app.models.user import User  # noqa: E402
-from app.routers.projects import _generate_api_key, _generate_api_secret  # noqa: E402
+from app.routers.projects import _generate_api_key  # noqa: E402
 from app.services.auth_service import create_access_token, hash_password  # noqa: E402
 
 # ---------- SQLite-compatible type overrides ----------
@@ -163,10 +163,21 @@ async def test_user(db_session: AsyncSession) -> User:
     return user
 
 
+CSRF_TEST_TOKEN = "test-csrf-token"
+
+
 @pytest.fixture()
-def auth_headers(test_user: User) -> dict[str, str]:
+def auth_cookies(test_user: User) -> dict[str, str]:
     token = create_access_token(str(test_user.id), test_user.email)
-    return {"Authorization": f"Bearer {token}"}
+    return {
+        "bugspark_access_token": token,
+        "bugspark_csrf_token": CSRF_TEST_TOKEN,
+    }
+
+
+@pytest.fixture()
+def csrf_headers() -> dict[str, str]:
+    return {"X-CSRF-Token": CSRF_TEST_TOKEN}
 
 
 @pytest.fixture()
@@ -177,7 +188,6 @@ async def test_project(db_session: AsyncSession, test_user: User) -> Project:
         name="Test Project",
         domain="example.com",
         api_key=_generate_api_key(),
-        api_secret=_generate_api_secret(),
         settings={},
         is_active=True,
         created_at=datetime.now(timezone.utc),

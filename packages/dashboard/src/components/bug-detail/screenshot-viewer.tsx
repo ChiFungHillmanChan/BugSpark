@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { X, Maximize2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ScreenshotViewerProps {
   screenshotUrl: string | null;
@@ -13,6 +14,7 @@ export function ScreenshotViewer({
   screenshotUrl,
   annotatedScreenshotUrl,
 }: ScreenshotViewerProps) {
+  const t = useTranslations("bugs");
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isShowingAnnotated, setIsShowingAnnotated] = useState(false);
 
@@ -24,7 +26,7 @@ export function ScreenshotViewer({
   if (!screenshotUrl) {
     return (
       <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center text-sm text-gray-400">
-        No screenshot available
+        {t("noScreenshot")}
       </div>
     );
   }
@@ -42,7 +44,7 @@ export function ScreenshotViewer({
                   : "bg-black/30 text-white"
               }`}
             >
-              Original
+              {t("original")}
             </button>
             <button
               onClick={() => setIsShowingAnnotated(true)}
@@ -52,7 +54,7 @@ export function ScreenshotViewer({
                   : "bg-black/30 text-white"
               }`}
             >
-              Annotated
+              {t("annotated")}
             </button>
           </div>
         )}

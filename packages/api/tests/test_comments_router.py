@@ -33,7 +33,8 @@ async def _create_report(db_session: AsyncSession, project: Project) -> Report:
 
 async def test_create_comment(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
+    csrf_headers: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
 ):
@@ -41,7 +42,8 @@ async def test_create_comment(
     response = await client.post(
         f"/api/v1/reports/{report.id}/comments",
         json={"body": "This is a comment"},
-        headers=auth_headers,
+        cookies=auth_cookies,
+        headers=csrf_headers,
     )
     assert response.status_code == 201
     data = response.json()
@@ -52,7 +54,7 @@ async def test_create_comment(
 
 async def test_list_comments(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
     test_user: User,
@@ -70,7 +72,7 @@ async def test_list_comments(
 
     response = await client.get(
         f"/api/v1/reports/{report.id}/comments",
-        headers=auth_headers,
+        cookies=auth_cookies,
     )
     assert response.status_code == 200
     data = response.json()
@@ -81,7 +83,8 @@ async def test_list_comments(
 
 async def test_delete_own_comment(
     client: AsyncClient,
-    auth_headers: dict[str, str],
+    auth_cookies: dict[str, str],
+    csrf_headers: dict[str, str],
     db_session: AsyncSession,
     test_project: Project,
     test_user: User,
@@ -99,7 +102,8 @@ async def test_delete_own_comment(
 
     response = await client.delete(
         f"/api/v1/comments/{comment.id}",
-        headers=auth_headers,
+        cookies=auth_cookies,
+        headers=csrf_headers,
     )
     assert response.status_code == 204
 
@@ -114,4 +118,4 @@ async def test_comment_requires_auth(
         f"/api/v1/reports/{report.id}/comments",
         json={"body": "No auth"},
     )
-    assert response.status_code == 422  # Missing required header
+    assert response.status_code == 401

@@ -1,0 +1,46 @@
+# Annotation Tools
+
+The widget includes built-in screenshot annotation tools so users can highlight exactly where the problem is.
+
+## How It Works
+
+1. User clicks the bug button to open the report form
+2. Clicks the camera icon to capture a screenshot
+3. The page is captured and an annotation editor opens
+4. User draws, highlights, or adds arrows to mark the issue
+5. The annotated screenshot is attached to the report
+
+## Available Tools
+
+| Tool | Description |
+|------|-------------|
+| **Draw** | Freehand drawing in the selected color |
+| **Arrow** | Point to specific UI elements |
+| **Rectangle** | Highlight areas with a colored box |
+| **Text** | Add text labels to the screenshot |
+| **Blur** | Redact sensitive information |
+
+## Color Options
+
+The annotation toolbar provides several colors:
+
+- Red (default) for highlighting errors
+- Yellow for warnings or areas of concern
+- Green for expected vs. actual behavior
+- Blue for informational notes
+
+## Screenshot Capture
+
+Screenshots are captured using the browser's native `html2canvas` rendering. The capture includes:
+
+- The visible viewport content
+- Scrolled-out-of-view content (optional)
+- CSS-rendered elements including shadows, gradients, and transforms
+
+The original screenshot and annotated version are both stored. In the dashboard, you can toggle between the original and annotated views.
+
+## Privacy Considerations
+
+Users can use the **Blur** tool to redact sensitive data (passwords, personal info) before submitting. The blurred regions are permanently applied to the annotated screenshot before upload.
+
+Input fields with `type="password"` are automatically masked in screenshots.

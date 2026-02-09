@@ -1,3 +1,6 @@
+"use client";
+
+import { useTranslations } from "next-intl";
 import { cn, statusColor } from "@/lib/utils";
 import type { Status } from "@/types";
 
@@ -5,15 +8,17 @@ interface StatusBadgeProps {
   status: Status;
 }
 
-const STATUS_LABELS: Record<Status, string> = {
-  new: "New",
-  triaging: "Triaging",
-  in_progress: "In Progress",
-  resolved: "Resolved",
-  closed: "Closed",
+const STATUS_KEY_MAP: Record<Status, string> = {
+  new: "statusNew",
+  triaging: "statusTriaging",
+  in_progress: "statusInProgress",
+  resolved: "statusResolved",
+  closed: "statusClosed",
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+  const t = useTranslations("bugs");
+
   return (
     <span
       className={cn(
@@ -21,7 +26,7 @@ export function StatusBadge({ status }: StatusBadgeProps) {
         statusColor(status),
       )}
     >
-      {STATUS_LABELS[status]}
+      {t(STATUS_KEY_MAP[status])}
     </span>
   );
 }

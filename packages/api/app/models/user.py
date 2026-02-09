@@ -21,13 +21,13 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[Role] = mapped_column(
-        SAEnum(Role, native_enum=False, length=20),
+        SAEnum(Role, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),
         default=Role.USER,
         server_default="user",
         nullable=False,
     )
     plan: Mapped[Plan] = mapped_column(
-        SAEnum(Plan, native_enum=False, length=20),
+        SAEnum(Plan, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),
         default=Plan.FREE,
         server_default="free",
         nullable=False,

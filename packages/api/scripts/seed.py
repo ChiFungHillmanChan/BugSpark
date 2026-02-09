@@ -19,10 +19,11 @@ from sqlalchemy import select
 
 from app.database import Base, async_session, engine
 from app.models.comment import Comment
+from app.models.enums import Plan, Role
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
-from app.routers.projects import _generate_api_key
+from app.routers.projects import _api_key_prefix, _generate_api_key, _hash_api_key
 from app.services.auth_service import hash_password
 
 DEMO_EMAIL = "test@bugspark.dev"
@@ -111,17 +112,23 @@ async def seed() -> None:
             email=DEMO_EMAIL,
             hashed_password=hash_password(DEMO_PASSWORD),
             name=DEMO_NAME,
+            role=Role.USER,
+            plan=Plan.FREE,
         )
         db.add(user)
         await db.flush()
 
         created_projects: list[Project] = []
+        raw_keys: list[str] = []
         for project_data in PROJECTS:
+            raw_key = _generate_api_key()
+            raw_keys.append(raw_key)
             project = Project(
                 owner_id=user.id,
                 name=project_data["name"],
                 domain=project_data["domain"],
-                api_key=_generate_api_key(),
+                api_key_hash=_hash_api_key(raw_key),
+                api_key_prefix=_api_key_prefix(raw_key),
             )
             db.add(project)
             created_projects.append(project)
@@ -158,8 +165,8 @@ async def seed() -> None:
         print(f"Seeded: 1 user, {len(created_projects)} projects, 20 reports")
         print(f"  Email: {DEMO_EMAIL}")
         print(f"  Password: {DEMO_PASSWORD}")
-        for i, p in enumerate(created_projects):
-            print(f"  Project {i + 1} API Key: {p.api_key}")
+        for i, key in enumerate(raw_keys):
+            print(f"  Project {i + 1} API Key: {key}")
 
 
 if __name__ == "__main__":

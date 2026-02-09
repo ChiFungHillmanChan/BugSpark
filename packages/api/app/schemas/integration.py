@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
 
@@ -11,8 +11,8 @@ SUPPORTED_PROVIDERS = {"github"}
 
 
 class IntegrationCreate(BaseModel):
-    provider: str
-    config: dict
+    provider: str = Field(..., min_length=1, max_length=50)
+    config: dict = Field(..., max_length=20)
 
     @field_validator("provider")
     @classmethod
@@ -33,7 +33,7 @@ class IntegrationCreate(BaseModel):
         return value
 
 
-class IntegrationUpdate(BaseModel):
+class IntegrationUpdate(CamelModel):
     config: dict | None = None
     is_active: bool | None = None
 

@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_current_user, get_db, validate_api_key
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
@@ -102,8 +103,10 @@ async def list_reports(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> ReportListResponse:
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    query = select(Report).where(Report.project_id.in_(user_project_ids))
+    query = select(Report)
+    if current_user.role != Role.SUPERADMIN:
+        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+        query = query.where(Report.project_id.in_(user_project_ids))
 
     if project_id is not None:
         query = query.where(Report.project_id == project_id)
@@ -154,12 +157,13 @@ async def get_report(
     if report is None:
         raise NotFoundException(translate("report.not_found", locale))
 
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    project_check = await db.execute(
-        select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException(translate("report.not_authorized_view", locale))
+    if current_user.role != Role.SUPERADMIN:
+        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+        project_check = await db.execute(
+            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
+        )
+        if project_check.scalar_one_or_none() is None:
+            raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     return _report_to_response(report)
 
@@ -180,12 +184,13 @@ async def update_report(
     if report is None:
         raise NotFoundException(translate("report.not_found", locale))
 
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    project_check = await db.execute(
-        select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException(translate("report.not_authorized_update", locale))
+    if current_user.role != Role.SUPERADMIN:
+        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+        project_check = await db.execute(
+            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
+        )
+        if project_check.scalar_one_or_none() is None:
+            raise ForbiddenException(translate("report.not_authorized_update", locale))
 
     update_data = body.model_dump(exclude_unset=True)
     if "severity" in update_data and update_data["severity"] is not None:
@@ -223,12 +228,13 @@ async def delete_report(
     if report is None:
         raise NotFoundException(translate("report.not_found", locale))
 
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    project_check = await db.execute(
-        select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException(translate("report.not_authorized_delete", locale))
+    if current_user.role != Role.SUPERADMIN:
+        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+        project_check = await db.execute(
+            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
+        )
+        if project_check.scalar_one_or_none() is None:
+            raise ForbiddenException(translate("report.not_authorized_delete", locale))
 
     await db.delete(report)
     await db.commit()

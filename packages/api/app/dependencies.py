@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import hmac
 from typing import AsyncGenerator
 
 from fastapi import Depends, Header, Request
@@ -9,8 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.database import async_session
-from app.exceptions import NotFoundException, UnauthorizedException
+from app.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
 from app.i18n import get_locale, translate
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.user import User
 
@@ -55,21 +58,55 @@ async def get_current_user(
     return user
 
 
+async def get_active_user(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not current_user.is_active:
+        locale = get_locale(request)
+        raise UnauthorizedException(translate("auth.account_deactivated", locale))
+    return current_user
+
+
+async def require_admin(
+    request: Request,
+    current_user: User = Depends(get_active_user),
+) -> User:
+    if current_user.role not in (Role.ADMIN, Role.SUPERADMIN):
+        locale = get_locale(request)
+        raise ForbiddenException(translate("admin.forbidden", locale))
+    return current_user
+
+
+async def require_superadmin(
+    request: Request,
+    current_user: User = Depends(get_active_user),
+) -> User:
+    if current_user.role != Role.SUPERADMIN:
+        locale = get_locale(request)
+        raise ForbiddenException(translate("admin.forbidden", locale))
+    return current_user
+
+
 async def validate_api_key(
     request: Request,
     x_api_key: str = Header(..., alias="X-API-Key"),
     db: AsyncSession = Depends(get_db),
 ) -> Project:
     locale = get_locale(request)
+    prefix = x_api_key[:12] if len(x_api_key) >= 12 else x_api_key
+
     result = await db.execute(
         select(Project).where(
-            Project.api_key == x_api_key,
+            Project.api_key_prefix == prefix,
             Project.is_active.is_(True),
         )
     )
-    project = result.scalar_one_or_none()
+    candidates = result.scalars().all()
 
-    if project is None:
-        raise UnauthorizedException(translate("auth.invalid_api_key", locale))
+    incoming_hash = hashlib.sha256(x_api_key.encode()).hexdigest()
+    for project in candidates:
+        if hmac.compare_digest(project.api_key_hash, incoming_hash):
+            return project
 
-    return project
+    raise UnauthorizedException(translate("auth.invalid_api_key", locale))

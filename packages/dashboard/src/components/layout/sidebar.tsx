@@ -11,6 +11,8 @@ import {
   BookOpen,
   LogOut,
   ChevronDown,
+  Shield,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
@@ -24,6 +26,11 @@ const NAV_ITEMS = [
   { href: "/docs", labelKey: "docs" as const, icon: BookOpen, external: true },
 ];
 
+const ADMIN_NAV_ITEMS = [
+  { href: "/admin", labelKey: "adminDashboard" as const, icon: Shield },
+  { href: "/admin/users", labelKey: "adminUsers" as const, icon: Users },
+];
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -31,7 +38,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, logout, isSuperadmin } = useAuth();
   const { data: projects } = useProjects();
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const t = useTranslations("nav");
@@ -111,6 +118,38 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </Link>
             );
           })}
+
+          {isSuperadmin && (
+            <>
+              <div className="pt-4 pb-1 px-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  {t("admin")}
+                </span>
+              </div>
+              {ADMIN_NAV_ITEMS.map((item) => {
+                const isActive =
+                  item.href === "/admin"
+                    ? pathname === "/admin"
+                    : pathname.startsWith(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-accent text-white"
+                        : "text-gray-400 hover:text-white hover:bg-navy-800",
+                    )}
+                  >
+                    <item.icon className="w-5 h-5" />
+                    {t(item.labelKey)}
+                  </Link>
+                );
+              })}
+            </>
+          )}
         </nav>
 
         <div className="p-4 border-t border-navy-700">

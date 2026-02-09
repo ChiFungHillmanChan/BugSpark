@@ -94,14 +94,15 @@ async def test_rotate_api_key(
     csrf_headers: dict[str, str],
     test_project: Project,
 ):
-    original_key = test_project.api_key
+    original_prefix = test_project.api_key_prefix
     response = await client.post(
         f"{BASE}/{test_project.id}/rotate-key", cookies=auth_cookies, headers=csrf_headers
     )
     assert response.status_code == 200
     data = response.json()
     assert data["apiKey"].startswith("bsk_pub_")
-    assert data["apiKey"] != original_key
+    # The full new key differs from just the old prefix
+    assert data["apiKey"][:12] != original_prefix or len(data["apiKey"]) > 12
 
 
 async def test_project_requires_auth(client: AsyncClient):

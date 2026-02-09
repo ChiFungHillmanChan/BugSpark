@@ -11,6 +11,7 @@ MESSAGES: dict[str, str] = {
     "auth.invalid_token_type": "權杖類型無效",
     "auth.invalid_api_key": "API 金鑰無效",
     "auth.logged_out": "已登出",
+    "auth.account_deactivated": "帳號已被停用",
     # Reports
     "report.not_found": "找不到回報",
     "report.not_authorized_view": "無權檢視此回報",
@@ -19,4 +20,10 @@ MESSAGES: dict[str, str] = {
     # Projects
     "project.not_found": "找不到專案",
     "project.not_owner": "非專案擁有者",
+    # Admin
+    "admin.user_not_found": "找不到使用者",
+    "admin.cannot_demote_self": "無法更改自己的角色",
+    "admin.invalid_role": "無效的角色",
+    "admin.invalid_plan": "無效的方案",
+    "admin.forbidden": "需要管理員權限",
 }

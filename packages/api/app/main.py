@@ -5,12 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
 
 from app.config import get_settings
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
-from app.routers import analysis, auth, comments, integrations, projects, reports, stats, upload, webhooks
+from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, upload, webhooks
 
 settings = get_settings()
 
@@ -32,6 +33,7 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,6 +47,7 @@ app.add_middleware(CSRFMiddleware)
 register_exception_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(admin.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(reports.router, prefix="/api/v1")
 app.include_router(upload.router, prefix="/api/v1")

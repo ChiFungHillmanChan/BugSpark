@@ -16,7 +16,7 @@ BASE = "/api/v1/reports"
 
 
 def _api_key_headers(project: Project) -> dict[str, str]:
-    return {"X-API-Key": project.api_key}
+    return {"X-API-Key": project._raw_api_key}  # type: ignore[attr-defined]
 
 
 async def _create_report_in_db(
@@ -161,6 +161,91 @@ async def test_delete_report(
         f"{BASE}/{report.id}", cookies=auth_cookies
     )
     assert get_response.status_code == 404
+
+
+async def test_list_reports_csv_multi_value_filter(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    db_session: AsyncSession,
+    test_project: Project,
+):
+    """CSV multi-value filters (e.g. severity=low,medium) should work with .in_()."""
+    # Create reports with different severities
+    for sev, tid in [(Severity.LOW, "BUG-0010"), (Severity.HIGH, "BUG-0011"), (Severity.MEDIUM, "BUG-0012")]:
+        report = Report(
+            id=uuid.uuid4(),
+            project_id=test_project.id,
+            tracking_id=tid,
+            title=f"Bug {sev.value}",
+            description="test",
+            severity=sev,
+            category=Category.BUG,
+            metadata_={},
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc),
+        )
+        db_session.add(report)
+    await db_session.commit()
+
+    # Request with CSV severity filter
+    response = await client.get(
+        BASE,
+        params={"severity": "low,medium"},
+        cookies=auth_cookies,
+    )
+    assert response.status_code == 200
+    data = response.json()
+    severities = {item["severity"] for item in data["items"]}
+    assert severities <= {"low", "medium"}
+    assert len(data["items"]) >= 2
+
+
+async def test_list_reports_csv_multi_status_filter(
+    client: AsyncClient,
+    auth_cookies: dict[str, str],
+    db_session: AsyncSession,
+    test_project: Project,
+):
+    """CSV multi-value status filter (e.g. status=new,in_progress) should work."""
+    report1 = Report(
+        id=uuid.uuid4(),
+        project_id=test_project.id,
+        tracking_id="BUG-0020",
+        title="New bug",
+        description="test",
+        severity=Severity.LOW,
+        category=Category.BUG,
+        status=Status.NEW,
+        metadata_={},
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    report2 = Report(
+        id=uuid.uuid4(),
+        project_id=test_project.id,
+        tracking_id="BUG-0021",
+        title="In progress bug",
+        description="test",
+        severity=Severity.LOW,
+        category=Category.BUG,
+        status=Status.IN_PROGRESS,
+        metadata_={},
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add_all([report1, report2])
+    await db_session.commit()
+
+    response = await client.get(
+        BASE,
+        params={"status": "new,in_progress"},
+        cookies=auth_cookies,
+    )
+    assert response.status_code == 200
+    data = response.json()
+    statuses = {item["status"] for item in data["items"]}
+    assert statuses <= {"new", "in_progress"}
+    assert len(data["items"]) >= 2
 
 
 async def test_report_gets_tracking_id(

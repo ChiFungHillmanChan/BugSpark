@@ -10,17 +10,22 @@ from app.models.report import Report, Status
 from app.schemas.stats import BugTrend, OverviewStats, ProjectStats
 
 
-async def get_overview_stats(db: AsyncSession, user_id: str) -> OverviewStats:
-    project_ids_query = select(Project.id).where(Project.owner_id == user_id)
+async def get_overview_stats(db: AsyncSession, user_id: str | None) -> OverviewStats:
+    if user_id is not None:
+        project_filter = Report.project_id.in_(
+            select(Project.id).where(Project.owner_id == user_id)
+        )
+    else:
+        project_filter = True
 
     total_result = await db.execute(
-        select(func.count(Report.id)).where(Report.project_id.in_(project_ids_query))
+        select(func.count(Report.id)).where(project_filter)
     )
     total_bugs = total_result.scalar() or 0
 
     open_result = await db.execute(
         select(func.count(Report.id)).where(
-            Report.project_id.in_(project_ids_query),
+            project_filter,
             Report.status.in_([Status.NEW, Status.TRIAGING, Status.IN_PROGRESS]),
         )
     )
@@ -29,7 +34,7 @@ async def get_overview_stats(db: AsyncSession, user_id: str) -> OverviewStats:
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     resolved_result = await db.execute(
         select(func.count(Report.id)).where(
-            Report.project_id.in_(project_ids_query),
+            project_filter,
             Report.status == Status.RESOLVED,
             Report.updated_at >= today_start,
         )
@@ -43,7 +48,7 @@ async def get_overview_stats(db: AsyncSession, user_id: str) -> OverviewStats:
             )
             / 3600
         ).where(
-            Report.project_id.in_(project_ids_query),
+            project_filter,
             Report.status.in_([Status.RESOLVED, Status.CLOSED]),
         )
     )

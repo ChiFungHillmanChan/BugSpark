@@ -11,6 +11,7 @@ MESSAGES: dict[str, str] = {
     "auth.invalid_token_type": "Invalid token type",
     "auth.invalid_api_key": "Invalid API key",
     "auth.logged_out": "Logged out",
+    "auth.account_deactivated": "Account has been deactivated",
     # Reports
     "report.not_found": "Report not found",
     "report.not_authorized_view": "Not authorized to view this report",
@@ -19,4 +20,10 @@ MESSAGES: dict[str, str] = {
     # Projects
     "project.not_found": "Project not found",
     "project.not_owner": "Not the project owner",
+    # Admin
+    "admin.user_not_found": "User not found",
+    "admin.cannot_demote_self": "Cannot change your own role",
+    "admin.invalid_role": "Invalid role",
+    "admin.invalid_plan": "Invalid plan",
+    "admin.forbidden": "Admin access required",
 }

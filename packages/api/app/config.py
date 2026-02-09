@@ -21,6 +21,9 @@ class Settings(BaseSettings):
 
     ANTHROPIC_API_KEY: str = ""
 
+    SUPERADMIN_EMAIL: str = ""
+    SUPERADMIN_PASSWORD: str = ""
+
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
     FRONTEND_URL: str = "http://localhost:3000"
 

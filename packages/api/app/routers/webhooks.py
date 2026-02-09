@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import secrets
+import uuid
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
 async def _verify_project_ownership(
-    project_id: str, user: User, db: AsyncSession
+    project_id: uuid.UUID, user: User, db: AsyncSession
 ) -> None:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -30,7 +31,7 @@ async def _verify_project_ownership(
 @router.post("", response_model=WebhookResponse, status_code=201)
 async def create_webhook(
     body: WebhookCreate,
-    project_id: str,
+    project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> WebhookResponse:
@@ -51,7 +52,7 @@ async def create_webhook(
 
 @router.get("", response_model=list[WebhookResponse])
 async def list_webhooks(
-    project_id: str,
+    project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[WebhookResponse]:
@@ -66,7 +67,7 @@ async def list_webhooks(
 
 @router.patch("/{webhook_id}", response_model=WebhookResponse)
 async def update_webhook(
-    webhook_id: str,
+    webhook_id: uuid.UUID,
     body: WebhookUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -77,7 +78,7 @@ async def update_webhook(
     if webhook is None:
         raise NotFoundException("Webhook not found")
 
-    await _verify_project_ownership(str(webhook.project_id), current_user, db)
+    await _verify_project_ownership(webhook.project_id, current_user, db)
 
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -91,7 +92,7 @@ async def update_webhook(
 
 @router.delete("/{webhook_id}", status_code=204)
 async def delete_webhook(
-    webhook_id: str,
+    webhook_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
@@ -101,7 +102,7 @@ async def delete_webhook(
     if webhook is None:
         raise NotFoundException("Webhook not found")
 
-    await _verify_project_ownership(str(webhook.project_id), current_user, db)
+    await _verify_project_ownership(webhook.project_id, current_user, db)
 
     await db.delete(webhook)
     await db.commit()

@@ -1,8 +1,33 @@
+export type UserRole = "user" | "admin" | "superadmin";
+export type UserPlan = "free" | "pro" | "enterprise";
+
 export interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
+  plan: UserPlan;
+  isActive: boolean;
   createdAt: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  plan: UserPlan;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PlatformStats {
+  totalUsers: number;
+  totalProjects: number;
+  totalReports: number;
+  usersByPlan: Record<string, number>;
+  usersByRole: Record<string, number>;
 }
 
 export interface Project {

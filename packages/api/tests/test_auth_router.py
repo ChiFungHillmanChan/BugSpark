@@ -116,3 +116,56 @@ async def test_logout(client: AsyncClient, auth_cookies: dict[str, str], csrf_he
     response = await client.post(f"{BASE}/logout", cookies=auth_cookies, headers=csrf_headers)
     assert response.status_code == 200
     assert response.json()["detail"] == "Logged out"
+
+
+async def test_refresh_token_replay_rejected(
+    client: AsyncClient, test_user: User, db_session: AsyncSession
+):
+    """After a successful refresh, the old refresh token must be rejected (replay protection)."""
+    jti = generate_jti()
+    test_user.refresh_token_jti = jti
+    await db_session.commit()
+
+    old_refresh_token = create_refresh_token(str(test_user.id), jti)
+
+    # First refresh succeeds and rotates the jti
+    response1 = await client.post(
+        f"{BASE}/refresh",
+        cookies={"bugspark_refresh_token": old_refresh_token},
+    )
+    assert response1.status_code == 200
+
+    # Replay the old token — should fail because jti was rotated
+    response2 = await client.post(
+        f"{BASE}/refresh",
+        cookies={"bugspark_refresh_token": old_refresh_token},
+    )
+    assert response2.status_code == 401
+
+
+async def test_patch_me(
+    client: AsyncClient,
+    test_user: User,
+    auth_cookies: dict[str, str],
+    csrf_headers: dict[str, str],
+):
+    """PATCH /auth/me should update the current user's profile fields."""
+    response = await client.patch(
+        f"{BASE}/me",
+        json={"name": "Updated Name"},
+        cookies=auth_cookies,
+        headers=csrf_headers,
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["name"] == "Updated Name"
+    assert data["email"] == test_user.email
+
+
+async def test_patch_me_unauthenticated(client: AsyncClient):
+    """PATCH /auth/me without auth should be rejected."""
+    response = await client.patch(
+        f"{BASE}/me",
+        json={"name": "Hacker"},
+    )
+    assert response.status_code == 401

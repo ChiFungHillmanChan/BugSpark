@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends
 from httpx import HTTPStatusError
@@ -30,7 +31,7 @@ router = APIRouter(tags=["integrations"])
 
 
 async def _get_owned_project(
-    project_id: str, user: User, db: AsyncSession
+    project_id: uuid.UUID, user: User, db: AsyncSession
 ) -> Project:
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
@@ -47,7 +48,7 @@ async def _get_owned_project(
     status_code=201,
 )
 async def create_integration(
-    project_id: str,
+    project_id: uuid.UUID,
     body: IntegrationCreate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -71,7 +72,7 @@ async def create_integration(
     response_model=list[IntegrationResponse],
 )
 async def list_integrations(
-    project_id: str,
+    project_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[IntegrationResponse]:
@@ -89,7 +90,7 @@ async def list_integrations(
     response_model=IntegrationResponse,
 )
 async def update_integration(
-    integration_id: str,
+    integration_id: uuid.UUID,
     body: IntegrationUpdate,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -101,7 +102,7 @@ async def update_integration(
     if integration is None:
         raise NotFoundException("Integration not found")
 
-    await _get_owned_project(str(integration.project_id), current_user, db)
+    await _get_owned_project(integration.project_id, current_user, db)
 
     update_data = body.model_dump(exclude_unset=True)
     if "config" in update_data and update_data["config"] is not None:
@@ -120,7 +121,7 @@ async def update_integration(
 
 @router.delete("/integrations/{integration_id}", status_code=204)
 async def delete_integration(
-    integration_id: str,
+    integration_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
@@ -131,7 +132,7 @@ async def delete_integration(
     if integration is None:
         raise NotFoundException("Integration not found")
 
-    await _get_owned_project(str(integration.project_id), current_user, db)
+    await _get_owned_project(integration.project_id, current_user, db)
 
     await db.delete(integration)
     await db.commit()
@@ -142,7 +143,7 @@ async def delete_integration(
     response_model=ExportResponse,
 )
 async def export_report_to_tracker(
-    report_id: str,
+    report_id: uuid.UUID,
     provider: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

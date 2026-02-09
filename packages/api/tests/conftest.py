@@ -25,9 +25,10 @@ get_settings.cache_clear()
 
 from app.database import Base  # noqa: E402
 from app.dependencies import get_db  # noqa: E402
+from app.models.enums import Plan, Role  # noqa: E402
 from app.models.project import Project  # noqa: E402
 from app.models.user import User  # noqa: E402
-from app.routers.projects import _generate_api_key  # noqa: E402
+from app.routers.projects import _api_key_prefix, _generate_api_key, _hash_api_key  # noqa: E402
 from app.services.auth_service import create_access_token, hash_password  # noqa: E402
 
 # ---------- SQLite-compatible type overrides ----------
@@ -154,6 +155,28 @@ async def test_user(db_session: AsyncSession) -> User:
         email="testuser@example.com",
         hashed_password=hash_password("TestPassword123!"),
         name="Test User",
+        role=Role.USER,
+        plan=Plan.FREE,
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+async def test_superadmin(db_session: AsyncSession) -> User:
+    user = User(
+        id=uuid.uuid4(),
+        email="superadmin@example.com",
+        hashed_password=hash_password("SuperAdmin123!"),
+        name="Super Admin",
+        role=Role.SUPERADMIN,
+        plan=Plan.ENTERPRISE,
+        is_active=True,
         created_at=datetime.now(timezone.utc),
         updated_at=datetime.now(timezone.utc),
     )
@@ -176,23 +199,38 @@ def auth_cookies(test_user: User) -> dict[str, str]:
 
 
 @pytest.fixture()
+def superadmin_cookies(test_superadmin: User) -> dict[str, str]:
+    token = create_access_token(str(test_superadmin.id), test_superadmin.email)
+    return {
+        "bugspark_access_token": token,
+        "bugspark_csrf_token": CSRF_TEST_TOKEN,
+    }
+
+
+@pytest.fixture()
 def csrf_headers() -> dict[str, str]:
     return {"X-CSRF-Token": CSRF_TEST_TOKEN}
 
 
 @pytest.fixture()
 async def test_project(db_session: AsyncSession, test_user: User) -> Project:
+    raw_key = _generate_api_key()
     project = Project(
         id=uuid.uuid4(),
         owner_id=test_user.id,
         name="Test Project",
         domain="example.com",
-        api_key=_generate_api_key(),
+        api_key_hash=_hash_api_key(raw_key),
+        api_key_prefix=_api_key_prefix(raw_key),
         settings={},
         is_active=True,
         created_at=datetime.now(timezone.utc),
     )
+    # Stash the raw key on the object for tests that need it (e.g. X-API-Key header)
+    project._raw_api_key = raw_key  # type: ignore[attr-defined]
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
+    # Re-attach after refresh since SQLAlchemy may clear transient attrs
+    project._raw_api_key = raw_key  # type: ignore[attr-defined]
     return project

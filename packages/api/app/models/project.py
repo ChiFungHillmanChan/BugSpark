@@ -21,7 +21,10 @@ class Project(Base):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     domain: Mapped[str] = mapped_column(String(255), nullable=False)
-    api_key: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    api_key_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    api_key_prefix: Mapped[str] = mapped_column(
+        String(16), nullable=False, index=True
+    )
     settings: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}")
     report_counter: Mapped[int] = mapped_column(
         Integer, default=0, server_default="0", nullable=False

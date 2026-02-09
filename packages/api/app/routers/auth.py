@@ -126,6 +126,9 @@ async def login(
     if user is None or not verify_password(body.password, user.hashed_password):
         raise UnauthorizedException(translate("auth.invalid_credentials", locale))
 
+    if not user.is_active:
+        raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
     await _issue_tokens(user, response, db)
 
     return UserResponse.model_validate(user)

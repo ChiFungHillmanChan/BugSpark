@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import secrets
 import uuid
 
@@ -10,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_current_user, get_db
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
@@ -21,19 +23,38 @@ def _generate_api_key() -> str:
     return f"bsk_pub_{secrets.token_hex(16)}"
 
 
-def _mask_api_key(api_key: str) -> str:
-    """Show prefix and last 4 chars, mask the middle."""
-    if len(api_key) <= 12:
-        return api_key[:4] + "..." + api_key[-4:]
-    return api_key[:12] + "..." + api_key[-4:]
+def _hash_api_key(api_key: str) -> str:
+    return hashlib.sha256(api_key.encode()).hexdigest()
 
 
-def _project_response(project: Project, mask_key: bool = False) -> ProjectResponse:
+def _api_key_prefix(api_key: str) -> str:
+    """Extract the prefix used for fast DB lookup (first 12 chars)."""
+    return api_key[:12]
+
+
+def _mask_api_key(prefix: str) -> str:
+    """Show prefix with masked suffix."""
+    return prefix + "..."
+
+
+def _project_response(
+    project: Project,
+    *,
+    full_api_key: str | None = None,
+    mask_key: bool = False,
+) -> ProjectResponse:
+    if full_api_key is not None:
+        api_key_display = full_api_key
+    elif mask_key:
+        api_key_display = _mask_api_key(project.api_key_prefix)
+    else:
+        # Detail endpoint – we can no longer recover the full key, show masked
+        api_key_display = _mask_api_key(project.api_key_prefix)
     return ProjectResponse(
         id=project.id,
         name=project.name,
         domain=project.domain,
-        api_key=_mask_api_key(project.api_key) if mask_key else project.api_key,
+        api_key=api_key_display,
         is_active=project.is_active,
         created_at=project.created_at,
         settings=project.settings,
@@ -48,7 +69,7 @@ async def _get_owned_project(
 
     if project is None:
         raise NotFoundException(translate("project.not_found", locale))
-    if project.owner_id != user.id:
+    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
         raise ForbiddenException(translate("project.not_owner", locale))
 
     return project
@@ -60,17 +81,19 @@ async def create_project(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
+    raw_key = _generate_api_key()
     project = Project(
         owner_id=current_user.id,
         name=body.name,
         domain=body.domain,
-        api_key=_generate_api_key(),
+        api_key_hash=_hash_api_key(raw_key),
+        api_key_prefix=_api_key_prefix(raw_key),
     )
     db.add(project)
     await db.commit()
     await db.refresh(project)
 
-    return _project_response(project)
+    return _project_response(project, full_api_key=raw_key)
 
 
 @router.get("", response_model=list[ProjectResponse])
@@ -78,12 +101,11 @@ async def list_projects(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[ProjectResponse]:
-    result = await db.execute(
-        select(Project).where(
-            Project.owner_id == current_user.id,
-            Project.is_active.is_(True),
-        )
-    )
+    query = select(Project).where(Project.is_active.is_(True))
+    if current_user.role != Role.SUPERADMIN:
+        query = query.where(Project.owner_id == current_user.id)
+
+    result = await db.execute(query)
     projects = result.scalars().all()
     return [_project_response(p, mask_key=True) for p in projects]
 
@@ -143,8 +165,10 @@ async def rotate_api_key(
 ) -> ProjectResponse:
     locale = get_locale(request)
     project = await _get_owned_project(project_id, current_user, db, locale)
-    project.api_key = _generate_api_key()
+    raw_key = _generate_api_key()
+    project.api_key_hash = _hash_api_key(raw_key)
+    project.api_key_prefix = _api_key_prefix(raw_key)
     await db.commit()
     await db.refresh(project)
 
-    return _project_response(project)
+    return _project_response(project, full_api_key=raw_key)

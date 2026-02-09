@@ -3,14 +3,14 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
 from app.utils.sanitize import sanitize_text
 
 
 class CommentCreate(BaseModel):
-    body: str
+    body: str = Field(..., min_length=1, max_length=5000)
 
     @field_validator("body")
     @classmethod

@@ -61,13 +61,13 @@ async def test_validate_api_key_valid(
     db_session: AsyncSession, test_project: Project
 ):
     request = _mock_request()
+    raw_key = test_project._raw_api_key  # type: ignore[attr-defined]
     project = await validate_api_key(
         request=request,
-        x_api_key=test_project.api_key,
+        x_api_key=raw_key,
         db=db_session,
     )
     assert project.id == test_project.id
-    assert project.api_key == test_project.api_key
 
 
 async def test_validate_api_key_invalid(db_session: AsyncSession):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import uuid
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/reports", tags=["analysis"])
 
 @router.post("/{report_id}/analyze", response_model=AnalysisResponse)
 async def analyze_report(
-    report_id: str,
+    report_id: uuid.UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> AnalysisResponse:

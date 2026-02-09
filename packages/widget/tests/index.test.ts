@@ -27,10 +27,16 @@ vi.mock('../src/ui/annotation-overlay', () => ({
 
 vi.mock('../src/ui/toast', () => ({
   showToast: vi.fn(),
+  dismiss: vi.fn(),
 }));
 
 vi.mock('../src/core/screenshot-engine', () => ({
   captureScreenshot: vi.fn(),
+}));
+
+vi.mock('../src/core/performance-collector', () => ({
+  initPerformanceObservers: vi.fn(),
+  stop: vi.fn(),
 }));
 
 describe('BugSpark SDK', () => {
@@ -47,11 +53,11 @@ describe('BugSpark SDK', () => {
   });
 
   it('init() initializes without error', () => {
-    expect(() => BugSpark.init({ apiKey: 'test-key' })).not.toThrow();
+    expect(() => BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' })).not.toThrow();
   });
 
   it('init() with minimal config works', () => {
-    BugSpark.init({ apiKey: 'my-key' });
+    BugSpark.init({ apiKey: 'my-key', endpoint: 'https://api.example.com' });
     // Verify initialization happened by checking window.BugSpark exists
     expect(
       (window as unknown as Record<string, unknown>).BugSpark,
@@ -59,12 +65,12 @@ describe('BugSpark SDK', () => {
   });
 
   it('destroy() cleans up', () => {
-    BugSpark.init({ apiKey: 'test-key' });
+    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(() => BugSpark.destroy()).not.toThrow();
   });
 
   it('identify() sets user info', () => {
-    BugSpark.init({ apiKey: 'test-key' });
+    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(() =>
       BugSpark.identify({ id: 'user-1', email: 'a@b.com', name: 'Test' }),
     ).not.toThrow();
@@ -72,8 +78,8 @@ describe('BugSpark SDK', () => {
 
   it('double init() warns and returns early', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    BugSpark.init({ apiKey: 'test-key' });
-    BugSpark.init({ apiKey: 'test-key' });
+    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
+    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(warnSpy).toHaveBeenCalledWith('[BugSpark] Already initialized');
     warnSpy.mockRestore();
   });

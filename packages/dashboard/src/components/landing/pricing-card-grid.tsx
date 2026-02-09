@@ -32,7 +32,7 @@ function PricingCard({ tier }: { tier: PricingTier }) {
         {tier.monthlyPriceHkd !== null ? (
           <>
             <span className="text-4xl font-bold text-gray-900">
-              HK${tier.monthlyPriceHkd}
+              {t(tier.currencyKey)}{tier.monthlyPriceHkd}
             </span>
             <span className="text-sm text-gray-500 ml-1">
               {t("pricingPerMonth")}
@@ -57,7 +57,7 @@ function PricingCard({ tier }: { tier: PricingTier }) {
       </Link>
 
       <ul className="mt-6 space-y-3 flex-1">
-        {tier.featureKeys.map((key) => (
+        {tier.highlightKeys.map((key) => (
           <li key={key} className="flex items-start gap-2 text-sm text-gray-600">
             <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
             <span>{t(key)}</span>

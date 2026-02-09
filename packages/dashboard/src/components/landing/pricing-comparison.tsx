@@ -4,14 +4,20 @@ import { useTranslations } from "next-intl";
 import { Check, X } from "lucide-react";
 import { COMPARISON_FEATURES, PRICING_TIERS } from "./pricing-data";
 
-function CellValue({ value }: { value: string | boolean }) {
+function CellValue({
+  value,
+  t,
+}: {
+  value: string | boolean;
+  t: (key: string) => string;
+}) {
   if (value === true) {
     return <Check className="w-4 h-4 text-accent mx-auto" />;
   }
   if (value === false) {
     return <X className="w-4 h-4 text-gray-300 mx-auto" />;
   }
-  return <span>{value}</span>;
+  return <span>{t(value)}</span>;
 }
 
 export function PricingComparison() {
@@ -49,15 +55,14 @@ export function PricingComparison() {
                 <td className="py-3 px-4 text-gray-600">
                   {t(feature.labelKey)}
                 </td>
-                <td className="py-3 px-4 text-center text-gray-600">
-                  <CellValue value={feature.free} />
-                </td>
-                <td className="py-3 px-4 text-center text-gray-600">
-                  <CellValue value={feature.starter} />
-                </td>
-                <td className="py-3 px-4 text-center text-gray-600">
-                  <CellValue value={feature.team} />
-                </td>
+                {PRICING_TIERS.map((tier) => (
+                  <td
+                    key={tier.id}
+                    className="py-3 px-4 text-center text-gray-600"
+                  >
+                    <CellValue value={feature.values[tier.id]} t={t} />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { PricingCardGrid } from "./pricing-card-grid";
 import { PricingComparison } from "./pricing-comparison";
+import { ENTERPRISE_FEATURE_KEYS } from "./pricing-data";
 
 export function PricingSection() {
   const t = useTranslations("landing");
@@ -30,10 +31,9 @@ export function PricingSection() {
             {t("pricingEnterpriseDesc")}
           </p>
           <ul className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-600">
-            <li>{t("pricingEnterpriseFeature1")}</li>
-            <li>{t("pricingEnterpriseFeature2")}</li>
-            <li>{t("pricingEnterpriseFeature3")}</li>
-            <li>{t("pricingEnterpriseFeature4")}</li>
+            {ENTERPRISE_FEATURE_KEYS.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
           </ul>
           <Link
             href="mailto:sales@bugspark.dev"

@@ -5,10 +5,11 @@ export interface PricingTier {
   nameKey: string;
   descriptionKey: string;
   monthlyPriceHkd: number | null;
+  currencyKey: string;
   isPopular: boolean;
   ctaKey: string;
   ctaHref: string;
-  featureKeys: string[];
+  highlightKeys: string[];
 }
 
 export const PRICING_TIERS: PricingTier[] = [
@@ -17,15 +18,16 @@ export const PRICING_TIERS: PricingTier[] = [
     nameKey: "pricingFreeName",
     descriptionKey: "pricingFreeDesc",
     monthlyPriceHkd: null,
+    currencyKey: "pricingCurrencyPrefix",
     isPopular: false,
     ctaKey: "pricingFreeCta",
     ctaHref: "/register",
-    featureKeys: [
-      "pricingFreeFeature1",
-      "pricingFreeFeature2",
-      "pricingFreeFeature3",
-      "pricingFreeFeature4",
-      "pricingFreeFeature5",
+    highlightKeys: [
+      "pricingFreeHighlightReports",
+      "pricingFreeHighlightProjects",
+      "pricingFreeHighlightSeats",
+      "pricingFreeHighlightScreenshot",
+      "pricingFreeHighlightLogs",
     ],
   },
   {
@@ -33,17 +35,18 @@ export const PRICING_TIERS: PricingTier[] = [
     nameKey: "pricingStarterName",
     descriptionKey: "pricingStarterDesc",
     monthlyPriceHkd: 199,
+    currencyKey: "pricingCurrencyPrefix",
     isPopular: false,
     ctaKey: "pricingStarterCta",
     ctaHref: "/register",
-    featureKeys: [
-      "pricingStarterFeature1",
-      "pricingStarterFeature2",
-      "pricingStarterFeature3",
-      "pricingStarterFeature4",
-      "pricingStarterFeature5",
-      "pricingStarterFeature6",
-      "pricingStarterFeature7",
+    highlightKeys: [
+      "pricingStarterHighlightReports",
+      "pricingStarterHighlightProjects",
+      "pricingStarterHighlightSeats",
+      "pricingStarterHighlightIncludes",
+      "pricingStarterHighlightReplay",
+      "pricingStarterHighlightGithub",
+      "pricingStarterHighlightRetention",
     ],
   },
   {
@@ -51,44 +54,82 @@ export const PRICING_TIERS: PricingTier[] = [
     nameKey: "pricingTeamName",
     descriptionKey: "pricingTeamDesc",
     monthlyPriceHkd: 799,
+    currencyKey: "pricingCurrencyPrefix",
     isPopular: true,
     ctaKey: "pricingTeamCta",
     ctaHref: "/register",
-    featureKeys: [
-      "pricingTeamFeature1",
-      "pricingTeamFeature2",
-      "pricingTeamFeature3",
-      "pricingTeamFeature4",
-      "pricingTeamFeature5",
-      "pricingTeamFeature6",
-      "pricingTeamFeature7",
-      "pricingTeamFeature8",
+    highlightKeys: [
+      "pricingTeamHighlightReports",
+      "pricingTeamHighlightProjects",
+      "pricingTeamHighlightSeats",
+      "pricingTeamHighlightIncludes",
+      "pricingTeamHighlightAi",
+      "pricingTeamHighlightIntegrations",
+      "pricingTeamHighlightBranding",
+      "pricingTeamHighlightRetention",
     ],
   },
 ];
 
 export interface ComparisonFeature {
   labelKey: string;
-  free: string | boolean;
-  starter: string | boolean;
-  team: string | boolean;
+  values: Record<PricingTierId, boolean | string>;
 }
 
 export const COMPARISON_FEATURES: ComparisonFeature[] = [
-  { labelKey: "compReportsMonth", free: "50", starter: "500", team: "5,000" },
-  { labelKey: "compProjects", free: "1", starter: "3", team: "10" },
-  { labelKey: "compSeats", free: "1", starter: "3", team: "10" },
-  { labelKey: "compScreenshot", free: true, starter: true, team: true },
-  { labelKey: "compConsoleLogs", free: true, starter: true, team: true },
-  { labelKey: "compSessionReplay", free: false, starter: true, team: true },
-  { labelKey: "compGithub", free: false, starter: true, team: true },
-  { labelKey: "compAiAnalysis", free: false, starter: false, team: true },
-  { labelKey: "compJiraLinearSlack", free: false, starter: false, team: true },
-  { labelKey: "compCustomBranding", free: false, starter: false, team: true },
+  {
+    labelKey: "compReportsMonth",
+    values: { free: "50", starter: "500", team: "5,000" },
+  },
+  {
+    labelKey: "compProjects",
+    values: { free: "1", starter: "3", team: "10" },
+  },
+  {
+    labelKey: "compSeats",
+    values: { free: "1", starter: "3", team: "10" },
+  },
+  {
+    labelKey: "compScreenshot",
+    values: { free: true, starter: true, team: true },
+  },
+  {
+    labelKey: "compConsoleLogs",
+    values: { free: true, starter: true, team: true },
+  },
+  {
+    labelKey: "compSessionReplay",
+    values: { free: false, starter: true, team: true },
+  },
+  {
+    labelKey: "compGithub",
+    values: { free: false, starter: true, team: true },
+  },
+  {
+    labelKey: "compAiAnalysis",
+    values: { free: false, starter: false, team: true },
+  },
+  {
+    labelKey: "compJiraLinearSlack",
+    values: { free: false, starter: false, team: true },
+  },
+  {
+    labelKey: "compCustomBranding",
+    values: { free: false, starter: false, team: true },
+  },
   {
     labelKey: "compDataRetention",
-    free: "7 days",
-    starter: "30 days",
-    team: "90 days",
+    values: {
+      free: "compRetention7d",
+      starter: "compRetention30d",
+      team: "compRetention90d",
+    },
   },
 ];
+
+export const ENTERPRISE_FEATURE_KEYS = [
+  "pricingEnterpriseSso",
+  "pricingEnterpriseAudit",
+  "pricingEnterpriseSupport",
+  "pricingEnterpriseRetention",
+] as const;

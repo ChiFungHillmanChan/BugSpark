@@ -1,0 +1,118 @@
+# CLI Installation
+
+The BugSpark CLI lets you manage projects and bug reports directly from your terminal — no browser needed.
+
+## Prerequisites
+
+- **Node.js 18+** installed on your machine
+- A **BugSpark account** (sign up at the [Dashboard](/register))
+
+## Install
+
+Install the CLI globally using npm, pnpm, or yarn:
+
+```bash
+npm install -g @bugspark/cli
+```
+
+```bash
+pnpm add -g @bugspark/cli
+```
+
+```bash
+yarn global add @bugspark/cli
+```
+
+After installing, verify it works:
+
+```bash
+bugspark --version
+```
+
+You should see `0.1.0` (or the latest version).
+
+## First-Time Setup
+
+Run these two commands to get started:
+
+```bash
+# Step 1 — Log in (opens browser to create a token)
+bugspark login
+
+# Step 2 — Set up your project (interactive)
+bugspark init
+```
+
+That's it! Read on for a detailed walkthrough of each step.
+
+---
+
+## Step 1: Create a Personal Access Token
+
+Before the CLI can talk to BugSpark, you need a **Personal Access Token** (PAT).
+
+1. Go to **[Dashboard → Settings → Personal Access Tokens](/settings/tokens)**
+2. Click **"Create Token"**
+3. Give it a name (e.g. `My Laptop CLI`)
+4. Choose an expiry (or "Never")
+5. Click **Create**
+6. **Copy the token immediately** — it starts with `bsk_pat_` and will only be shown once
+
+<Callout type="warning" title="Save your token!">
+  The full token is only displayed once when you create it. If you lose it, you'll need to create a new one.
+</Callout>
+
+## Step 2: Log In
+
+Run the login command:
+
+```bash
+bugspark login
+```
+
+The CLI will:
+
+1. Ask for your **API URL** (press Enter to use the default `https://bugspark-api.onrender.com/api/v1`)
+2. Try to open your browser to the token creation page
+3. Ask you to **paste your token** (`bsk_pat_...`)
+4. **Verify** the token by calling the API
+5. **Save** your credentials to `~/.bugspark/config.json`
+
+Once you see ✓ **Logged in as Your Name**, you're ready to go.
+
+<Callout type="tip" title="Config file">
+  Your token is stored at `~/.bugspark/config.json` with restrictive file permissions (600). Only your user account can read it.
+</Callout>
+
+## Step 3: Initialize a Project
+
+```bash
+bugspark init
+```
+
+This interactive command will:
+
+- Show your existing projects (if any)
+- Let you **select** an existing project or **create a new one**
+- Display the **widget installation snippet** with your API key pre-filled
+
+Example output:
+
+```
+  🐛⚡ BugSpark Project Setup
+
+? Select a project or create a new one
+  ❯ My Web App (bsk_pub_abc...)
+    Another Project (bsk_pub_def...)
+    + Create new project
+```
+
+After selecting or creating a project, you'll see ready-to-paste installation code for both script tag and npm.
+
+---
+
+## Next Steps
+
+- [CLI Commands](/docs/cli/commands) — Full list of available commands
+- [CLI Authentication](/docs/cli/authentication) — How token auth works under the hood
+- [Widget Installation](/docs/widget/installation) — Install the bug reporting widget

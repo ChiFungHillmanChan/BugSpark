@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { BugTrend } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -20,6 +20,7 @@ interface BugTrendChartProps {
 
 export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
 
   if (isLoading) return <SkeletonChart />;
 
@@ -41,7 +42,7 @@ export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
             dataKey="date"
             tick={{ fontSize: 12, fill: "#9ca3af" }}
             tickFormatter={(value: string) =>
-              new Date(value).toLocaleDateString("en-US", {
+              new Date(value).toLocaleDateString(locale, {
                 month: "short",
                 day: "numeric",
               })

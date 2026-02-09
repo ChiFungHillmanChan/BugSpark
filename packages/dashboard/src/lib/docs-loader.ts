@@ -10,6 +10,10 @@ const MDX_MODULES: Record<string, () => Promise<MDXModule>> = {
   "widget/annotation-tools": () =>
     import("@content/docs/widget/annotation-tools.mdx"),
   "widget/advanced": () => import("@content/docs/widget/advanced.mdx"),
+  "cli/installation": () => import("@content/docs/cli/installation.mdx"),
+  "cli/commands": () => import("@content/docs/cli/commands.mdx"),
+  "cli/authentication": () =>
+    import("@content/docs/cli/authentication.mdx"),
   "api/authentication": () =>
     import("@content/docs/api/authentication.mdx"),
   "api/reports": () => import("@content/docs/api/reports.mdx"),
@@ -34,6 +38,11 @@ const MDX_MODULES_ZH_TW: Record<string, () => Promise<MDXModule>> = {
     import("@content/docs/zh-TW/widget/annotation-tools.mdx"),
   "widget/advanced": () =>
     import("@content/docs/zh-TW/widget/advanced.mdx"),
+  "cli/installation": () =>
+    import("@content/docs/zh-TW/cli/installation.mdx"),
+  "cli/commands": () => import("@content/docs/zh-TW/cli/commands.mdx"),
+  "cli/authentication": () =>
+    import("@content/docs/zh-TW/cli/authentication.mdx"),
   "api/authentication": () =>
     import("@content/docs/zh-TW/api/authentication.mdx"),
   "api/reports": () => import("@content/docs/zh-TW/api/reports.mdx"),

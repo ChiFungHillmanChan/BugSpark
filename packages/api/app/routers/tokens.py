@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import PAT_PREFIX_LEN, get_current_user, get_db
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.personal_access_token import PersonalAccessToken
@@ -30,7 +30,7 @@ def _hash_token(token: str) -> str:
 
 
 def _token_prefix(token: str) -> str:
-    return token[:16]
+    return token[:PAT_PREFIX_LEN]
 
 
 @router.post("", response_model=TokenCreateResponse, status_code=201)

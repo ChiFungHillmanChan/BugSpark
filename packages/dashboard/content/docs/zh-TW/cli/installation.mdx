@@ -1,0 +1,118 @@
+# CLI 安裝
+
+BugSpark CLI 讓你直接從終端機管理專案和錯誤報告，無需開啟瀏覽器。
+
+## 前置需求
+
+- **Node.js 18+** 已安裝在你的電腦上
+- **BugSpark 帳號**（在 [儀表板](/register) 註冊）
+
+## 安裝
+
+使用 npm、pnpm 或 yarn 全域安裝 CLI：
+
+```bash
+npm install -g @bugspark/cli
+```
+
+```bash
+pnpm add -g @bugspark/cli
+```
+
+```bash
+yarn global add @bugspark/cli
+```
+
+安裝後，驗證是否正常運作：
+
+```bash
+bugspark --version
+```
+
+你應該會看到 `0.1.0`（或最新版本）。
+
+## 首次設定
+
+執行以下兩個命令即可開始：
+
+```bash
+# 步驟 1 — 登入（開啟瀏覽器建立 Token）
+bugspark login
+
+# 步驟 2 — 設定專案（互動式）
+bugspark init
+```
+
+就是這麼簡單！往下閱讀每個步驟的詳細說明。
+
+---
+
+## 步驟 1：建立個人存取權杖
+
+在 CLI 能夠與 BugSpark 溝通之前，你需要一個**個人存取權杖**（PAT）。
+
+1. 前往 **[儀表板 → 設定 → 個人存取權杖](/settings/tokens)**
+2. 點擊 **「建立權杖」**
+3. 給它一個名稱（例如 `我的筆電 CLI`）
+4. 選擇到期時間（或「永不過期」）
+5. 點擊 **建立**
+6. **立即複製權杖** — 它以 `bsk_pat_` 開頭，只會顯示一次
+
+<Callout type="warning" title="保存你的權杖！">
+  完整的權杖只在建立時顯示一次。如果遺失了，你需要建立一個新的。
+</Callout>
+
+## 步驟 2：登入
+
+執行登入命令：
+
+```bash
+bugspark login
+```
+
+CLI 會：
+
+1. 詢問你的 **API URL**（按 Enter 使用預設值 `https://bugspark-api.onrender.com/api/v1`）
+2. 嘗試開啟瀏覽器到權杖建立頁面
+3. 要求你**貼上權杖**（`bsk_pat_...`）
+4. **驗證**權杖（呼叫 API 確認）
+5. **儲存**你的憑證到 `~/.bugspark/config.json`
+
+看到 ✓ **已登入為 你的名稱** 後，就準備好了。
+
+<Callout type="tip" title="設定檔">
+  你的權杖儲存在 `~/.bugspark/config.json`，使用限制性的檔案權限（600）。只有你的使用者帳號能讀取它。
+</Callout>
+
+## 步驟 3：初始化專案
+
+```bash
+bugspark init
+```
+
+這個互動式命令會：
+
+- 顯示你現有的專案（如果有的話）
+- 讓你**選擇**現有專案或**建立新專案**
+- 顯示已填入 API Key 的 **Widget 安裝程式碼**
+
+範例輸出：
+
+```
+  🐛⚡ BugSpark Project Setup
+
+? 選擇一個專案或建立新的
+  ❯ 我的網頁應用 (bsk_pub_abc...)
+    另一個專案 (bsk_pub_def...)
+    + 建立新專案
+```
+
+選擇或建立專案後，你會看到可以直接貼上的安裝程式碼（Script 標籤和 npm 兩種方式）。
+
+---
+
+## 下一步
+
+- [CLI 命令](/docs/cli/commands) — 所有可用命令的完整列表
+- [CLI 身份驗證](/docs/cli/authentication) — 了解權杖驗證的運作原理
+- [Widget 安裝](/docs/widget/installation) — 安裝錯誤回報小工具

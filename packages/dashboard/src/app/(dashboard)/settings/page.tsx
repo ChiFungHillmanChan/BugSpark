@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
@@ -10,7 +10,7 @@ import { useTheme, type Theme } from "@/providers/theme-provider";
 import { locales, LOCALE_COOKIE_NAME } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 import apiClient from "@/lib/api-client";
-import { Github, ChevronRight, Sun, Moon, Monitor } from "lucide-react";
+import { Github, Key, ChevronRight, Sun, Moon, Monitor } from "lucide-react";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
@@ -31,12 +31,20 @@ export default function SettingsPage() {
   const router = useRouter();
   const [name, setName] = useState(user?.name ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    if (user?.name !== undefined) setName(user.name);
+  }, [user?.name]);
 
   async function handleSaveName(event: FormEvent) {
     event.preventDefault();
+    setSaveError("");
     setIsSaving(true);
     try {
       await apiClient.patch("/auth/me", { name });
+    } catch {
+      setSaveError(t("saveFailed"));
     } finally {
       setIsSaving(false);
     }
@@ -53,12 +61,18 @@ export default function SettingsPage() {
 
       <section className="mb-8">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("profile")}</h2>
+        {saveError && (
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
+            {saveError}
+          </div>
+        )}
         <form onSubmit={handleSaveName} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label htmlFor="settings-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               {t("name")}
             </label>
             <input
+              id="settings-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -88,19 +102,34 @@ export default function SettingsPage() {
 
       <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("integrations")}</h2>
-        <Link
-          href="/settings/integrations"
-          className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <Github className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-            <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">{t("issueTrackers")}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t("issueTrackersDesc")}</p>
+        <div className="space-y-3">
+          <Link
+            href="/settings/integrations"
+            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Github className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("issueTrackers")}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("issueTrackersDesc")}</p>
+              </div>
             </div>
-          </div>
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-        </Link>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </Link>
+          <Link
+            href="/settings/tokens"
+            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Key className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("personalAccessTokens")}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("personalAccessTokensDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </Link>
+        </div>
       </section>
 
       <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">

@@ -1,0 +1,269 @@
+# CLI Commands
+
+Complete reference for every command available in the BugSpark CLI.
+
+## Global Options
+
+These flags work with any command:
+
+| Flag | Description |
+|------|-------------|
+| `--api-url <url>` | Override the API URL for this command |
+| `-V, --version` | Show the CLI version |
+| `-h, --help` | Show help for any command |
+
+---
+
+## `bugspark login`
+
+Authenticate the CLI with a Personal Access Token.
+
+```bash
+bugspark login
+```
+
+**What it does:**
+
+1. Prompts for your API URL (or uses the default)
+2. Opens your browser to the PAT creation page
+3. Asks you to paste your `bsk_pat_...` token
+4. Verifies the token against the API
+5. Saves credentials to `~/.bugspark/config.json`
+
+**Example:**
+
+```
+$ bugspark login
+? BugSpark API URL: https://bugspark-api.onrender.com/api/v1
+Opening browser to create a token...
+? Paste your token: bsk_pat_a1b2c3d4...
+✓ Logged in as Jane Doe (jane@example.com)
+```
+
+---
+
+## `bugspark logout`
+
+Remove stored credentials.
+
+```bash
+bugspark logout
+```
+
+Deletes `~/.bugspark/config.json` and clears your session.
+
+---
+
+## `bugspark whoami`
+
+Check who you're logged in as.
+
+```bash
+bugspark whoami
+```
+
+**Example output:**
+
+```
+  Name:  Jane Doe
+  Email: jane@example.com
+  API:   https://bugspark-api.onrender.com/api/v1
+```
+
+---
+
+## `bugspark init`
+
+Interactive project setup wizard.
+
+```bash
+bugspark init
+```
+
+**What it does:**
+
+1. Fetches your projects from the API
+2. Shows a list to select from, or lets you create a new one
+3. Displays the widget installation snippet with your real API key
+
+This is the fastest way to get a project's widget code without opening the dashboard.
+
+---
+
+## `bugspark projects`
+
+Manage BugSpark projects.
+
+### `bugspark projects list`
+
+List all your projects.
+
+```bash
+bugspark projects list
+```
+
+**Example output:**
+
+```
+Projects (2 total):
+─────────────────────────────────────────────────────────────
+  My Web App
+  ID:  a1b2c3d4-e5f6-...
+  Key: bsk_pub_abc...
+  Created: 2025-12-01
+
+  Mobile App
+  ID:  f7e8d9c0-b1a2-...
+  Key: bsk_pub_def...
+  Created: 2026-01-15
+─────────────────────────────────────────────────────────────
+```
+
+### `bugspark projects create`
+
+Create a new project.
+
+```bash
+bugspark projects create
+```
+
+Prompts for:
+- **Project name** — e.g. "Staging Environment"
+- **Domain** (optional) — e.g. `staging.myapp.com`
+
+**Example:**
+
+```
+$ bugspark projects create
+? Project name: Staging Environment
+? Domain (optional): staging.myapp.com
+✓ Project created!
+  ID:  new-uuid-here
+  Key: bsk_pub_new_key...
+```
+
+### `bugspark projects delete`
+
+Delete a project by its ID.
+
+```bash
+bugspark projects delete
+```
+
+Prompts for the project ID and asks for confirmation before deleting.
+
+<Callout type="danger" title="Destructive action">
+  Deleting a project removes all bug reports associated with it. This action cannot be undone.
+</Callout>
+
+---
+
+## `bugspark reports`
+
+Manage bug reports.
+
+### `bugspark reports list`
+
+List recent bug reports for a specific project.
+
+```bash
+bugspark reports list
+```
+
+Prompts for a **project ID** (you can copy this from `bugspark projects list`).
+
+**Example output:**
+
+```
+Reports for project a1b2c3d4 (3 total):
+─────────────────────────────────────────────────────────────
+  #1  Button not working
+  Severity: high | Status: open
+  Created:  2026-02-01
+
+  #2  Layout broken on mobile
+  Severity: medium | Status: in_progress
+  Created:  2026-02-03
+
+  #3  Typo in footer
+  Severity: low | Status: resolved
+  Created:  2026-02-05
+─────────────────────────────────────────────────────────────
+```
+
+### `bugspark reports view`
+
+View a single report with full details.
+
+```bash
+bugspark reports view
+```
+
+Prompts for the **report ID**. Shows:
+
+- Title, description, severity, status
+- Reporter info and category
+- Console logs, network logs, and metadata
+- User action timeline
+
+### `bugspark reports update`
+
+Update a report's status or severity.
+
+```bash
+bugspark reports update
+```
+
+Prompts for:
+- **Report ID**
+- **New status** — `open`, `in_progress`, `resolved`, `dismissed`
+- **New severity** — `low`, `medium`, `high`, `critical`
+
+Both are optional; leave blank to skip.
+
+---
+
+## Common Workflows
+
+### Set up a brand-new project
+
+```bash
+bugspark login          # one-time setup
+bugspark projects create  # create the project
+bugspark init            # get the widget snippet
+```
+
+### Triage bugs from the terminal
+
+```bash
+bugspark reports list                  # see what's new
+bugspark reports view                  # inspect a specific report
+bugspark reports update                # change status / severity
+```
+
+### Use in CI/CD
+
+You can use the CLI in automated pipelines by setting the token via config:
+
+```bash
+# In your CI script
+mkdir -p ~/.bugspark
+echo '{"apiUrl":"https://bugspark-api.onrender.com/api/v1","token":"bsk_pat_YOUR_TOKEN"}' > ~/.bugspark/config.json
+chmod 600 ~/.bugspark/config.json
+
+# Now CLI commands work non-interactively
+bugspark projects list
+bugspark reports list
+```
+
+<Callout type="warning" title="CI/CD Security">
+  Store your PAT as a secret environment variable in your CI provider (e.g. GitHub Actions secret). Never commit tokens to your repository.
+</Callout>
+
+---
+
+## Next Steps
+
+- [CLI Authentication](/docs/cli/authentication) — How PATs work
+- [API Reference](/docs/api/authentication) — Use the REST API directly
+- [Widget Configuration](/docs/widget/configuration) — Customize the widget

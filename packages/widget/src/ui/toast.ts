@@ -8,10 +8,7 @@ export function showToast(
   message: string,
   type: ToastType = 'info',
 ): void {
-  if (activeToast) {
-    activeToast.remove();
-    if (dismissTimeout) clearTimeout(dismissTimeout);
-  }
+  dismiss();
 
   activeToast = document.createElement('div');
   activeToast.className = `bugspark-toast bugspark-toast--${type}`;
@@ -24,5 +21,17 @@ export function showToast(
       activeToast.remove();
       activeToast = null;
     }
+    dismissTimeout = null;
   }, 3000);
+}
+
+export function dismiss(): void {
+  if (dismissTimeout) {
+    clearTimeout(dismissTimeout);
+    dismissTimeout = null;
+  }
+  if (activeToast) {
+    activeToast.remove();
+    activeToast = null;
+  }
 }

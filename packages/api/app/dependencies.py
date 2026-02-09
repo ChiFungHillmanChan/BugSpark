@@ -20,6 +20,7 @@ from app.models.project import Project
 from app.models.user import User
 
 PAT_PREFIX = "bsk_pat_"
+PAT_PREFIX_LEN = 16
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -36,7 +37,7 @@ async def _authenticate_via_pat(
     locale: str,
 ) -> User:
     """Authenticate a request using a Personal Access Token (bsk_pat_...)."""
-    prefix = token[:16] if len(token) >= 16 else token
+    prefix = token[:PAT_PREFIX_LEN] if len(token) >= PAT_PREFIX_LEN else token
     incoming_hash = hashlib.sha256(token.encode()).hexdigest()
 
     result = await db.execute(
@@ -52,9 +53,9 @@ async def _authenticate_via_pat(
             if pat.expires_at is not None and pat.expires_at < datetime.now(timezone.utc):
                 raise UnauthorizedException(translate("auth.token_expired", locale))
 
-            # Update last_used_at (fire-and-forget, don't block)
+            # Update last_used_at within the current transaction
             pat.last_used_at = datetime.now(timezone.utc)
-            await db.commit()
+            await db.flush()
 
             # Load the user
             user_result = await db.execute(select(User).where(User.id == pat.user_id))

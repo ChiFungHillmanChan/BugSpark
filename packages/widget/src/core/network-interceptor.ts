@@ -21,16 +21,30 @@ function pushEntry(entry: NetworkLogEntry): void {
   }
 }
 
+const SENSITIVE_HEADERS = new Set([
+  'set-cookie',
+  'authorization',
+  'cookie',
+  'x-api-key',
+  'proxy-authorization',
+]);
+
 function parseHeaders(
   headers: Headers | Record<string, string>,
 ): Record<string, string> {
   const result: Record<string, string> = {};
   if (headers instanceof Headers) {
     headers.forEach((value, key) => {
-      result[key] = value;
+      if (!SENSITIVE_HEADERS.has(key.toLowerCase())) {
+        result[key] = value;
+      }
     });
   } else {
-    Object.assign(result, headers);
+    for (const [key, value] of Object.entries(headers)) {
+      if (!SENSITIVE_HEADERS.has(key.toLowerCase())) {
+        result[key] = value;
+      }
+    }
   }
   return result;
 }

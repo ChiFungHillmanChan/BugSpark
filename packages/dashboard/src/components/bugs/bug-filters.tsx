@@ -33,6 +33,11 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
   filtersRef.current = filters;
   onChangeRef.current = onFiltersChange;
 
+  // Sync local search input when parent filters change (e.g. on clear)
+  useEffect(() => {
+    setSearchInput(filters.search ?? "");
+  }, [filters.search]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       onChangeRef.current({ ...filtersRef.current, search: searchInput || undefined });

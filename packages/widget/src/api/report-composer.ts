@@ -26,7 +26,8 @@ async function fetchWithRetry(
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, options);
-      if (!response.ok && attempt < retries) continue;
+      // Only retry on 5xx server errors; return 4xx immediately
+      if (!response.ok && response.status >= 500 && attempt < retries) continue;
       return response;
     } catch (error) {
       if (attempt === retries) throw error;

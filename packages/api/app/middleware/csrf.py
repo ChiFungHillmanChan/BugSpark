@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hmac
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -50,7 +52,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Missing CSRF token"},
             )
 
-        if cookie_token != header_token:
+        if not hmac.compare_digest(cookie_token, header_token):
             return JSONResponse(
                 status_code=403,
                 content={"detail": "CSRF token mismatch"},

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
@@ -14,6 +14,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const t = useTranslations("common");
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-navy-900">
@@ -26,7 +32,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   if (!isAuthenticated) {
-    router.replace("/login");
     return null;
   }
 

@@ -20,6 +20,15 @@ export const docsNavConfig: DocNavItem[] = [
     ],
   },
   {
+    titleKey: "cli",
+    slug: "cli",
+    children: [
+      { titleKey: "cliInstallation", slug: "cli/installation" },
+      { titleKey: "cliCommands", slug: "cli/commands" },
+      { titleKey: "cliAuthentication", slug: "cli/authentication" },
+    ],
+  },
+  {
     titleKey: "apiReference",
     slug: "api",
     children: [

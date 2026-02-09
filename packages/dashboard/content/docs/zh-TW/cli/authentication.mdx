@@ -1,0 +1,141 @@
+# CLI 身份驗證
+
+了解 BugSpark CLI 如何使用個人存取權杖（PAT）進行 API 身份驗證。
+
+## 運作原理
+
+```
+┌─────────────┐    bsk_pat_...    ┌──────────────┐    SHA-256    ┌──────────┐
+│  BugSpark   │ ──────────────→  │  BugSpark    │ ──────────→  │  資料庫  │
+│  CLI        │  Authorization:  │  API         │  雜湊比對   │          │
+│             │  Bearer token    │              │              │          │
+└─────────────┘                  └──────────────┘              └──────────┘
+```
+
+1. 你在儀表板中建立 PAT（或透過 `bugspark login` 流程）
+2. CLI 將權杖儲存在本機的 `~/.bugspark/config.json`
+3. 每個 API 請求都在 `Authorization: Bearer` 標頭中包含權杖
+4. API 使用 SHA-256 對權杖進行雜湊運算，並與資料庫中的記錄比對
+5. 如果有效，請求會以權杖擁有者的身份繼續執行
+
+## 個人存取權杖（PAT）
+
+PAT 是為 CLI 和 API 自動化設計的長期身份驗證憑證。
+
+### 權杖格式
+
+```
+bsk_pat_a1b2c3d4e5f6g7h8i9j0...
+```
+
+- **前綴：** `bsk_pat_` — 便於快速識別
+- **主體：** 密碼學隨機字串（32+ 個字元）
+- 完整權杖**只在建立時顯示一次**
+
+### 安全模型
+
+| 特性 | 詳情 |
+|------|------|
+| **儲存** | 資料庫中只儲存 SHA-256 雜湊值 |
+| **查找** | 前綴 `bsk_pat_` + 前 8 個字元建立索引以快速查找 |
+| **權限** | PAT 擁有與建立者相同的權限 |
+| **到期** | 可選 — 可設定為永不過期或任何未來日期 |
+| **撤銷** | 即時生效 — 從設定中刪除權杖後立即失效 |
+
+### 權杖驗證流程
+
+當 API 收到帶有 `Authorization: Bearer bsk_pat_...` 的請求時：
+
+1. **擷取前綴** — 前 16 個字元（例如 `bsk_pat_a1b2c3d4`）
+2. **資料庫查找** — 尋找匹配此前綴的權杖記錄
+3. **雜湊比對** — 對完整權杖進行 SHA-256 雜湊運算並與儲存的雜湊值比較
+4. **驗證到期** — 如果權杖已過期則拒絕
+5. **更新最後使用時間** — 記錄時間戳供稽核使用
+6. **回傳使用者** — 將權杖擁有者附加到請求上下文
+
+## 本機設定檔
+
+CLI 將你的憑證儲存在：
+
+```
+~/.bugspark/config.json
+```
+
+內容：
+
+```json
+{
+  "apiUrl": "https://bugspark-api.onrender.com/api/v1",
+  "token": "bsk_pat_a1b2c3d4..."
+}
+```
+
+### 安全性
+
+- 檔案權限設定為 **`0600`**（僅限你的使用者帳號讀寫）
+- 權杖以明文儲存（與 Docker、Vercel 和 Sentry CLI 相同做法）
+- 執行 `bugspark logout` 可刪除設定檔
+
+<Callout type="tip" title="最佳實踐">
+  為每台機器或 CI 環境建立專用的 PAT。這樣你可以撤銷單一裝置的存取權限而不影響其他裝置。
+</Callout>
+
+## 管理權杖
+
+### 在儀表板中
+
+前往 **[設定 → 個人存取權杖](/settings/tokens)** 可以：
+
+- **建立**新的權杖，自訂名稱和到期日期
+- **查看**所有權杖 — 看到名稱、前綴、最後使用日期和到期時間
+- **撤銷**不再需要的權杖
+
+### 透過 API
+
+你也可以用程式化的方式管理權杖：
+
+<ApiEndpoint method="POST" path="/api/v1/tokens" description="建立新的個人存取權杖" />
+
+```json
+{
+  "name": "CI Pipeline Token",
+  "expires_in_days": 90
+}
+```
+
+回傳完整權杖（只顯示一次）：
+
+```json
+{
+  "id": "uuid",
+  "name": "CI Pipeline Token",
+  "token": "bsk_pat_a1b2c3d4...",
+  "prefix": "bsk_pat_a1b2c3d4",
+  "expires_at": "2026-05-10T00:00:00Z",
+  "created_at": "2026-02-09T00:00:00Z"
+}
+```
+
+<ApiEndpoint method="GET" path="/api/v1/tokens" description="列出所有權杖（不會回傳權杖值）" />
+
+<ApiEndpoint method="DELETE" path="/api/v1/tokens/{id}" description="撤銷權杖" />
+
+## 與其他驗證方式的比較
+
+| 方式 | 使用者 | 適合場景 |
+|------|--------|----------|
+| **Cookie（JWT）** | 儀表板（瀏覽器） | 互動式網頁工作階段 |
+| **API Key（`X-API-Key`）** | Widget | 從客戶端提交錯誤報告 |
+| **PAT（`Bearer`）** | CLI、CI/CD、腳本 | 自動化和程式化存取 |
+
+<Callout type="info" title="CSRF 保護">
+  使用 PAT 驗證的請求會自動略過 CSRF 驗證，因為它們不使用 Cookie。這使得它們可以安全地用於腳本和 CI/CD 流程中。
+</Callout>
+
+---
+
+## 下一步
+
+- [CLI 命令](/docs/cli/commands) — 完整命令參考
+- [API 身份驗證](/docs/api/authentication) — 其他身份驗證方式
+- [Widget 安裝](/docs/widget/installation) — 設定 Widget

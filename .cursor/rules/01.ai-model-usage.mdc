@@ -1,0 +1,164 @@
+# AI Model Usage Rule
+
+## Purpose
+
+Ensure all AI model identifiers are centralized in `lib/ai-models.ts` and consistently used across the codebase. This prevents hardcoded model strings and ensures easy model updates.
+
+## Scope
+
+This rule applies **always** when creating or modifying code that:
+- Calls OpenAI, Gemini, Gamma, or any AI API
+- References AI model names
+- Handles AI rate limits or quotas
+
+## Core Principles
+
+### 1. Always Use Centralized Model Constants
+
+**NEVER** hardcode model names as strings. **ALWAYS** import from `@/lib/ai-models`:
+
+```typescript
+// ❌ WRONG: Hardcoded model string
+const response = await openai.responses.create({
+  model: 'gpt-4.1',
+  // ...
+});
+
+// ✅ CORRECT: Use centralized constant
+import { AI_MODELS } from '@/lib/ai-models';
+
+const response = await openai.responses.create({
+  model: AI_MODELS.OPENAI_GPT_4_1,
+  // ...
+});
+```
+
+### 2. Available Model Constants
+
+Import from `@/lib/ai-models`:
+
+```typescript
+// OpenAI Models
+AI_MODELS.OPENAI_GPT_4_1      // 'gpt-4.1'
+AI_MODELS.OPENAI_GPT_4_1_MINI // 'gpt-4.1-mini'
+AI_MODELS.OPENAI_GPT_4_1_NANO // 'gpt-4.1-nano'
+AI_MODELS.OPENAI_GPT_4O       // 'gpt-4o'
+AI_MODELS.OPENAI_GPT_4O_MINI  // 'gpt-4o-mini'
+AI_MODELS.OPENAI_GPT_5        // 'gpt-5'
+AI_MODELS.OPENAI_O3_MINI      // 'o3-mini'
+AI_MODELS.OPENAI_O4_MINI      // 'o4-mini'
+AI_MODELS.OPENAI_GPT_IMAGE_1  // 'gpt-image-1'
+AI_MODELS.OPENAI_SORA_2       // 'sora-2'
+AI_MODELS.OPENAI_SORA_2_PRO   // 'sora-2-pro'
+
+// Gemini Models
+AI_MODELS.GEMINI_3_PRO_PREVIEW       // 'gemini-3-pro-preview'
+AI_MODELS.GEMINI_3_PRO_IMAGE_PREVIEW // 'gemini-3-pro-image-preview'
+AI_MODELS.GEMINI_2_5_FLASH           // 'gemini-2.5-flash'
+AI_MODELS.GEMINI_2_5_FLASH_IMAGE     // 'gemini-2.5-flash-image'
+AI_MODELS.GEMINI_2_5_PRO             // 'gemini-2.5-pro'
+
+// Gamma
+AI_MODELS.GAMMA // 'gamma'
+```
+
+### 3. Handle Quota Errors for Gemini/Gamma
+
+When calling Gemini or Gamma APIs, **always** implement quota error handling:
+
+```typescript
+import { AI_MODELS } from '@/lib/ai-models';
+import { handleQuotaError, createQuotaErrorResponse, isGeminiQuotaError } from '@/lib/ai-model-status';
+
+// Gemini API call with quota handling
+try {
+  const response = await gemini.models.generateContent({
+    model: AI_MODELS.GEMINI_3_PRO_PREVIEW,
+    contents: [...],
+  });
+  return NextResponse.json({ success: true, data: response });
+} catch (err) {
+  if (err instanceof Error && isGeminiQuotaError(err)) {
+    const quotaError = handleQuotaError(err, AI_MODELS.GEMINI_3_PRO_PREVIEW, 'gemini');
+    if (quotaError) {
+      return NextResponse.json(createQuotaErrorResponse(quotaError), { status: 429 });
+    }
+  }
+  throw err;
+}
+```
+
+### 4. Adding New Models
+
+When adding a new AI model:
+
+1. **Add to `lib/ai-models.ts`:**
+   ```typescript
+   export const AI_MODELS = {
+     // ... existing models
+     NEW_MODEL_NAME: 'new-model-id',
+   } as const;
+   ```
+
+2. **Add configuration in `AI_MODEL_CONFIGS`:**
+   ```typescript
+   [AI_MODELS.NEW_MODEL_NAME]: {
+     id: AI_MODELS.NEW_MODEL_NAME,
+     provider: 'openai', // or 'gemini', 'gamma', 'anthropic'
+     displayName: 'New Model Name',
+     description: 'Description of the model',
+     capabilities: ['text'], // or ['image'], ['video'], etc.
+     rateLimitResetType: 'per_minute', // or 'midnight_pt' for daily limits
+   },
+   ```
+
+3. **Add pricing in `lib/api-usage-pricing.ts`:**
+   ```typescript
+   [AI_MODELS.NEW_MODEL_NAME]: { input: XX, output: XX },
+   ```
+
+4. **Add image limits in `lib/ai-model-limits.ts`** (if applicable):
+   ```typescript
+   [AI_MODELS.NEW_MODEL_NAME]: {
+     maxImages: X,
+     maxSizeMB: X,
+     supportedFormats: [...],
+   },
+   ```
+
+### 5. UI Model Selection
+
+For UI components that allow model selection, use the mapping constants:
+
+```typescript
+import { 
+  CHAT_MODEL_MAP,
+  WEBSITE_GENERATOR_MODEL_MAP,
+  IMAGE_GENERATOR_MODEL_MAP,
+  VIDEO_GENERATOR_MODEL_MAP 
+} from '@/lib/ai-models';
+```
+
+### 6. Rate Limit Reset Times
+
+- **OpenAI**: Per-minute limits (~60 seconds)
+- **Gemini**: Daily limits reset at **midnight Pacific Time**
+- **Gamma**: Daily limits reset at **midnight Pacific Time**
+
+## File References
+
+- **Model Registry**: `lib/ai-models.ts`
+- **Status Tracking**: `lib/ai-model-status.ts`
+- **Image Limits**: `lib/ai-model-limits.ts`
+- **Pricing**: `lib/api-usage-pricing.ts`
+- **Client Store**: `app/stores/useModelStatusStore.ts`
+- **Toast Component**: `app/components/ModelStatusToast.tsx`
+
+## Checklist for New AI API Endpoints
+
+- [ ] Import `AI_MODELS` from `@/lib/ai-models`
+- [ ] Use model constant instead of hardcoded string
+- [ ] For Gemini/Gamma: Import quota error handlers
+- [ ] For Gemini/Gamma: Wrap API call in try-catch with quota handling
+- [ ] Return proper 429 response for quota errors
+- [ ] Update `lib/ai-models.ts` if using a new model

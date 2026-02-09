@@ -1,0 +1,178 @@
+# Changelog & Announcements Rule
+
+## Purpose
+
+Ensure all significant changes are documented in the announcements/changelog system following industry standards (Keep a Changelog, Semantic Versioning). This rule is triggered when creating commits or preparing releases.
+
+## When to Update Announcements
+
+Update announcements when committing changes that include:
+
+- **New Features** (`feat:` commits) - User-facing functionality
+- **Breaking Changes** - API changes, schema migrations
+- **Security Fixes** (`security:` commits) - Vulnerability patches
+- **Significant Improvements** - Performance gains >20%, major UX changes
+- **Bug Fixes** (`fix:` commits) - Only for notable user-impacting bugs
+
+**DO NOT** create announcements for:
+- Internal refactoring (`refactor:` commits)
+- Documentation updates (`docs:` commits)
+- Test additions (`test:` commits)
+- Build/CI changes (`chore:`, `ci:` commits)
+- Minor style fixes
+
+## Industry Standard Format (Keep a Changelog)
+
+### Categories
+
+| Category | Use For | Git Prefix |
+|----------|---------|------------|
+| `feature` | New functionality | `feat:` |
+| `improvement` | Enhanced existing features | `perf:`, `enhance:` |
+| `fix` | Bug fixes | `fix:` |
+| `security` | Security patches | `security:` |
+
+### Priority Levels
+
+| Priority | Use For |
+|----------|---------|
+| `urgent` | Security vulnerabilities, critical bugs affecting all users |
+| `important` | New major features, breaking changes |
+| `info` | Minor features, improvements, non-critical fixes |
+
+## Announcement JSON Schema
+
+```json
+{
+  "id": "YYYY-MM-DD-short-slug",
+  "version": "X.Y.Z",
+  "date": "YYYY-MM-DD",
+  "title": "Short descriptive title (max 60 chars)",
+  "summary": "1-2 sentence preview for dashboard card",
+  "description": "Full markdown description with ## headers",
+  "priority": "urgent|important|info",
+  "category": "feature|improvement|fix|security"
+}
+```
+
+## File Locations
+
+- English: `server/data/announcements.en.json`
+- Chinese: `server/data/announcements.zh-TW.json`
+
+## Required Actions
+
+### When Creating a Release Commit
+
+1. **Analyze recent commits** since last announcement:
+   ```bash
+   git log --oneline $(git describe --tags --abbrev=0)..HEAD
+   ```
+
+2. **Group changes** by category (feature/improvement/fix/security)
+
+3. **Create announcement entry** with:
+   - Unique `id` in format `YYYY-MM-DD-feature-name`
+   - Semantic version following project versioning
+   - Today's date in ISO format
+   - Descriptive title (user-friendly, not technical)
+   - Summary for quick preview (max 150 chars)
+   - Full description with markdown formatting
+
+4. **Update BOTH locale files** with the same `id` but translated content
+
+5. **Place new entry at TOP** of the JSON array
+
+## Description Markdown Format
+
+```markdown
+## What's New
+
+Brief intro paragraph explaining the feature.
+
+### How to Use
+
+1. Step one
+2. Step two
+3. Step three
+
+### Features
+
+- **Feature Name**: Description
+- **Feature Name**: Description
+
+## Bug Fixes
+
+- Fixed issue description
+- Fixed another issue
+
+## Technical Details
+
+Technical notes for developers (optional)
+```
+
+## Example: Good vs Bad
+
+### Bad Announcement
+
+```json
+{
+  "id": "update-123",
+  "title": "Updated stuff",
+  "summary": "Fixed some bugs",
+  "description": "Fixed bugs and added features",
+  "priority": "info",
+  "category": "fix"
+}
+```
+
+### Good Announcement
+
+```json
+{
+  "id": "2026-01-09-rag-curriculum",
+  "version": "2.2.0",
+  "date": "2026-01-09",
+  "title": "Curriculum Content (RAG) Integration",
+  "summary": "AI tools can now reference your school's curriculum documents for more accurate content generation.",
+  "description": "## What's New\n\nWe've integrated **Retrieval-Augmented Generation (RAG)** into our AI tools.\n\n### How to Use\n\n1. Enable \"Use Curriculum Content\" in Step 1\n2. Select grade level and subject\n3. Generate - AI will reference indexed documents\n\n### Features\n\n- **Document Count Display**: See available documents\n- **Reference List**: View sources in Step 3",
+  "priority": "important",
+  "category": "feature"
+}
+```
+
+## Checklist Before Commit
+
+- [ ] Analyzed commits since last announcement
+- [ ] Created entry with unique `id` (date-slug format)
+- [ ] Title is user-friendly (not technical jargon)
+- [ ] Summary is under 150 characters
+- [ ] Description uses proper markdown with headers
+- [ ] Category matches the type of change
+- [ ] Priority reflects user impact
+- [ ] Updated BOTH `announcements.en.json` and `announcements.zh-TW.json`
+- [ ] New entry is at the TOP of the array
+- [ ] JSON is valid (no trailing commas, proper escaping)
+
+## Semantic Versioning Reference
+
+- **Major (X.0.0)**: Breaking changes, major rewrites
+- **Minor (0.X.0)**: New features, significant improvements
+- **Patch (0.0.X)**: Bug fixes, minor improvements
+
+## Integration with Git Workflow
+
+When the AI assistant is asked to commit or push changes:
+
+1. Review staged changes for announcement-worthy items
+2. If significant changes exist, prompt to update announcements
+3. Suggest appropriate category, priority, and version bump
+4. Generate draft announcement content for both locales
+5. Remind to validate JSON before committing
+
+## References
+
+- [Keep a Changelog](https://keepachangelog.com/)
+- [Semantic Versioning](https://semver.org/)
+- [server/data/announcements.en.json](mdc:server/data/announcements.en.json)
+- [server/data/announcements.zh-TW.json](mdc:server/data/announcements.zh-TW.json)

@@ -12,10 +12,11 @@ from app.exceptions import BadRequestException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.user import User
 from app.schemas.auth import LoginRequest, RegisterRequest
-from app.schemas.user import UserResponse
+from app.schemas.user import UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
     create_refresh_token,
+    generate_jti,
     hash_password,
     verify_password,
     verify_token,
@@ -79,6 +80,18 @@ def _clear_auth_cookies(response: Response) -> None:
     )
 
 
+async def _issue_tokens(user: User, response: Response, db: AsyncSession) -> None:
+    """Issue new access + refresh tokens and store the jti on the user record."""
+    jti = generate_jti()
+    access_token = create_access_token(str(user.id), user.email)
+    refresh_token = create_refresh_token(str(user.id), jti)
+
+    user.refresh_token_jti = jti
+    await db.commit()
+
+    _set_auth_cookies(response, access_token, refresh_token)
+
+
 @router.post("/register", response_model=UserResponse)
 async def register(
     body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
@@ -97,9 +110,7 @@ async def register(
     await db.commit()
     await db.refresh(user)
 
-    access_token = create_access_token(str(user.id), user.email)
-    refresh_token = create_refresh_token(str(user.id))
-    _set_auth_cookies(response, access_token, refresh_token)
+    await _issue_tokens(user, response, db)
 
     return UserResponse.model_validate(user)
 
@@ -115,9 +126,7 @@ async def login(
     if user is None or not verify_password(body.password, user.hashed_password):
         raise UnauthorizedException(translate("auth.invalid_credentials", locale))
 
-    access_token = create_access_token(str(user.id), user.email)
-    refresh_token = create_refresh_token(str(user.id))
-    _set_auth_cookies(response, access_token, refresh_token)
+    await _issue_tokens(user, response, db)
 
     return UserResponse.model_validate(user)
 
@@ -146,20 +155,48 @@ async def refresh(
     if user is None:
         raise UnauthorizedException(translate("auth.user_not_found", locale))
 
-    access_token = create_access_token(str(user.id), user.email)
-    new_refresh_token = create_refresh_token(str(user.id))
-    _set_auth_cookies(response, access_token, new_refresh_token)
+    # Verify jti matches the stored one (prevents replay of old refresh tokens)
+    token_jti = payload.get("jti")
+    if token_jti is None or user.refresh_token_jti != token_jti:
+        raise UnauthorizedException(translate("auth.invalid_refresh", locale))
+
+    await _issue_tokens(user, response, db)
 
     return UserResponse.model_validate(user)
 
 
 @router.post("/logout")
-async def logout(request: Request, response: Response) -> dict[str, str]:
+async def logout(
+    request: Request, response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
     locale = get_locale(request)
+
+    # Invalidate the refresh token jti so it can't be replayed
+    current_user.refresh_token_jti = None
+    await db.commit()
+
     _clear_auth_cookies(response)
     return {"detail": translate("auth.logged_out", locale)}
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
+    return UserResponse.model_validate(current_user)
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    body: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserResponse:
+    update_data = body.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(current_user, field, value)
+
+    await db.commit()
+    await db.refresh(current_user)
+
     return UserResponse.model_validate(current_user)

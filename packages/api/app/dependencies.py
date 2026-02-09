@@ -39,6 +39,9 @@ async def get_current_user(
     except JWTError:
         raise UnauthorizedException(translate("auth.invalid_token", locale))
 
+    if payload.get("type") != "access":
+        raise UnauthorizedException(translate("auth.invalid_token_type", locale))
+
     user_id: str | None = payload.get("sub")
     if user_id is None:
         raise UnauthorizedException(translate("auth.token_missing_subject", locale))

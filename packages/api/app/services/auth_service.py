@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -28,13 +29,19 @@ def create_access_token(user_id: str, email: str) -> str:
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
-def create_refresh_token(user_id: str) -> str:
+def generate_jti() -> str:
+    """Generate a unique JWT ID for refresh token tracking."""
+    return secrets.token_hex(32)
+
+
+def create_refresh_token(user_id: str, jti: str) -> str:
     settings = get_settings()
     expire = datetime.now(timezone.utc) + timedelta(days=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS)
     payload = {
         "sub": user_id,
         "exp": expire,
         "type": "refresh",
+        "jti": jti,
     }
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 

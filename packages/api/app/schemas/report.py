@@ -3,18 +3,18 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
 from app.utils.sanitize import sanitize_text
 
 
 class ReportCreate(BaseModel):
-    title: str
-    description: str
+    title: str = Field(min_length=1, max_length=500)
+    description: str = Field(min_length=1, max_length=10000)
     severity: str
     category: str
-    reporter_identifier: str | None = None
+    reporter_identifier: str | None = Field(default=None, max_length=255)
     screenshot_url: str | None = None
     annotated_screenshot_url: str | None = None
     console_logs: dict | list | None = None

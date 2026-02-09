@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
-from app.services.auth_service import create_refresh_token
+from app.services.auth_service import create_refresh_token, generate_jti
 
 
 BASE = "/api/v1/auth"
@@ -73,9 +72,13 @@ async def test_login_nonexistent_user(client: AsyncClient):
 
 
 async def test_refresh_token_success(
-    client: AsyncClient, test_user: User
+    client: AsyncClient, test_user: User, db_session: AsyncSession
 ):
-    refresh_token = create_refresh_token(str(test_user.id))
+    jti = generate_jti()
+    test_user.refresh_token_jti = jti
+    await db_session.commit()
+
+    refresh_token = create_refresh_token(str(test_user.id), jti)
     response = await client.post(
         f"{BASE}/refresh",
         cookies={"bugspark_refresh_token": refresh_token},

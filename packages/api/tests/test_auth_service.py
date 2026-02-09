@@ -9,6 +9,7 @@ from jose import jwt
 from app.services.auth_service import (
     create_access_token,
     create_refresh_token,
+    generate_jti,
     hash_password,
     verify_password,
     verify_token,
@@ -49,10 +50,12 @@ def test_create_access_token_contains_claims():
 
 
 def test_create_refresh_token_has_refresh_type():
-    token = create_refresh_token("user-id-123")
+    jti = generate_jti()
+    token = create_refresh_token("user-id-123", jti)
     payload = jwt.decode(token, "change-me-in-production", algorithms=["HS256"])
     assert payload["sub"] == "user-id-123"
     assert payload["type"] == "refresh"
+    assert payload["jti"] == jti
     assert "exp" in payload
 
 

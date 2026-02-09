@@ -3,19 +3,19 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from app.schemas import CamelModel
 
 
 class ProjectCreate(BaseModel):
-    name: str
-    domain: str
+    name: str = Field(min_length=1, max_length=255)
+    domain: str = Field(min_length=1, max_length=255)
 
 
 class ProjectUpdate(BaseModel):
-    name: str | None = None
-    domain: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    domain: str | None = Field(default=None, min_length=1, max_length=255)
     settings: dict | None = None
     is_active: bool | None = None
 

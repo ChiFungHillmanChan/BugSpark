@@ -108,9 +108,17 @@ async def list_reports(
     if project_id is not None:
         query = query.where(Report.project_id == project_id)
     if status is not None:
-        query = query.where(Report.status == Status(status))
+        status_values = [Status(s.strip()) for s in status.split(",") if s.strip()]
+        if len(status_values) == 1:
+            query = query.where(Report.status == status_values[0])
+        elif status_values:
+            query = query.where(Report.status.in_(status_values))
     if severity is not None:
-        query = query.where(Report.severity == Severity(severity))
+        severity_values = [Severity(s.strip()) for s in severity.split(",") if s.strip()]
+        if len(severity_values) == 1:
+            query = query.where(Report.severity == severity_values[0])
+        elif severity_values:
+            query = query.where(Report.severity.in_(severity_values))
     if search is not None:
         search_filter = f"%{search}%"
         query = query.where(
@@ -134,7 +142,7 @@ async def list_reports(
 
 @router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
-    report_id: str,
+    report_id: uuid.UUID,
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -158,7 +166,7 @@ async def get_report(
 
 @router.patch("/{report_id}", response_model=ReportResponse)
 async def update_report(
-    report_id: str,
+    report_id: uuid.UUID,
     body: ReportUpdate,
     request: Request,
     background_tasks: BackgroundTasks,
@@ -203,7 +211,7 @@ async def update_report(
 
 @router.delete("/{report_id}", status_code=204)
 async def delete_report(
-    report_id: str,
+    report_id: uuid.UUID,
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -228,7 +236,7 @@ async def delete_report(
 
 @router.get("/{report_id}/similar", response_model=SimilarReportsResponse)
 async def get_similar_reports(
-    report_id: str,
+    report_id: uuid.UUID,
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

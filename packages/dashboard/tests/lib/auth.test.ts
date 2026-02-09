@@ -9,7 +9,7 @@ vi.mock('@/lib/api-client', () => ({
   },
 }));
 
-const mockApiClient = vi.mocked(apiClient);
+const mockApiClient = vi.mocked(apiClient, true);
 
 describe('auth API functions', () => {
   const mockUser = {

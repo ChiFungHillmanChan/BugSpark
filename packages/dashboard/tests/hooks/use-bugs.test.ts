@@ -13,7 +13,7 @@ vi.mock('@/lib/api-client', () => ({
   },
 }));
 
-const mockApiClient = vi.mocked(apiClient);
+const mockApiClient = vi.mocked(apiClient, true);
 
 function createWrapper() {
   const queryClient = new QueryClient({

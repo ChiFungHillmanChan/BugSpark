@@ -23,4 +23,12 @@ export const queryKeys = {
     overview: ["stats", "overview"] as const,
     project: (id: string) => ["stats", "project", id] as const,
   },
+  admin: {
+    users: <P extends object>(params?: P) =>
+      ["admin", "users", params] as const,
+    userDetail: (id: string) => ["admin", "users", id] as const,
+    stats: ["admin", "stats"] as const,
+    projects: ["admin", "projects"] as const,
+    reports: ["admin", "reports"] as const,
+  },
 };

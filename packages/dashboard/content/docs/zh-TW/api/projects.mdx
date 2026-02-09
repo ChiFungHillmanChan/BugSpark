@@ -1,0 +1,65 @@
+# 專案 API
+
+管理專案和 API 金鑰。所有專案端點需要 Cookie 驗證。
+
+## 建立專案
+
+<ApiEndpoint method="POST" path="/api/v1/projects" description="建立新專案" />
+
+```json
+{
+  "name": "我的網頁應用",
+  "domain": "myapp.com"
+}
+```
+
+### 回應 (201)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "name": "我的網頁應用",
+  "domain": "myapp.com",
+  "apiKey": "bsk_pub_a1b2c3d4e5f6...",
+  "isActive": true,
+  "createdAt": "2026-01-15T10:30:00Z",
+  "settings": {}
+}
+```
+
+## 列出專案
+
+<ApiEndpoint method="GET" path="/api/v1/projects" description="列出目前使用者的所有啟用中專案" />
+
+回傳專案物件的陣列。
+
+## 取得專案
+
+<ApiEndpoint method="GET" path="/api/v1/projects/:id" description="依 ID 取得單一專案" />
+
+## 更新專案
+
+<ApiEndpoint method="PATCH" path="/api/v1/projects/:id" description="更新專案欄位" />
+
+```json
+{
+  "name": "更新後的名稱",
+  "domain": "newdomain.com",
+  "settings": {
+    "webhookUrl": "https://hooks.slack.com/...",
+    "notifyOnCritical": true
+  }
+}
+```
+
+## 刪除專案
+
+<ApiEndpoint method="DELETE" path="/api/v1/projects/:id" description="軟刪除專案（204 No Content）" />
+
+已刪除的專案會被停用而非永久移除。其報告會被保留。
+
+## 輪換 API 金鑰
+
+<ApiEndpoint method="POST" path="/api/v1/projects/:id/rotate-key" description="產生新的 API 金鑰（舊金鑰立即失效）" />
+
+回傳包含新 API 金鑰的更新後專案。輪換後請務必更新您的小工具設定。

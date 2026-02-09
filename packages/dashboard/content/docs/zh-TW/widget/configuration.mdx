@@ -1,0 +1,82 @@
+# 小工具設定
+
+自訂小工具的外觀、行為和資料收集。
+
+## 設定選項
+
+將選項傳遞給 `BugSpark.init()` 或在 script 標籤上使用 `data-*` 屬性：
+
+| 選項 | 類型 | 預設值 | 說明 |
+|------|------|--------|------|
+| `projectKey` | `string` | 必填 | 您的專案 API 金鑰（`bsk_pub_...`） |
+| `position` | `string` | `"bottom-right"` | 小工具位置：`bottom-right`、`bottom-left`、`top-right`、`top-left` |
+| `theme.accent` | `string` | `"#e94560"` | 小工具按鈕和介面的強調色 |
+| `theme.darkMode` | `boolean` | `false` | 使用深色主題 |
+| `collectConsole` | `boolean` | `true` | 自動擷取主控台日誌 |
+| `collectNetwork` | `boolean` | `true` | 擷取網路請求 |
+| `collectActions` | `boolean` | `true` | 追蹤使用者操作（點擊、輸入） |
+| `maxConsoleLogs` | `number` | `50` | 擷取的主控台條目上限 |
+| `maxNetworkLogs` | `number` | `30` | 擷取的網路請求上限 |
+| `reporterIdentifier` | `string` | `undefined` | 識別提交報告的使用者 |
+
+## JavaScript 範例
+
+```typescript
+BugSpark.init({
+  projectKey: "bsk_pub_abc123",
+  position: "bottom-left",
+  theme: {
+    accent: "#6366f1",
+    darkMode: true,
+  },
+  collectConsole: true,
+  collectNetwork: true,
+  collectActions: true,
+  maxConsoleLogs: 100,
+  reporterIdentifier: currentUser.email,
+});
+```
+
+## Script 標籤屬性
+
+使用 script 標籤時，以 `data-*` 屬性傳遞選項：
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="bsk_pub_abc123"
+  data-position="bottom-left"
+  data-accent="#6366f1"
+  data-dark-mode="true"
+  data-reporter="user@example.com"
+  async
+></script>
+```
+
+## 識別使用者
+
+設定 `reporterIdentifier` 將錯誤報告與特定使用者關聯。這對於後續追蹤和去重很有用：
+
+```typescript
+// 使用者登入後
+BugSpark.setReporter(user.email);
+
+// 或在初始化時
+BugSpark.init({
+  projectKey: "...",
+  reporterIdentifier: user.email,
+});
+```
+
+## 程式化控制
+
+```typescript
+// 開啟報告表單
+BugSpark.open();
+
+// 關閉報告表單
+BugSpark.close();
+
+// 銷毀小工具
+BugSpark.destroy();
+```

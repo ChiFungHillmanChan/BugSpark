@@ -1,0 +1,64 @@
+# 快速開始
+
+三個步驟讓 BugSpark 在您的專案中運行。
+
+## 1. 建立專案
+
+在 [BugSpark 儀表板](/register) 註冊並建立您的第一個專案。
+您需要：
+
+- **專案名稱**（例如「我的網頁應用」）
+- 應用程式運行的**網域**（例如 `myapp.com`）
+
+建立後，您會收到一個格式為 `bsk_pub_...` 的 **API 金鑰**。請妥善保管此金鑰。
+
+## 2. 安裝小工具
+
+將 BugSpark 小工具加入您的前端。選擇適合您技術架構的方式：
+
+### Script 標籤（最簡單）
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+### NPM 套件
+
+```bash
+npm install @bugspark/widget
+```
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+## 3. 開始接收報告
+
+小工具安裝完成後，您的使用者可以點擊錯誤按鈕來提交報告。
+每份報告會自動包含：
+
+- **螢幕截圖** 及可選的標註
+- **主控台日誌**（錯誤、警告、資訊）
+- **網路請求**（失敗的呼叫、緩慢的回應）
+- **裝置資訊**（瀏覽器、作業系統、視窗大小）
+- **使用者操作時間軸**（點擊、導覽、表單提交）
+
+在 [儀表板](/dashboard) 中查看所有報告。報告按專案整理，可依嚴重程度、狀態和日期範圍進行篩選。
+
+---
+
+## 下一步
+
+- [小工具設定](/docs/widget/configuration) — 自訂主題、位置和行為
+- [API 身份驗證](/docs/api/authentication) — 直接使用 REST API
+- [儀表板總覽](/docs/dashboard/overview) — 了解儀表板功能

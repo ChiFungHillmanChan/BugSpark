@@ -1,0 +1,92 @@
+# 小工具安裝
+
+BugSpark 小工具是一個輕量級的 JavaScript 片段，可為您的應用程式添加錯誤回報按鈕。
+
+## Script 標籤
+
+最簡單的方式。在 `</body>` 結尾標籤前貼上以下程式碼：
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+小工具會非同步載入，不會阻擋頁面渲染。
+
+## NPM / React
+
+安裝套件：
+
+```bash
+npm install @bugspark/widget
+```
+
+在應用程式入口點初始化：
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+對於 React 應用，在 `useEffect` 中初始化：
+
+```tsx
+import { useEffect } from "react";
+import { BugSpark } from "@bugspark/widget";
+
+function App() {
+  useEffect(() => {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }, []);
+
+  return <div>{/* 您的應用 */}</div>;
+}
+```
+
+## Vue
+
+```vue
+<script setup>
+import { onMounted } from "vue";
+import { BugSpark } from "@bugspark/widget";
+
+onMounted(() => {
+  BugSpark.init({
+    projectKey: "YOUR_API_KEY",
+    position: "bottom-right",
+  });
+});
+</script>
+```
+
+## Angular
+
+```typescript
+import { Component, OnInit } from "@angular/core";
+import { BugSpark } from "@bugspark/widget";
+
+@Component({ selector: "app-root", template: "<router-outlet />" })
+export class AppComponent implements OnInit {
+  ngOnInit() {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }
+}
+```
+
+## 驗證安裝
+
+安裝完成後，您應該會在頁面角落看到一個小型錯誤圖示。點擊它開啟報告表單並提交測試報告。檢查 [儀表板](/dashboard) 以確認報告已送達。

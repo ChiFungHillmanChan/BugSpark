@@ -1,0 +1,115 @@
+# 報告 API
+
+以程式化方式管理錯誤報告。
+
+## 建立報告
+
+<ApiEndpoint method="POST" path="/api/v1/reports" description="提交新的錯誤報告（需要 API 金鑰）" />
+
+**驗證方式：** 透過 `X-API-Key` 標頭傳遞 API 金鑰。
+
+### 請求主體
+
+| 欄位 | 類型 | 必填 | 說明 |
+|------|------|------|------|
+| `title` | `string` | 是 | 錯誤的簡短摘要 |
+| `description` | `string` | 是 | 詳細描述 |
+| `severity` | `string` | 是 | `critical`、`high`、`medium` 或 `low` |
+| `category` | `string` | 是 | `bug`、`ui`、`performance`、`crash` 或 `other` |
+| `reporter_identifier` | `string` | 否 | 回報者的電子郵件或 ID |
+| `screenshot_url` | `string` | 否 | 上傳端點回傳的 S3 物件鍵值 |
+| `annotated_screenshot_url` | `string` | 否 | 標註螢幕截圖的鍵值 |
+| `console_logs` | `array` | 否 | 擷取的主控台條目 |
+| `network_logs` | `array` | 否 | 擷取的網路請求 |
+| `user_actions` | `array` | 否 | 記錄的使用者操作 |
+| `metadata` | `object` | 否 | 自訂鍵值對 |
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/reports \
+  -H "X-API-Key: bsk_pub_abc123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "結帳按鈕無回應",
+    "description": "在行動版 Safari 上點擊「立即付款」沒有反應",
+    "severity": "high",
+    "category": "bug",
+    "reporter_identifier": "user@example.com",
+    "metadata": {"page": "/checkout", "cart_total": 49.99}
+  }'
+```
+
+### 回應 (201)
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "projectId": "...",
+  "trackingId": "BSK-42",
+  "title": "結帳按鈕無回應",
+  "severity": "high",
+  "category": "bug",
+  "status": "new",
+  "createdAt": "2026-01-15T10:30:00Z",
+  "updatedAt": "2026-01-15T10:30:00Z"
+}
+```
+
+## 列出報告
+
+<ApiEndpoint method="GET" path="/api/v1/reports" description="列出您專案的報告（需要驗證 cookie）" />
+
+### 查詢參數
+
+| 參數 | 類型 | 預設值 | 說明 |
+|------|------|--------|------|
+| `project_id` | `uuid` | 全部 | 依專案篩選 |
+| `status` | `string` | 全部 | 依狀態篩選 |
+| `severity` | `string` | 全部 | 依嚴重程度篩選 |
+| `search` | `string` | 無 | 搜尋標題和描述 |
+| `page` | `int` | 1 | 頁碼 |
+| `page_size` | `int` | 20 | 每頁項目數（最多 100） |
+
+### 回應
+
+```json
+{
+  "items": [...],
+  "total": 142,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+## 取得報告
+
+<ApiEndpoint method="GET" path="/api/v1/reports/:id" description="依 ID 取得單一報告" />
+
+## 更新報告
+
+<ApiEndpoint method="PATCH" path="/api/v1/reports/:id" description="更新報告欄位" />
+
+```json
+{
+  "status": "in_progress",
+  "severity": "critical",
+  "assignee_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## 刪除報告
+
+<ApiEndpoint method="DELETE" path="/api/v1/reports/:id" description="刪除報告（204 No Content）" />
+
+## 上傳螢幕截圖
+
+<ApiEndpoint method="POST" path="/api/v1/upload/screenshot" description="上傳螢幕截圖檔案（需要 API 金鑰）" />
+
+以 `multipart/form-data` 格式傳送，包含 `file` 欄位：
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/upload/screenshot \
+  -H "X-API-Key: bsk_pub_abc123" \
+  -F "file=@screenshot.png"
+```
+
+回傳 `{"key": "screenshots/abc123.png"}` — 建立報告時將此鍵值作為 `screenshot_url` 傳入。

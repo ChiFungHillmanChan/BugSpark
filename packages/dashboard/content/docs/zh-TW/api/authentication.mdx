@@ -1,0 +1,82 @@
+# 身份驗證
+
+BugSpark 根據使用情境使用兩種身份驗證方式：
+
+- **Cookie 驗證** 用於儀表板（瀏覽器會話）
+- **API 金鑰驗證** 用於小工具和外部整合
+
+## API 基礎 URL
+
+所有 API 端點的前綴為：
+
+```
+https://api.bugspark.dev/api/v1
+```
+
+對於自行託管的實例，請替換為您自己的網域。
+
+## Cookie 驗證
+
+儀表板使用 httpOnly cookie 進行安全的會話管理。
+
+### 註冊
+
+<ApiEndpoint method="POST" path="/api/v1/auth/register" description="建立新的使用者帳號" />
+
+```json
+{
+  "name": "Jane Doe",
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+回傳使用者物件並設定 `bugspark_access_token` 和 `bugspark_refresh_token` cookie。
+
+### 登入
+
+<ApiEndpoint method="POST" path="/api/v1/auth/login" description="驗證並接收會話 cookie" />
+
+```json
+{
+  "email": "jane@example.com",
+  "password": "securepassword123"
+}
+```
+
+### 重新整理令牌
+
+<ApiEndpoint method="POST" path="/api/v1/auth/refresh" description="使用重新整理 cookie 輪換存取令牌" />
+
+無需請求主體。重新整理令牌從 `bugspark_refresh_token` cookie 中讀取。
+
+### 取得目前使用者
+
+<ApiEndpoint method="GET" path="/api/v1/auth/me" description="取得已驗證的使用者個人資料" />
+
+### 登出
+
+<ApiEndpoint method="POST" path="/api/v1/auth/logout" description="清除會話 cookie" />
+
+## API 金鑰驗證
+
+小工具和外部整合使用專案 API 金鑰進行驗證，透過 `X-API-Key` 標頭傳遞：
+
+```bash
+curl -X POST https://api.bugspark.dev/api/v1/reports \
+  -H "X-API-Key: bsk_pub_your_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "按鈕故障", "description": "...", "severity": "high", "category": "bug"}'
+```
+
+API 金鑰的作用範圍限於單一專案。您可以在專案設定中找到您的金鑰，或透過 API 輪換金鑰。
+
+## 錯誤回應
+
+驗證錯誤回傳 HTTP 401：
+
+```json
+{
+  "detail": "電子郵件或密碼無效。"
+}
+```

@@ -1,0 +1,70 @@
+# Webhooks
+
+BugSpark 可以在事件發生時向外部服務發送即時通知。
+
+## 支援的事件
+
+| 事件 | 說明 |
+|------|------|
+| `report.created` | 新的錯誤報告已提交 |
+| `report.updated` | 報告已更新（狀態變更、指派等） |
+
+## Webhook 酬載
+
+當事件觸發時，BugSpark 會向您設定的 URL 發送 `POST` 請求，包含以下酬載：
+
+```json
+{
+  "event": "report.created",
+  "timestamp": "2026-01-15T10:30:00Z",
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "projectId": "...",
+    "trackingId": "BSK-42",
+    "title": "結帳按鈕無回應",
+    "description": "點擊「立即付款」沒有反應",
+    "severity": "high",
+    "category": "bug",
+    "status": "new",
+    "reporterIdentifier": "user@example.com",
+    "createdAt": "2026-01-15T10:30:00Z",
+    "updatedAt": "2026-01-15T10:30:00Z"
+  }
+}
+```
+
+## 設定 Webhooks
+
+在您的專案設定中設定 webhook URL：
+
+```json
+PATCH /api/v1/projects/:id
+{
+  "settings": {
+    "webhookUrl": "https://hooks.slack.com/services/T00/B00/xxx"
+  }
+}
+```
+
+## Slack 整合
+
+將錯誤報告發送到 Slack 頻道：
+
+1. 在您的 Slack 工作區建立一個 [Incoming Webhook](https://api.slack.com/messaging/webhooks)
+2. 複製 webhook URL
+3. 透過 API 或儀表板將其設定在您的專案設定中
+4. 新報告會自動發布到您的頻道
+
+## 重試策略
+
+失敗的 webhook 傳送會以指數退避方式重試最多 3 次：
+
+- 第 1 次重試：10 秒
+- 第 2 次重試：60 秒
+- 第 3 次重試：5 分鐘
+
+3 次失敗後，webhook 會被標記為失敗，該事件不再進行進一步的重試。
+
+## 安全性
+
+Webhook 酬載僅透過 HTTPS 發送。透過檢查 `X-BugSpark-Signature` 標頭來驗證來源，該標頭包含使用您專案 API 金鑰作為密鑰的請求主體 HMAC-SHA256 簽章。

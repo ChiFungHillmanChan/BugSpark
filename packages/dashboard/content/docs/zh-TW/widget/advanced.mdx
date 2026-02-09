@@ -1,0 +1,98 @@
+# 進階小工具用法
+
+BugSpark 小工具的進階設定選項。
+
+## 自訂中繼資料
+
+從您的應用程式為每份報告附加自訂中繼資料：
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  metadata: {
+    appVersion: "2.1.0",
+    environment: "production",
+    featureFlags: { newCheckout: true },
+  },
+});
+```
+
+中繼資料以 JSON 格式儲存，可在報告詳情頁面中查看。
+
+## 事件鉤子
+
+監聽小工具生命週期事件：
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  onOpen: () => {
+    console.log("小工具已開啟");
+  },
+  onClose: () => {
+    console.log("小工具已關閉");
+  },
+  onSubmit: (report) => {
+    console.log("報告已提交:", report.trackingId);
+  },
+  onError: (error) => {
+    console.error("提交失敗:", error);
+  },
+});
+```
+
+## 網路日誌過濾
+
+從網路日誌中過濾敏感的標頭或請求內容：
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  networkFilter: (entry) => {
+    // 移除 Authorization 標頭
+    delete entry.requestHeaders?.Authorization;
+    // 略過內部端點
+    if (entry.url.includes("/internal/")) return null;
+    return entry;
+  },
+});
+```
+
+從過濾函式回傳 `null` 會完全排除該條目。
+
+## 主控台日誌過濾
+
+在擷取前過濾主控台日誌：
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  consoleFilter: (entry) => {
+    // 略過詳細的除錯日誌
+    if (entry.level === "debug") return null;
+    return entry;
+  },
+});
+```
+
+## 內容安全策略
+
+如果您的網站使用 CSP 標頭，請添加 BugSpark 網域：
+
+```
+script-src 'self' https://cdn.bugspark.dev;
+connect-src 'self' https://api.bugspark.dev;
+```
+
+對於自行託管的部署，請替換為您自己的 API 網域。
+
+## 自行託管設定
+
+將小工具指向您自己的 BugSpark API 伺服器：
+
+```typescript
+BugSpark.init({
+  projectKey: "...",
+  apiUrl: "https://bugs.yourcompany.com/api/v1",
+});
+```

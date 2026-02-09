@@ -1,0 +1,22 @@
+{
+  "name": "bugspark",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Universal embeddable bug reporting SDK with admin dashboard",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "dev:api": "cd packages/api && uvicorn app.main:app --reload --port 8000",
+    "dev:dashboard": "cd packages/dashboard && pnpm dev",
+    "dev:widget": "cd packages/widget && pnpm dev",
+    "db:migrate": "cd packages/api && alembic upgrade head",
+    "db:seed": "cd packages/api && python scripts/seed.py",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  }
+}

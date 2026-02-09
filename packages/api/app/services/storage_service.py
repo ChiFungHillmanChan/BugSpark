@@ -1,0 +1,57 @@
+from __future__ import annotations
+
+import uuid
+
+import boto3
+from botocore.config import Config as BotoConfig
+
+from app.config import get_settings
+from app.exceptions import BadRequestException
+
+ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "image/webp"}
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+def _get_s3_client():
+    settings = get_settings()
+    return boto3.client(
+        "s3",
+        endpoint_url=settings.S3_ENDPOINT_URL,
+        aws_access_key_id=settings.S3_ACCESS_KEY,
+        aws_secret_access_key=settings.S3_SECRET_KEY,
+        config=BotoConfig(signature_version="s3v4"),
+    )
+
+
+def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
+    if content_type not in ALLOWED_CONTENT_TYPES:
+        raise BadRequestException(
+            f"Invalid file type '{content_type}'. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}"
+        )
+
+    if len(file_content) > MAX_FILE_SIZE_BYTES:
+        raise BadRequestException(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB")
+
+    settings = get_settings()
+    extension = filename.rsplit(".", 1)[-1] if "." in filename else "png"
+    object_key = f"screenshots/{uuid.uuid4()}.{extension}"
+
+    client = _get_s3_client()
+    client.put_object(
+        Bucket=settings.S3_BUCKET_NAME,
+        Key=object_key,
+        Body=file_content,
+        ContentType=content_type,
+    )
+
+    return f"{settings.S3_PUBLIC_URL}/{object_key}"
+
+
+def generate_presigned_url(key: str) -> str:
+    settings = get_settings()
+    client = _get_s3_client()
+    return client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
+        ExpiresIn=3600,
+    )

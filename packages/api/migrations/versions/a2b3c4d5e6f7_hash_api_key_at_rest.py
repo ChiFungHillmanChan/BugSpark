@@ -66,11 +66,7 @@ def upgrade() -> None:
     op.drop_constraint("projects_api_key_key", "projects", type_="unique")
     op.drop_column("projects", "api_key")
 
-    # Also drop api_secret if it still exists (from initial schema, never used)
-    try:
-        op.drop_column("projects", "api_secret")
-    except Exception:
-        pass  # Column may have been removed already
+    # api_secret was already dropped by migration a1b2c3d4e5f6
 
 
 def downgrade() -> None:

@@ -51,7 +51,7 @@ async def seed_superadmin() -> None:
             user = User(
                 email=email,
                 hashed_password=hash_password(password),
-                name="Super Admin",
+                name=email.split("@")[0],
                 role=Role.SUPERADMIN,
                 plan=Plan.ENTERPRISE,
             )

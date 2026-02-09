@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BugSpark - Integration Guide</title>
+  <style>
+    :root {
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --border: #2a2a4a;
+      --text: #e0e0e0;
+      --text-muted: #8888aa;
+      --primary: #e94560;
+      --primary-dim: #e9456033;
+      --accent: #4cc9f0;
+      --code-bg: #16213e;
+      --success: #4caf50;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    /* --- NAV --- */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    nav .logo {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    nav .logo h1 {
+      font-size: 22px;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    nav .logo span {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    nav a {
+      display: block;
+      padding: 8px 24px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      transition: all 0.15s;
+    }
+
+    nav a:hover, nav a.active {
+      color: var(--text);
+      background: var(--primary-dim);
+      border-right: 3px solid var(--primary);
+    }
+
+    nav .section-label {
+      padding: 16px 24px 6px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* --- MAIN --- */
+    main {
+      margin-left: 260px;
+      max-width: 860px;
+      padding: 48px 48px 120px;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin: 56px 0 16px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: #fff;
+    }
+
+    h2:first-child { border-top: none; margin-top: 0; }
+
+    h3 {
+      font-size: 20px;
+      margin: 32px 0 12px;
+      color: #fff;
+    }
+
+    h4 {
+      font-size: 16px;
+      margin: 24px 0 8px;
+      color: var(--accent);
+    }
+
+    p { margin: 12px 0; color: var(--text); }
+
+    a { color: var(--accent); }
+
+    ul, ol {
+      margin: 12px 0 12px 24px;
+      color: var(--text);
+    }
+
+    li { margin: 4px 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--code-bg);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 13px;
+      color: var(--primary);
+    }
+
+    /* --- CODE BLOCKS --- */
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+
+    pre code {
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+    }
+
+    .code-label {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      user-select: none;
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+    }
+
+    inline-code, p code, li code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--primary);
+      font-size: 13px;
+    }
+
+    /* --- CALLOUTS --- */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-left: 4px solid;
+    }
+
+    .callout-info {
+      background: #2196f318;
+      border-color: #2196f3;
+    }
+
+    .callout-warning {
+      background: #ff980018;
+      border-color: #ff9800;
+    }
+
+    .callout-tip {
+      background: #4caf5018;
+      border-color: var(--success);
+    }
+
+    .callout strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    /* --- TABS --- */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid var(--border);
+      margin: 24px 0 0;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .tab:hover { color: var(--text); }
+
+    .tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* --- STEPS --- */
+    .step {
+      display: flex;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+      margin-top: 2px;
+    }
+
+    .step-body { flex: 1; }
+    .step-body h4 { margin-top: 4px; color: #fff; }
+
+    /* --- HERO --- */
+    .hero {
+      padding: 40px 0 32px;
+    }
+
+    .hero h1 {
+      font-size: 40px;
+      color: #fff;
+      letter-spacing: -1px;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 span { color: var(--primary); }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 600px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+
+    .badge-size { background: #4caf5022; color: var(--success); border: 1px solid #4caf5044; }
+    .badge-ts { background: #2196f322; color: #2196f3; border: 1px solid #2196f344; }
+    .badge-fw { background: #9c27b022; color: #ce93d8; border: 1px solid #9c27b044; }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 900px) {
+      nav { display: none; }
+      main { margin-left: 0; padding: 24px 20px 80px; }
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+    }
+
+    .kw  { color: #c792ea; }
+    .str { color: #c3e88d; }
+    .fn  { color: #82aaff; }
+    .cm  { color: #546e7a; }
+    .tag { color: #f07178; }
+    .attr { color: #ffcb6b; }
+    .val { color: #c3e88d; }
+    .num { color: #f78c6c; }
+  </style>
+</head>
+<body>
+
+<!-- ===== SIDEBAR NAV ===== -->
+<nav>
+  <div class="logo">
+    <h1>BugSpark</h1>
+    <span>Integration Guide</span>
+  </div>
+  <div class="section-label">Getting Started</div>
+  <a href="#overview">Overview</a>
+  <a href="#quick-start">Quick Start (2 min)</a>
+  <a href="#get-api-key">Get Your API Key</a>
+  <div class="section-label">Installation</div>
+  <a href="#html">HTML / Static Sites</a>
+  <a href="#react">React</a>
+  <a href="#nextjs">Next.js</a>
+  <a href="#vue">Vue</a>
+  <a href="#angular">Angular</a>
+  <a href="#svelte">Svelte</a>
+  <a href="#other">Other Frameworks</a>
+  <div class="section-label">Reference</div>
+  <a href="#configuration">Configuration</a>
+  <a href="#api-methods">API Methods</a>
+  <a href="#data-captured">Data Captured</a>
+  <a href="#callbacks">Callbacks</a>
+  <a href="#theming">Theming</a>
+  <a href="#api-endpoints">REST API</a>
+</nav>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <h1>Bug<span>Spark</span> Integration Guide</h1>
+  <p>Add visual bug reporting to any website or web app. Your users can capture screenshots, annotate them, and submit bug reports &mdash; all from a single embeddable widget.</p>
+  <div style="margin-top: 16px;">
+    <span class="badge badge-ts">TypeScript</span>
+    <span class="badge badge-fw">Any Framework</span>
+  </div>
+</div>
+
+<div class="callout callout-info">
+  <strong>What BugSpark captures automatically</strong>
+  Screenshots, console logs, network requests, user actions (clicks, scrolls, navigation), device metadata (browser, viewport, OS), and error stack traces.
+</div>
+
+<!-- ===== QUICK START ===== -->
+<h2 id="quick-start">Quick Start</h2>
+<p>The fastest way to add BugSpark to any website &mdash; one script tag:</p>
+
+<pre><code><span class="cm">&lt;!-- Add before &lt;/body&gt; --&gt;</span>
+<span class="tag">&lt;script</span>
+  <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
+  <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+<span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+
+<p>That's it. A floating bug button appears on your page. Users click it to report bugs with screenshots.</p>
+
+<div class="callout callout-warning">
+  <strong>Replace the placeholder values</strong>
+  <code>bsk_pub_YOUR_API_KEY</code> &mdash; get this from the BugSpark dashboard after creating a project.<br />
+  <code>data-endpoint</code> &mdash; your BugSpark API URL.
+</div>
+
+<!-- ===== GET API KEY ===== -->
+<h2 id="get-api-key">Get Your API Key</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <h4>Sign up / Log in</h4>
+    <p>Go to your BugSpark dashboard and create an account or log in.</p>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <h4>Create a Project</h4>
+    <p>Click <strong>New Project</strong>, enter your project name and domain.</p>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <h4>Copy the API Key</h4>
+    <p>Your project will have two keys:</p>
+    <ul>
+      <li><code>bsk_pub_...</code> &mdash; <strong>Public key</strong> (use in the widget, safe to expose in frontend code)</li>
+      <li><code>bsk_sec_...</code> &mdash; <strong>Secret key</strong> (server-side only, never expose in frontend)</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== HTML ===== -->
+<h2 id="html">HTML / Static Sites</h2>
+
+<h3>Option A: Auto-initialization (recommended)</h3>
+<p>Add data attributes directly on the script tag. The widget initializes itself on page load.</p>
+
+<pre><code><span class="tag">&lt;script</span>
+  <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
+  <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+  <span class="attr">data-position</span>=<span class="val">"bottom-right"</span>
+  <span class="attr">data-theme</span>=<span class="val">"light"</span>
+<span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+
+<h3>Option B: Manual initialization</h3>
+<p>Load the script without data attributes, then call <code>init()</code> yourself for full control.</p>
+
+<pre><code><span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span><span class="tag">&gt;&lt;/script&gt;</span>
+
+<span class="tag">&lt;script&gt;</span>
+  BugSpark.<span class="fn">init</span>({
+    <span class="attr">apiKey</span>: <span class="str">'bsk_pub_YOUR_API_KEY'</span>,
+    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+    <span class="attr">position</span>: <span class="str">'bottom-right'</span>,
+    <span class="attr">theme</span>: <span class="str">'dark'</span>,
+    <span class="attr">primaryColor</span>: <span class="str">'#e94560'</span>,
+    <span class="attr">user</span>: {
+      <span class="attr">id</span>: <span class="str">'user_123'</span>,
+      <span class="attr">email</span>: <span class="str">'user@example.com'</span>,
+      <span class="attr">name</span>: <span class="str">'Jane Doe'</span>
+    }
+  });
+<span class="tag">&lt;/script&gt;</span></code></pre>
+
+<h3>Self-hosted</h3>
+<p>Download the widget file and serve it from your own domain:</p>
+
+<pre><code><span class="cm"># Download</span>
+curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js
+
+<span class="cm"># Then reference it locally</span>
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="val">"/js/bugspark.iife.js"</span> <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_..."</span><span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+
+<!-- ===== REACT ===== -->
+<h2 id="react">React</h2>
+
+<h3>Install</h3>
+<pre><code>npm install @bugspark/widget</code></pre>
+
+<h3>Initialize once at the app root</h3>
+<pre><code><span class="cm">// src/app.jsx (or src/main.jsx)</span>
+<span class="kw">import</span> { useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+<span class="kw">import</span> { init, destroy } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="kw">function</span> <span class="fn">App</span>() {
+  useEffect(() => {
+    <span class="fn">init</span>({
+      <span class="attr">apiKey</span>: <span class="str">'bsk_pub_YOUR_API_KEY'</span>,
+      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">theme</span>: <span class="str">'auto'</span>,
+    });
+
+    <span class="kw">return</span> () => <span class="fn">destroy</span>();
+  }, []);
+
+  <span class="kw">return</span> <span class="tag">&lt;RouterProvider</span> <span class="attr">router</span>={router} <span class="tag">/&gt;</span>;
+}</code></pre>
+
+<h3>Identify users after login</h3>
+<pre><code><span class="kw">import</span> { identify } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="cm">// Call after successful authentication</span>
+<span class="fn">identify</span>({
+  <span class="attr">id</span>: user.id,
+  <span class="attr">email</span>: user.email,
+  <span class="attr">name</span>: user.name,
+});</code></pre>
+
+<h3>Trigger programmatically</h3>
+<pre><code><span class="kw">import</span> { open } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="tag">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">open</span>()}<span class="tag">&gt;</span>Report a Bug<span class="tag">&lt;/button&gt;</span></code></pre>
+
+<!-- ===== NEXT.JS ===== -->
+<h2 id="nextjs">Next.js</h2>
+
+<h3>Install</h3>
+<pre><code>npm install @bugspark/widget</code></pre>
+
+<h3>Create a client component</h3>
+<pre><code><span class="cm">// src/components/bug-spark.tsx</span>
+<span class="str">'use client'</span>;
+
+<span class="kw">import</span> { useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">export function</span> <span class="fn">BugSparkWidget</span>() {
+  useEffect(() => {
+    <span class="cm">// Dynamic import — widget uses browser APIs (window, document)</span>
+    <span class="kw">import</span>(<span class="str">'@bugspark/widget'</span>).<span class="fn">then</span>(({ init }) => {
+      <span class="fn">init</span>({
+        <span class="attr">apiKey</span>: process.env.NEXT_PUBLIC_BUGSPARK_API_KEY!,
+        <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+        <span class="attr">theme</span>: <span class="str">'auto'</span>,
+      });
+    });
+
+    <span class="kw">return</span> () => {
+      <span class="kw">import</span>(<span class="str">'@bugspark/widget'</span>).<span class="fn">then</span>(({ destroy }) => <span class="fn">destroy</span>());
+    };
+  }, []);
+
+  <span class="kw">return null</span>;
+}
+</code></pre>
+
+<h3>Add to your root layout</h3>
+<pre><code><span class="cm">// src/app/layout.tsx</span>
+<span class="kw">import</span> { BugSparkWidget } <span class="kw">from</span> <span class="str">'@/components/bug-spark'</span>;
+
+<span class="kw">export default function</span> <span class="fn">RootLayout</span>({ children }) {
+  <span class="kw">return</span> (
+    <span class="tag">&lt;html&gt;</span>
+      <span class="tag">&lt;body&gt;</span>
+        {children}
+        <span class="tag">&lt;BugSparkWidget /&gt;</span>
+      <span class="tag">&lt;/body&gt;</span>
+    <span class="tag">&lt;/html&gt;</span>
+  );
+}</code></pre>
+
+<div class="callout callout-tip">
+  <strong>Why dynamic import?</strong>
+  The widget accesses <code>window</code> and <code>document</code>, which don't exist during server-side rendering. Dynamic import ensures it only loads in the browser.
+</div>
+
+<!-- ===== VUE ===== -->
+<h2 id="vue">Vue</h2>
+
+<h3>Install</h3>
+<pre><code>npm install @bugspark/widget</code></pre>
+
+<h3>Initialize in App.vue</h3>
+<pre><code><span class="cm">&lt;!-- src/App.vue --&gt;</span>
+<span class="tag">&lt;script</span> <span class="attr">setup</span><span class="tag">&gt;</span>
+<span class="kw">import</span> { onMounted, onUnmounted } <span class="kw">from</span> <span class="str">'vue'</span>;
+<span class="kw">import</span> { init, destroy } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="fn">onMounted</span>(() => {
+  <span class="fn">init</span>({
+    <span class="attr">apiKey</span>: <span class="kw">import</span>.meta.env.VITE_BUGSPARK_API_KEY,
+    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+    <span class="attr">theme</span>: <span class="str">'auto'</span>,
+  });
+});
+
+<span class="fn">onUnmounted</span>(() => {
+  <span class="fn">destroy</span>();
+});
+<span class="tag">&lt;/script&gt;</span>
+
+<span class="tag">&lt;template&gt;</span>
+  <span class="tag">&lt;RouterView /&gt;</span>
+<span class="tag">&lt;/template&gt;</span></code></pre>
+
+<h3>Identify users</h3>
+<pre><code><span class="kw">import</span> { identify } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="cm">// After login</span>
+<span class="fn">identify</span>({ <span class="attr">id</span>: user.id, <span class="attr">email</span>: user.email });</code></pre>
+
+<h3>Nuxt.js</h3>
+<p>Create a client-only plugin:</p>
+<pre><code><span class="cm">// plugins/bugspark.client.ts</span>
+<span class="kw">import</span> { init } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+<span class="kw">export default</span> <span class="fn">defineNuxtPlugin</span>(() => {
+  <span class="fn">init</span>({
+    <span class="attr">apiKey</span>: useRuntimeConfig().<span class="kw">public</span>.bugsparkApiKey,
+    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+  });
+});</code></pre>
+
+<!-- ===== ANGULAR ===== -->
+<h2 id="angular">Angular</h2>
+
+<h3>Install</h3>
+<pre><code>npm install @bugspark/widget</code></pre>
+
+<h3>Initialize in app.component.ts</h3>
+<pre><code><span class="cm">// src/app/app.component.ts</span>
+<span class="kw">import</span> { Component, OnInit, OnDestroy } <span class="kw">from</span> <span class="str">'@angular/core'</span>;
+<span class="kw">import</span> { init, destroy, identify } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+<span class="kw">import</span> { environment } <span class="kw">from</span> <span class="str">'../environments/environment'</span>;
+
+@<span class="fn">Component</span>({
+  <span class="attr">selector</span>: <span class="str">'app-root'</span>,
+  <span class="attr">template</span>: <span class="str">'&lt;router-outlet /&gt;'</span>,
+})
+<span class="kw">export class</span> <span class="fn">AppComponent</span> <span class="kw">implements</span> OnInit, OnDestroy {
+
+  <span class="fn">ngOnInit</span>() {
+    <span class="fn">init</span>({
+      <span class="attr">apiKey</span>: environment.bugsparkApiKey,
+      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">theme</span>: <span class="str">'auto'</span>,
+    });
+  }
+
+  <span class="fn">ngOnDestroy</span>() {
+    <span class="fn">destroy</span>();
+  }
+}</code></pre>
+
+<!-- ===== SVELTE ===== -->
+<h2 id="svelte">Svelte</h2>
+
+<h3>Install</h3>
+<pre><code>npm install @bugspark/widget</code></pre>
+
+<h3>Svelte 5 / SvelteKit</h3>
+<pre><code><span class="cm">&lt;!-- src/routes/+layout.svelte --&gt;</span>
+<span class="tag">&lt;script&gt;</span>
+  <span class="kw">import</span> { onMount, onDestroy } <span class="kw">from</span> <span class="str">'svelte'</span>;
+  <span class="kw">import</span> { init, destroy } <span class="kw">from</span> <span class="str">'@bugspark/widget'</span>;
+
+  <span class="fn">onMount</span>(() => {
+    <span class="fn">init</span>({
+      <span class="attr">apiKey</span>: <span class="kw">import</span>.meta.env.VITE_BUGSPARK_API_KEY,
+      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">theme</span>: <span class="str">'auto'</span>,
+    });
+  });
+
+  <span class="fn">onDestroy</span>(() => {
+    <span class="fn">destroy</span>();
+  });
+<span class="tag">&lt;/script&gt;</span>
+
+<span class="tag">&lt;slot /&gt;</span></code></pre>
+
+<!-- ===== OTHER ===== -->
+<h2 id="other">Other Frameworks</h2>
+
+<p>BugSpark works with <strong>any</strong> frontend framework or vanilla JavaScript. The pattern is the same:</p>
+
+<ol>
+  <li>Load the widget (via npm or script tag)</li>
+  <li>Call <code>init()</code> once when the app starts</li>
+  <li>Call <code>identify()</code> after the user logs in</li>
+  <li>Call <code>destroy()</code> when the app unmounts (SPA cleanup)</li>
+</ol>
+
+<h3>WordPress</h3>
+<p>Add to your theme's <code>footer.php</code> or use a plugin that injects footer scripts:</p>
+<pre><code><span class="tag">&lt;script</span>
+  <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
+  <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+<span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+
+<h3>Shopify</h3>
+<p>Add to <code>theme.liquid</code> before the closing <code>&lt;/body&gt;</code> tag:</p>
+<pre><code><span class="tag">&lt;script</span>
+  <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
+  <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+<span class="tag">&gt;&lt;/script&gt;</span></code></pre>
+
+<h3>Webflow / Squarespace / Wix</h3>
+<p>Use the platform's custom code injection feature to add the same script tag in the site footer / before <code>&lt;/body&gt;</code>.</p>
+
+<!-- ===== CONFIGURATION ===== -->
+<h2 id="configuration">Configuration Reference</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Type</th>
+      <th>Default</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>apiKey</code></td>
+      <td><code>string</code></td>
+      <td>&mdash;</td>
+      <td><strong>Required.</strong> Your project's public API key (<code>bsk_pub_...</code>)</td>
+    </tr>
+    <tr>
+      <td><code>endpoint</code></td>
+      <td><code>string</code></td>
+      <td><code>http://localhost:8000/api/v1</code></td>
+      <td>BugSpark API base URL</td>
+    </tr>
+    <tr>
+      <td><code>position</code></td>
+      <td><code>string</code></td>
+      <td><code>bottom-right</code></td>
+      <td>Widget button position: <code>bottom-right</code>, <code>bottom-left</code>, <code>top-right</code>, <code>top-left</code></td>
+    </tr>
+    <tr>
+      <td><code>theme</code></td>
+      <td><code>string</code></td>
+      <td><code>light</code></td>
+      <td>UI theme: <code>light</code>, <code>dark</code>, <code>auto</code></td>
+    </tr>
+    <tr>
+      <td><code>primaryColor</code></td>
+      <td><code>string</code></td>
+      <td><code>#e94560</code></td>
+      <td>Accent color for the button and UI elements</td>
+    </tr>
+    <tr>
+      <td><code>enableScreenshot</code></td>
+      <td><code>boolean</code></td>
+      <td><code>true</code></td>
+      <td>Capture page screenshot when opening the report form</td>
+    </tr>
+    <tr>
+      <td><code>enableConsoleLogs</code></td>
+      <td><code>boolean</code></td>
+      <td><code>true</code></td>
+      <td>Capture console.log/warn/error output (last 100 entries)</td>
+    </tr>
+    <tr>
+      <td><code>enableNetworkLogs</code></td>
+      <td><code>boolean</code></td>
+      <td><code>true</code></td>
+      <td>Capture fetch/XHR network requests (last 50 entries)</td>
+    </tr>
+    <tr>
+      <td><code>enableSessionRecording</code></td>
+      <td><code>boolean</code></td>
+      <td><code>true</code></td>
+      <td>Track user actions: clicks, scrolls, navigation (last 30 seconds)</td>
+    </tr>
+    <tr>
+      <td><code>user</code></td>
+      <td><code>object</code></td>
+      <td><code>undefined</code></td>
+      <td>Pre-identify the user: <code>{ id?, email?, name? }</code></td>
+    </tr>
+    <tr>
+      <td><code>beforeSend</code></td>
+      <td><code>function</code></td>
+      <td><code>undefined</code></td>
+      <td>Callback before submission. Return modified report or <code>null</code> to cancel.</td>
+    </tr>
+    <tr>
+      <td><code>onSubmit</code></td>
+      <td><code>function</code></td>
+      <td><code>undefined</code></td>
+      <td>Callback after successful submission.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Script tag data attributes</h3>
+<p>When using auto-initialization, these <code>data-*</code> attributes map to config options:</p>
+<table>
+  <thead>
+    <tr>
+      <th>Attribute</th>
+      <th>Maps to</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>data-api-key</code></td><td><code>apiKey</code></td></tr>
+    <tr><td><code>data-endpoint</code></td><td><code>endpoint</code></td></tr>
+    <tr><td><code>data-position</code></td><td><code>position</code></td></tr>
+    <tr><td><code>data-theme</code></td><td><code>theme</code></td></tr>
+  </tbody>
+</table>
+
+<!-- ===== API METHODS ===== -->
+<h2 id="api-methods">API Methods</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Method</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>init(config)</code></td>
+      <td>Initialize the widget. Call once at app startup. Throws if <code>apiKey</code> is missing.</td>
+    </tr>
+    <tr>
+      <td><code>open()</code></td>
+      <td>Open the report form. Captures a screenshot (async). Returns a <code>Promise</code>.</td>
+    </tr>
+    <tr>
+      <td><code>close()</code></td>
+      <td>Close the report form and return to the floating button state.</td>
+    </tr>
+    <tr>
+      <td><code>identify(user)</code></td>
+      <td>Set user info: <code>{ id?, email?, name? }</code>. Attaches to all future reports.</td>
+    </tr>
+    <tr>
+      <td><code>destroy()</code></td>
+      <td>Remove the widget completely. Stops all collectors, restores patched browser APIs.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Examples</h3>
+
+<pre><code><span class="cm">// Open report form from your own button</span>
+document.<span class="fn">getElementById</span>(<span class="str">'report-btn'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, () => {
+  BugSpark.<span class="fn">open</span>();
+});
+
+<span class="cm">// Identify user after login</span>
+BugSpark.<span class="fn">identify</span>({
+  <span class="attr">id</span>: <span class="str">'usr_abc123'</span>,
+  <span class="attr">email</span>: <span class="str">'alice@example.com'</span>,
+  <span class="attr">name</span>: <span class="str">'Alice'</span>,
+});
+
+<span class="cm">// Clean up on SPA route change (if needed)</span>
+BugSpark.<span class="fn">destroy</span>();</code></pre>
+
+<!-- ===== DATA CAPTURED ===== -->
+<h2 id="data-captured">Data Captured</h2>
+
+<p>Every bug report automatically includes:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Screenshot</strong></td>
+      <td>Full-page capture via HTML2Canvas. Users can annotate with pen, arrow, rectangle, circle, text, and blur tools.</td>
+    </tr>
+    <tr>
+      <td><strong>Console logs</strong></td>
+      <td>Last 100 entries from <code>console.log/warn/error/info/debug</code>, including stack traces for errors.</td>
+    </tr>
+    <tr>
+      <td><strong>Network logs</strong></td>
+      <td>Last 50 <code>fetch</code> and <code>XMLHttpRequest</code> calls with method, URL, status, duration, and headers. BugSpark's own API calls are excluded.</td>
+    </tr>
+    <tr>
+      <td><strong>User actions</strong></td>
+      <td>Last 30 seconds of clicks (with CSS selector), scrolls, resizes, and navigation events.</td>
+    </tr>
+    <tr>
+      <td><strong>Errors</strong></td>
+      <td>Uncaught exceptions and unhandled promise rejections with full stack traces.</td>
+    </tr>
+    <tr>
+      <td><strong>Device metadata</strong></td>
+      <td>Browser, viewport, screen resolution, URL, referrer, locale, timezone, connection type, platform.</td>
+    </tr>
+    <tr>
+      <td><strong>User info</strong></td>
+      <td>If <code>identify()</code> was called: user ID, email, and name.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- ===== CALLBACKS ===== -->
+<h2 id="callbacks">Callbacks</h2>
+
+<h3>beforeSend</h3>
+<p>Modify or filter reports before they are submitted. Return <code>null</code> to cancel the submission.</p>
+
+<pre><code>BugSpark.<span class="fn">init</span>({
+  <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+
+  <span class="fn">beforeSend</span>(report) {
+    <span class="cm">// Redact sensitive data</span>
+    report.consoleLogs = report.consoleLogs.<span class="fn">filter</span>(
+      log => !log.message.<span class="fn">includes</span>(<span class="str">'password'</span>)
+    );
+
+    <span class="cm">// Cancel low-severity reports in production</span>
+    <span class="kw">if</span> (report.severity === <span class="str">'low'</span>) <span class="kw">return null</span>;
+
+    <span class="kw">return</span> report;
+  },
+});</code></pre>
+
+<h3>onSubmit</h3>
+<p>Run custom logic after a report is successfully submitted.</p>
+
+<pre><code>BugSpark.<span class="fn">init</span>({
+  <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+
+  <span class="fn">onSubmit</span>(report) {
+    console.<span class="fn">log</span>(<span class="str">'Bug reported:'</span>, report.title);
+    analytics.<span class="fn">track</span>(<span class="str">'bug_reported'</span>, { severity: report.severity });
+  },
+});</code></pre>
+
+<!-- ===== THEMING ===== -->
+<h2 id="theming">Theming</h2>
+
+<p>BugSpark renders inside a <strong>Shadow DOM</strong>, so it won't conflict with your site's styles. You can customize:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>theme: 'light'</code></td>
+      <td>White background, dark text</td>
+    </tr>
+    <tr>
+      <td><code>theme: 'dark'</code></td>
+      <td>Dark background, light text</td>
+    </tr>
+    <tr>
+      <td><code>theme: 'auto'</code></td>
+      <td>Follows user's system preference (<code>prefers-color-scheme</code>)</td>
+    </tr>
+    <tr>
+      <td><code>primaryColor</code></td>
+      <td>Accent color for the floating button, submit button, and highlights</td>
+    </tr>
+    <tr>
+      <td><code>position</code></td>
+      <td>Corner placement of the floating button</td>
+    </tr>
+  </tbody>
+</table>
+
+<pre><code>BugSpark.<span class="fn">init</span>({
+  <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+  <span class="attr">theme</span>: <span class="str">'dark'</span>,
+  <span class="attr">primaryColor</span>: <span class="str">'#6c5ce7'</span>,     <span class="cm">// Purple accent</span>
+  <span class="attr">position</span>: <span class="str">'bottom-left'</span>,
+});</code></pre>
+
+<!-- ===== REST API ===== -->
+<h2 id="api-endpoints">REST API</h2>
+
+<p>You can also submit reports server-side or from any HTTP client.</p>
+
+<h3>Submit a report</h3>
+<pre><code>POST /api/v1/reports
+<span class="attr">Content-Type</span>: application/json
+<span class="attr">X-API-Key</span>: bsk_pub_YOUR_API_KEY
+
+{
+  <span class="str">"title"</span>: <span class="str">"Button not working on mobile"</span>,
+  <span class="str">"description"</span>: <span class="str">"The submit button does not respond to taps on iOS Safari."</span>,
+  <span class="str">"severity"</span>: <span class="str">"high"</span>,
+  <span class="str">"category"</span>: <span class="str">"bug"</span>,
+  <span class="str">"console_logs"</span>: [],
+  <span class="str">"network_logs"</span>: [],
+  <span class="str">"user_actions"</span>: [],
+  <span class="str">"metadata"</span>: {
+    <span class="str">"userAgent"</span>: <span class="str">"Mozilla/5.0 ..."</span>,
+    <span class="str">"url"</span>: <span class="str">"https://example.com/checkout"</span>
+  },
+  <span class="str">"reporter_identifier"</span>: <span class="str">"user@example.com"</span>
+}</code></pre>
+
+<h3>Upload a screenshot</h3>
+<pre><code>POST /api/v1/upload/screenshot
+<span class="attr">Content-Type</span>: multipart/form-data
+<span class="attr">X-API-Key</span>: bsk_pub_YOUR_API_KEY
+
+<span class="cm">Form field: file (PNG image)</span>
+
+<span class="cm">Response:</span>
+{ <span class="str">"url"</span>: <span class="str">"https://storage.example.com/screenshots/abc123.png"</span> }</code></pre>
+
+<!-- ===== FOOTER ===== -->
+<div style="margin-top: 80px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px;">
+  BugSpark &mdash; Visual Bug Reporting SDK
+</div>
+
+</main>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('h2[id]');
+  const navLinks = document.querySelectorAll('nav a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(section => {
+      if (window.scrollY >= section.offsetTop - 100) {
+        current = section.id;
+      }
+    });
+    navLinks.forEach(link => {
+      link.classList.toggle('active', link.getAttribute('href') === '#' + current);
+    });
+  });
+</script>
+
+</body>
+</html>

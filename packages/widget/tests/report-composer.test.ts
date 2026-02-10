@@ -4,15 +4,17 @@ import type { BugSparkConfig, BugReport } from '../src/types';
 
 function createConfig(overrides: Partial<BugSparkConfig> = {}): BugSparkConfig {
   return {
-    apiKey: 'test-api-key',
+    projectKey: 'test-api-key',
     endpoint: 'http://localhost:8000/api/v1',
     position: 'bottom-right',
     theme: 'light',
     primaryColor: '#e94560',
     enableScreenshot: true,
-    enableConsoleLogs: true,
-    enableNetworkLogs: true,
+    collectConsole: true,
+    collectNetwork: true,
     enableSessionRecording: true,
+    maxConsoleLogs: 50,
+    maxNetworkLogs: 30,
     ...overrides,
   };
 }

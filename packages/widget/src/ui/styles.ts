@@ -81,7 +81,22 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       width: 120px; height: 68px; object-fit: cover; border-radius: 4px;
       border: 1px solid ${borderColor};
     }
-    .bugspark-screenshot-preview__actions { flex: 1; }
+    .bugspark-screenshot-preview__actions { flex: 1; display: flex; gap: 8px; }
+
+    .bugspark-screenshot-capture {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 24px; margin-bottom: 16px;
+      border: 2px dashed ${borderColor}; border-radius: 8px;
+      cursor: pointer; color: ${textColor}; opacity: 0.6;
+      transition: opacity 0.2s, border-color 0.2s;
+    }
+    .bugspark-screenshot-capture:hover {
+      opacity: 1; border-color: ${primaryColor};
+    }
+    .bugspark-screenshot-capture svg { width: 32px; height: 32px; }
+    .bugspark-screenshot-capture span { font-size: 13px; font-weight: 500; }
+
+    .bugspark-screenshot-recapture { margin-left: 0; }
 
     .bugspark-btn {
       padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;

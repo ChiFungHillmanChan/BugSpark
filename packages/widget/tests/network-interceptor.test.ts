@@ -47,15 +47,27 @@ describe('NetworkInterceptor', () => {
     expect(entries[0].duration).toBeGreaterThanOrEqual(0);
   });
 
-  it('ring buffer limits to 50 entries', async () => {
+  it('ring buffer limits to default of 30 entries', async () => {
     networkInterceptor.start('http://bugspark.test');
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 40; i++) {
       await window.fetch(`https://api.example.com/item/${i}`);
     }
 
     const entries = networkInterceptor.getEntries();
-    expect(entries).toHaveLength(50);
+    expect(entries).toHaveLength(30);
+    expect(entries[0].url).toBe('https://api.example.com/item/10');
+  });
+
+  it('ring buffer respects custom limit', async () => {
+    networkInterceptor.start('http://bugspark.test', 10);
+
+    for (let i = 0; i < 20; i++) {
+      await window.fetch(`https://api.example.com/item/${i}`);
+    }
+
+    const entries = networkInterceptor.getEntries();
+    expect(entries).toHaveLength(10);
     expect(entries[0].url).toBe('https://api.example.com/item/10');
   });
 

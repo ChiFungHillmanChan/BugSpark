@@ -53,33 +53,37 @@ describe('BugSpark SDK', () => {
   });
 
   it('init() initializes without error', () => {
-    expect(() => BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' })).not.toThrow();
+    expect(() => BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' })).not.toThrow();
   });
 
   it('init() with minimal config works', () => {
-    BugSpark.init({ apiKey: 'my-key', endpoint: 'https://api.example.com' });
-    // Verify initialization happened by checking window.BugSpark exists
+    BugSpark.init({ projectKey: 'my-key', endpoint: 'https://api.example.com' });
     expect(
       (window as unknown as Record<string, unknown>).BugSpark,
     ).toBeDefined();
   });
 
   it('destroy() cleans up', () => {
-    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(() => BugSpark.destroy()).not.toThrow();
   });
 
   it('identify() sets user info', () => {
-    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(() =>
       BugSpark.identify({ id: 'user-1', email: 'a@b.com', name: 'Test' }),
     ).not.toThrow();
   });
 
+  it('setReporter() sets reporter identifier', () => {
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
+    expect(() => BugSpark.setReporter('user@example.com')).not.toThrow();
+  });
+
   it('double init() warns and returns early', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
-    BugSpark.init({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(warnSpy).toHaveBeenCalledWith('[BugSpark] Already initialized');
     warnSpy.mockRestore();
   });
@@ -91,5 +95,34 @@ describe('BugSpark SDK', () => {
     expect(typeof (winBugSpark as Record<string, unknown>).init).toBe(
       'function',
     );
+  });
+
+  it('window.BugSpark exposes setReporter', async () => {
+    const winBugSpark = (window as unknown as Record<string, unknown>)
+      .BugSpark as Record<string, unknown>;
+    expect(typeof winBugSpark.setReporter).toBe('function');
+  });
+
+  it('open() does not auto-capture screenshot', async () => {
+    const { captureScreenshot } = await import('../src/core/screenshot-engine');
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com' });
+    await BugSpark.open();
+
+    expect(captureScreenshot).not.toHaveBeenCalled();
+  });
+
+  it('open() calls onOpen lifecycle hook', async () => {
+    const onOpen = vi.fn();
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com', onOpen });
+    await BugSpark.open();
+    expect(onOpen).toHaveBeenCalledOnce();
+  });
+
+  it('close() calls onClose lifecycle hook', async () => {
+    const onClose = vi.fn();
+    BugSpark.init({ projectKey: 'test-key', endpoint: 'https://api.example.com', onClose });
+    await BugSpark.open();
+    BugSpark.close();
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });

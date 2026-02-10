@@ -62,7 +62,7 @@ export async function submitReport(
   if (processedReport.screenshot) {
     screenshotUrl = await uploadScreenshot(
       config.endpoint,
-      config.apiKey,
+      config.projectKey,
       processedReport.screenshot,
     );
   }
@@ -70,7 +70,7 @@ export async function submitReport(
   if (processedReport.annotatedScreenshot) {
     annotatedScreenshotUrl = await uploadScreenshot(
       config.endpoint,
-      config.apiKey,
+      config.projectKey,
       processedReport.annotatedScreenshot,
     );
   }
@@ -93,7 +93,7 @@ export async function submitReport(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': config.apiKey,
+      'X-API-Key': config.projectKey,
     },
     body: JSON.stringify(payload),
   });

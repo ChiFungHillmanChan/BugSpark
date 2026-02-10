@@ -38,8 +38,8 @@ function init(userConfig: Partial<BugSparkConfig>): void {
   config = mergeConfig(userConfig);
   isInitialized = true;
 
-  if (config.enableConsoleLogs) consoleInterceptor.start();
-  if (config.enableNetworkLogs) networkInterceptor.start(config.endpoint);
+  if (config.collectConsole) consoleInterceptor.start(config.maxConsoleLogs);
+  if (config.collectNetwork) networkInterceptor.start(config.endpoint, config.maxNetworkLogs);
   errorTracker.start();
   performanceCollector.initPerformanceObservers();
   if (config.enableSessionRecording) sessionRecorder.start();
@@ -56,17 +56,30 @@ async function open(): Promise<void> {
   floatingButton.hide();
   annotatedBlob = null;
 
-  let screenshotDataUrl: string | undefined;
-  if (config.enableScreenshot) {
-    screenshotCanvas = await captureScreenshot();
-    screenshotBlob = await canvasToBlob(screenshotCanvas);
-    screenshotDataUrl = screenshotCanvas.toDataURL();
-  }
+  reportModal.mount(root, {
+    onSubmit: handleSubmit,
+    onAnnotate: handleAnnotate,
+    onClose: close,
+    onCapture: handleCapture,
+  }, undefined);
+
+  config.onOpen?.();
+}
+
+async function handleCapture(): Promise<void> {
+  if (!config) return;
+  const root = widgetContainer.getRoot();
+
+  reportModal.unmount();
+  screenshotCanvas = await captureScreenshot();
+  screenshotBlob = await canvasToBlob(screenshotCanvas);
+  const screenshotDataUrl = screenshotCanvas.toDataURL();
 
   reportModal.mount(root, {
     onSubmit: handleSubmit,
     onAnnotate: handleAnnotate,
     onClose: close,
+    onCapture: handleCapture,
   }, screenshotDataUrl);
 }
 
@@ -77,6 +90,7 @@ function close(): void {
   screenshotCanvas = null;
   screenshotBlob = null;
   annotatedBlob = null;
+  config?.onClose?.();
 }
 
 function handleAnnotate(): void {
@@ -94,6 +108,7 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
+        onCapture: handleCapture,
       }, annotatedDataUrl);
     },
     onCancel: () => {
@@ -103,6 +118,7 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
+        onCapture: handleCapture,
       }, dataUrl);
     },
   });
@@ -125,7 +141,7 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
     networkLogs: networkInterceptor.getEntries(),
     userActions: sessionRecorder.getEvents(),
     metadata: collectMetadata(),
-    reporterIdentifier: formData.email || config.user?.email || config.user?.id,
+    reporterIdentifier: formData.email || config.reporterIdentifier || config.user?.email || config.user?.id,
   };
 
   try {
@@ -134,8 +150,9 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
     showToast(root, 'Bug report submitted successfully!', 'success');
   } catch (error) {
     reportModal.setSubmitting(false);
-    const message = error instanceof Error ? error.message : 'Submission failed';
-    showToast(root, message, 'error');
+    const typedError = error instanceof Error ? error : new Error('Submission failed');
+    config.onError?.(typedError);
+    showToast(root, typedError.message, 'error');
   }
 }
 
@@ -160,23 +177,31 @@ function destroy(): void {
   annotatedBlob = null;
 }
 
+function setReporter(identifier: string): void {
+  if (config) {
+    config.reporterIdentifier = identifier;
+  }
+}
+
+/** @deprecated Use `setReporter` instead */
 function identify(user: BugSparkUser): void {
   if (config) {
     config.user = user;
   }
 }
 
-const BugSpark = { init, open, close, destroy, identify };
+const BugSpark = { init, open, close, destroy, identify, setReporter };
 
 function autoInit(): void {
-  const scripts = document.querySelectorAll('script[data-api-key]');
+  const scripts = document.querySelectorAll('script[data-project-key], script[data-api-key]');
   const currentScript = scripts[scripts.length - 1];
   if (!currentScript) return;
 
-  const apiKey = currentScript.getAttribute('data-api-key');
-  if (!apiKey) return;
+  const projectKey = currentScript.getAttribute('data-project-key')
+    || currentScript.getAttribute('data-api-key');
+  if (!projectKey) return;
 
-  const autoConfig: Partial<BugSparkConfig> = { apiKey };
+  const autoConfig: Partial<BugSparkConfig> = { projectKey };
 
   const endpoint = currentScript.getAttribute('data-endpoint');
   if (endpoint) autoConfig.endpoint = endpoint;
@@ -201,5 +226,5 @@ if (typeof window !== 'undefined') {
 }
 
 export default BugSpark;
-export { init, open, close, destroy, identify };
+export { init, open, close, destroy, identify, setReporter };
 export type { BugSparkConfig, BugReport, BugSparkUser };

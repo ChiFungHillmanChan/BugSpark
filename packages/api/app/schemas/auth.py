@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import uuid
+
 from pydantic import BaseModel, EmailStr, Field
+
+from app.schemas import CamelModel
 
 
 class LoginRequest(BaseModel):
@@ -12,3 +16,13 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     name: str = Field(min_length=1, max_length=255)
+
+
+class CLIAuthResponse(CamelModel):
+    """Response for CLI login/register — returns user info + a PAT token."""
+
+    id: uuid.UUID
+    email: str
+    name: str
+    role: str
+    token: str

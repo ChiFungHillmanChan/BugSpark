@@ -152,7 +152,8 @@
     "notFound": "找不到專案。",
     "rotateApiKey": "輪換 API 金鑰",
     "rotateMessage": "這將使目前的 API 金鑰失效並產生新的金鑰。使用舊金鑰的整合將停止運作。",
-    "rotateConfirm": "輪換金鑰"
+    "rotateConfirm": "輪換金鑰",
+    "createFailed": "建立專案失敗，請重試。"
   },
   "settings": {
     "title": "設定",

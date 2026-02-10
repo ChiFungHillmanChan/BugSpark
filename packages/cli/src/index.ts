@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
+import { registerCommand } from "./commands/register.js";
 import { whoamiCommand } from "./commands/whoami.js";
 import { initCommand } from "./commands/init.js";
 import {
@@ -13,6 +14,11 @@ import {
   viewReportCommand,
   updateReportCommand,
 } from "./commands/reports.js";
+import {
+  listTokensCommand,
+  createTokenCommand,
+  revokeTokenCommand,
+} from "./commands/tokens.js";
 
 const program = new Command();
 
@@ -22,6 +28,11 @@ program
   .version("0.1.0");
 
 // ─── Auth ────────────────────────────────────────────────────────────────
+
+program
+  .command("register")
+  .description("Create a new BugSpark account")
+  .action(registerCommand);
 
 program
   .command("login")
@@ -93,5 +104,27 @@ reports
   .option("-s, --status <status>", "New status")
   .option("--severity <severity>", "New severity")
   .action(updateReportCommand);
+
+// ─── Tokens ─────────────────────────────────────────────────────────────
+
+const tokens = program
+  .command("tokens")
+  .description("Manage personal access tokens");
+
+tokens
+  .command("list")
+  .description("List all personal access tokens")
+  .action(listTokensCommand);
+
+tokens
+  .command("create <name>")
+  .description("Create a new personal access token")
+  .option("-e, --expires <days>", "Number of days until expiry (1-365)")
+  .action(createTokenCommand);
+
+tokens
+  .command("revoke <token-id>")
+  .description("Revoke a personal access token")
+  .action(revokeTokenCommand);
 
 program.parse();

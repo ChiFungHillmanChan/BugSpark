@@ -1,33 +1,28 @@
 # ============================================================================
-# Deploy Pipeline — runs on push to main (after PR merge)
+# Post-Merge Pipeline — runs on push to main (after PR merge)
 # ============================================================================
 # Flow:
-#   1. test    – re-run all tests as a safety gate
-#   2. deploy  – deploy API to Render + Dashboard to Vercel (in parallel)
+#   1. test         – re-run all tests as a safety gate
+#   2. build-widget – verify widget build artifact is valid
 #
-# Required GitHub Secrets:
-#   RENDER_DEPLOY_HOOK_URL   – Render deploy hook URL for the bugspark-api service
-#   VERCEL_TOKEN             – Vercel personal access token
-#   VERCEL_ORG_ID            – Vercel team/org ID
-#   VERCEL_PROJECT_ID        – Vercel project ID for the dashboard
+# Note: Deployment is handled automatically by platform GitHub integrations:
+#   - Render auto-deploys the API when main is updated
+#   - Vercel auto-deploys the Dashboard when main is updated
 # ============================================================================
 
-name: Deploy
+name: Post-Merge
 
 on:
   push:
     branches: [main]
-  # Explicitly exclude pull_request events to ensure deployments only happen after merge
-  pull_request:
-    types: [] # This ensures PR events never trigger this workflow
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false # don't cancel in-flight deploys
+  group: post-merge-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   # --------------------------------------------------------------------------
-  # Test gate — all tests must pass before deploying
+  # Test gate — all tests must pass
   # --------------------------------------------------------------------------
   test-api:
     name: Test API
@@ -86,75 +81,12 @@ jobs:
         run: pnpm --filter @bugspark/widget test
 
   # --------------------------------------------------------------------------
-  # Deploy API to Render
-  # --------------------------------------------------------------------------
-  deploy-api:
-    name: Deploy API → Render
-    runs-on: ubuntu-latest
-    needs: [test-api, test-dashboard, test-widget]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Trigger Render deploy hook
-        run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" \
-            | grep -q "200\|201" \
-            && echo "✅ Render deploy triggered" \
-            || (echo "❌ Render deploy hook failed" && exit 1)
-
-  # --------------------------------------------------------------------------
-  # Deploy Dashboard to Vercel
-  # --------------------------------------------------------------------------
-  deploy-dashboard:
-    name: Deploy Dashboard → Vercel
-    runs-on: ubuntu-latest
-    needs: [test-api, test-dashboard, test-widget]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Install Vercel CLI
-        run: pnpm add -g vercel@latest
-
-      - name: Pull Vercel environment
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Build for production
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-      - name: Deploy to Vercel production
-        run: |
-          DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
-          echo "🚀 Deployed to: $DEPLOY_URL"
-          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-        id: deploy
-        env:
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-
-  # --------------------------------------------------------------------------
   # Build Widget (verify build artifact is valid)
   # --------------------------------------------------------------------------
   build-widget:
     name: Build Widget
     runs-on: ubuntu-latest
     needs: [test-api, test-dashboard, test-widget]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import secrets
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request, Response
 from slowapi import Limiter
@@ -9,11 +11,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.dependencies import get_current_user, get_db
+from app.dependencies import PAT_PREFIX_LEN, get_current_user, get_db
 from app.exceptions import BadRequestException, UnauthorizedException
 from app.i18n import get_locale, translate
+from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
-from app.schemas.auth import LoginRequest, RegisterRequest
+from app.schemas.auth import CLIAuthResponse, LoginRequest, RegisterRequest
 from app.schemas.user import UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
@@ -211,3 +214,86 @@ async def update_me(
     await db.refresh(current_user)
 
     return UserResponse.model_validate(current_user)
+
+
+# ── CLI-specific auth (returns PAT in body, no cookies) ────────────────────
+
+_PAT_PREFIX = "bsk_pat_"
+
+
+def _create_cli_pat(user: User, db: AsyncSession) -> tuple[str, PersonalAccessToken]:
+    """Generate a PAT for CLI usage and return (raw_token, pat_model)."""
+    raw_token = f"{_PAT_PREFIX}{secrets.token_hex(24)}"
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    token_prefix = raw_token[:PAT_PREFIX_LEN]
+
+    pat = PersonalAccessToken(
+        user_id=user.id,
+        name="BugSpark CLI",
+        token_hash=token_hash,
+        token_prefix=token_prefix,
+        expires_at=None,
+    )
+    return raw_token, pat
+
+
+@router.post("/cli/register", response_model=CLIAuthResponse, status_code=201)
+@_auth_limiter.limit("5/minute")
+async def cli_register(
+    body: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
+) -> CLIAuthResponse:
+    """Register a new account from the CLI. Returns a PAT for subsequent requests."""
+    locale = get_locale(request)
+    existing = await db.execute(select(User).where(User.email == body.email))
+    if existing.scalar_one_or_none() is not None:
+        raise BadRequestException(translate("auth.email_registered", locale))
+
+    user = User(
+        email=body.email,
+        hashed_password=hash_password(body.password),
+        name=body.name,
+    )
+    db.add(user)
+    await db.flush()
+
+    raw_token, pat = _create_cli_pat(user, db)
+    db.add(pat)
+    await db.commit()
+    await db.refresh(user)
+
+    return CLIAuthResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        token=raw_token,
+    )
+
+
+@router.post("/cli/login", response_model=CLIAuthResponse)
+@_auth_limiter.limit("5/minute")
+async def cli_login(
+    body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)
+) -> CLIAuthResponse:
+    """Login from the CLI. Returns a PAT for subsequent requests."""
+    locale = get_locale(request)
+    result = await db.execute(select(User).where(User.email == body.email))
+    user = result.scalar_one_or_none()
+
+    if user is None or not verify_password(body.password, user.hashed_password):
+        raise UnauthorizedException(translate("auth.invalid_credentials", locale))
+
+    if not user.is_active:
+        raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    raw_token, pat = _create_cli_pat(user, db)
+    db.add(pat)
+    await db.commit()
+
+    return CLIAuthResponse(
+        id=user.id,
+        email=user.email,
+        name=user.name,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        token=raw_token,
+    )

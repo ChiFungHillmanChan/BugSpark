@@ -28,6 +28,7 @@ Universal embeddable bug reporting SDK with an admin dashboard. Drop a single `<
 | `packages/widget` | TypeScript, Rollup, html2canvas | Embeddable bug reporter (~229 KB) |
 | `packages/api` | Python 3.11+, FastAPI, SQLAlchemy, Alembic | REST API backend |
 | `packages/dashboard` | Next.js 15, React 19, TanStack Query, Tailwind CSS 4 | Admin dashboard |
+| `packages/cli` | TypeScript, Commander.js, Rollup | CLI tool for managing projects and reports |
 
 ## Features
 
@@ -63,6 +64,70 @@ Universal embeddable bug reporting SDK with an admin dashboard. Drop a single `<
 - Export bugs to GitHub Issues
 - Multi-language (English, Traditional Chinese) with theme toggle
 - MDX documentation pages built-in
+
+### CLI (`bugspark`)
+
+- Register and login directly from the terminal (email/password or Personal Access Token)
+- Create, list, and delete projects
+- View, list, and update bug reports
+- Manage personal access tokens (create, list, revoke)
+- Interactive project setup with `bugspark init`
+- Config stored in `~/.bugspark/config.json`
+
+## CLI Usage
+
+### Install globally (for local development)
+
+```bash
+cd packages/cli
+pnpm build && npm link
+```
+
+### Register a new account
+
+```bash
+bugspark register
+```
+
+### Login
+
+```bash
+bugspark login
+# Choose "Email and password" or "Personal Access Token"
+```
+
+### Manage projects
+
+```bash
+bugspark projects list
+bugspark projects create "My Website" --domain example.com
+bugspark projects delete <project-id>
+```
+
+### Manage bug reports
+
+```bash
+bugspark reports list --project <id> --status open
+bugspark reports view <report-id>
+bugspark reports update <report-id> --status resolved
+```
+
+### Manage tokens
+
+```bash
+bugspark tokens list
+bugspark tokens create "CI Token" --expires 90
+bugspark tokens revoke <token-id>
+```
+
+### Other commands
+
+```bash
+bugspark whoami       # Show current user info
+bugspark init         # Interactive project setup
+bugspark logout       # Remove stored credentials
+bugspark --help       # Show all commands
+```
 
 ## Prerequisites
 
@@ -319,7 +384,7 @@ All routes are under `/api/v1`. Interactive docs available at `GET /docs` (Swagg
 
 | Group | Key Endpoints |
 |-------|--------------|
-| **Auth** | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout` |
+| **Auth** | `POST /auth/register`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `POST /auth/cli/register`, `POST /auth/cli/login` |
 | **Projects** | `GET /projects`, `POST /projects`, `GET /projects/:id`, `PUT /projects/:id`, `DELETE /projects/:id` |
 | **Reports** | `GET /reports`, `POST /reports` (widget), `GET /reports/:id`, `PATCH /reports/:id` |
 | **Upload** | `POST /upload/screenshot` (multipart, X-API-Key auth) |
@@ -450,14 +515,22 @@ BugSpark/
 │   ├── content/docs/           # MDX documentation (en + zh-TW)
 │   └── package.json
 │
-└── packages/widget/            # Embeddable JS widget
+├── packages/widget/            # Embeddable JS widget
+│   ├── src/
+│   │   ├── index.ts            # Entry point, auto-init
+│   │   ├── core/               # Screenshot engine, console/network interceptors, session recorder
+│   │   ├── ui/                 # Shadow DOM components (button, modal, toast, annotation overlay)
+│   │   ├── api/                # Report composer (upload + submit)
+│   │   └── utils/              # DOM helpers, event emitter
+│   ├── rollup.config.mjs       # Builds IIFE + ESM
+│   └── package.json
+│
+└── packages/cli/               # Command-line interface
     ├── src/
-    │   ├── index.ts            # Entry point, auto-init
-    │   ├── core/               # Screenshot engine, console/network interceptors, session recorder
-    │   ├── ui/                 # Shadow DOM components (button, modal, toast, annotation overlay)
-    │   ├── api/                # Report composer (upload + submit)
-    │   └── utils/              # DOM helpers, event emitter
-    ├── rollup.config.mjs       # Builds IIFE + ESM
+    │   ├── index.ts            # Entry point, Commander.js program
+    │   ├── commands/           # register, login, logout, whoami, init, projects, reports, tokens
+    │   └── lib/                # API client, config (~/.bugspark/), output helpers
+    ├── rollup.config.mjs       # Builds to dist/index.js
     └── package.json
 ```
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { Bug, Menu, X } from "lucide-react";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function LandingNavbar() {
   const t = useTranslations("landing");
@@ -66,6 +67,7 @@ export function LandingNavbar() {
             </nav>
 
             <div className="hidden md:flex items-center gap-3">
+              <ThemeToggle />
               <LocaleSwitcher />
               <Link
                 href="/login"
@@ -138,6 +140,7 @@ export function LandingNavbar() {
                   transitionDuration: "300ms",
                 }}
               >
+                <ThemeToggle />
                 <LocaleSwitcher />
                 <Link
                   href="/login"

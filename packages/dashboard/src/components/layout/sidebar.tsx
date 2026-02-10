@@ -59,11 +59,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       )}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-navy-950 border-r border-white/[0.06] text-white flex flex-col transition-transform lg:translate-x-0",
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-navy-950 border-r border-gray-200 dark:border-white/[0.06] text-gray-900 dark:text-white flex flex-col transition-transform lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="p-6 border-b border-white/[0.06]">
+        <div className="p-6 border-b border-gray-200 dark:border-white/[0.06]">
           <div className="flex items-center gap-2">
             <Bug className="w-6 h-6 text-accent" />
             <span className="text-lg font-bold">BugSpark</span>
@@ -74,7 +74,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <div className="px-4 mb-4">
             <button
               onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-navy-900/80 border border-white/[0.06] text-sm hover:bg-navy-800"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-navy-900/80 border border-gray-200 dark:border-white/[0.06] text-sm hover:bg-gray-200 dark:hover:bg-navy-800"
             >
               <span className="truncate">
                 {projects[0]?.name ?? t("selectProject")}
@@ -82,12 +82,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <ChevronDown className="w-4 h-4 shrink-0" />
             </button>
             {isProjectDropdownOpen && (
-              <div className="mt-1 rounded-lg bg-navy-900/80 border border-white/[0.06] py-1">
+              <div className="mt-1 rounded-lg bg-gray-100 dark:bg-navy-900/80 border border-gray-200 dark:border-white/[0.06] py-1">
                 {projects.map((project) => (
                   <button
                     key={project.id}
                     onClick={() => setIsProjectDropdownOpen(false)}
-                    className="w-full text-left px-3 py-2 text-sm hover:bg-white/[0.04]"
+                    className="w-full text-left px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-white/[0.04]"
                   >
                     {project.name}
                   </button>
@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-accent/10 text-accent border-l-2 border-accent"
-                    : "text-gray-300 hover:text-white hover:bg-white/[0.04]",
+                    : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.04]",
                 )}
               >
                 <item.icon className="w-5 h-5" />
@@ -122,7 +122,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {isSuperadmin && (
             <>
               <div className="pt-4 pb-1 px-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   {t("admin")}
                 </span>
               </div>
@@ -140,7 +140,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
                         ? "bg-accent/10 text-accent border-l-2 border-accent"
-                        : "text-gray-300 hover:text-white hover:bg-white/[0.04]",
+                        : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.04]",
                     )}
                   >
                     <item.icon className="w-5 h-5" />
@@ -152,7 +152,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           )}
         </nav>
 
-        <div className="p-4 border-t border-white/[0.06]">
+        <div className="p-4 border-t border-gray-200 dark:border-white/[0.06]">
           <div className="flex items-center gap-3">
             <Link
               href="/settings"
@@ -161,7 +161,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors",
                 pathname.startsWith("/settings")
                   ? "bg-accent/10 text-accent ring-2 ring-accent/20"
-                  : "bg-navy-800 text-gray-300 ring-2 ring-white/[0.06] hover:ring-accent/20",
+                  : "bg-gray-200 dark:bg-navy-800 text-gray-600 dark:text-gray-300 ring-2 ring-gray-300 dark:ring-white/[0.06] hover:ring-accent/20",
               )}
               title={t("settings")}
             >
@@ -173,14 +173,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Link
               href="/settings"
               onClick={onClose}
-              className="text-gray-300 hover:text-white"
+              className="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               title={t("settings")}
             >
               <Settings className="w-4 h-4" />
             </Link>
             <button
               onClick={logout}
-              className="text-gray-300 hover:text-white"
+              className="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               title={t("logOut")}
             >
               <LogOut className="w-4 h-4" />

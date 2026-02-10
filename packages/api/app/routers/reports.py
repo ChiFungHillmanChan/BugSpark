@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
+from datetime import date, datetime, time, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from sqlalchemy import func, select
@@ -63,6 +64,7 @@ async def _report_to_response(report: Report) -> ReportResponse:
         user_actions=report.user_actions,
         metadata=report.metadata_,
         reporter_identifier=report.reporter_identifier,
+        console_logs_included=report.console_logs_included,
         created_at=report.created_at,
         updated_at=report.updated_at,
     )
@@ -95,6 +97,27 @@ async def create_report(
 
     tracking_id = await generate_tracking_id(db, str(project.id))
 
+    # Determine whether console logs should be flagged as included
+    has_console_logs = bool(body.console_logs)
+    console_logs_included = False
+    if has_console_logs:
+        today_start = datetime.combine(date.today(), time.min, tzinfo=timezone.utc)
+        count_result = await db.execute(
+            select(func.count())
+            .select_from(Report)
+            .where(
+                Report.project_id == project.id,
+                Report.console_logs_included.is_(True),
+                Report.created_at >= today_start,
+            )
+        )
+        used = count_result.scalar() or 0
+        if used >= 5:
+            # Strip console logs — daily limit exceeded
+            body.console_logs = None
+        else:
+            console_logs_included = True
+
     report = Report(
         project_id=project.id,
         tracking_id=tracking_id,
@@ -109,6 +132,7 @@ async def create_report(
         network_logs=body.network_logs,
         user_actions=body.user_actions,
         metadata_=body.metadata,
+        console_logs_included=console_logs_included,
     )
     db.add(report)
     await db.commit()

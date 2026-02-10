@@ -5,8 +5,11 @@ import logging
 import secrets
 import uuid
 
+from datetime import date, datetime, time, timezone
+
 from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy import select
+from pydantic import BaseModel
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db, validate_api_key
@@ -23,6 +26,12 @@ from app.services.storage_service import delete_files
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects", tags=["projects"])
+
+
+class ConsoleLogQuotaResponse(BaseModel):
+    remaining: int
+    limit: int
+    allowed: bool
 
 
 def _generate_api_key() -> str:
@@ -86,6 +95,7 @@ async def get_widget_config(
     project: Project = Depends(validate_api_key),
 ) -> WidgetConfigResponse:
     settings = project.settings or {}
+    owner_plan = project.owner.plan.value if project.owner else "free"
     return WidgetConfigResponse(
         primary_color=settings.get("widgetColor", "#e94560"),
         show_watermark=settings.get("showWatermark", True),
@@ -93,6 +103,35 @@ async def get_widget_config(
         modal_title=settings.get("modalTitle"),
         button_text=settings.get("buttonText"),
         logo_url=settings.get("logoUrl"),
+        owner_plan=owner_plan,
+    )
+
+
+CONSOLE_LOG_DAILY_LIMIT = 5
+
+
+@router.get("/console-log-quota", response_model=ConsoleLogQuotaResponse)
+async def get_console_log_quota(
+    project: Project = Depends(validate_api_key),
+    db: AsyncSession = Depends(get_db),
+) -> ConsoleLogQuotaResponse:
+    """Check how many console-log-included reports the project owner has left today."""
+    today_start = datetime.combine(date.today(), time.min, tzinfo=timezone.utc)
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(Report)
+        .where(
+            Report.project_id == project.id,
+            Report.console_logs_included.is_(True),
+            Report.created_at >= today_start,
+        )
+    )
+    used = count_result.scalar() or 0
+    remaining = max(0, CONSOLE_LOG_DAILY_LIMIT - used)
+    return ConsoleLogQuotaResponse(
+        remaining=remaining,
+        limit=CONSOLE_LOG_DAILY_LIMIT,
+        allowed=remaining > 0,
     )
 
 

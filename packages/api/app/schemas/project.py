@@ -27,6 +27,7 @@ class WidgetConfigResponse(CamelModel):
     modal_title: str | None = None
     button_text: str | None = None
     logo_url: str | None = None
+    owner_plan: str = "free"
 
 
 class ProjectResponse(CamelModel):

@@ -1,4 +1,4 @@
-import type { BugSparkBranding } from '../types';
+import type { BugSparkBranding, ConsoleLogEntry } from '../types';
 
 export interface ReportFormData {
   title: string;
@@ -7,6 +7,7 @@ export interface ReportFormData {
   category: 'bug' | 'ui' | 'performance' | 'crash' | 'other';
   email: string;
   hpField: string;
+  includeConsoleLogs: boolean;
 }
 
 export interface ReportModalCallbacks {
@@ -16,18 +17,29 @@ export interface ReportModalCallbacks {
   onCapture?: () => void;
 }
 
+export interface ReportModalOptions {
+  screenshotUrl?: string;
+  branding?: BugSparkBranding;
+  ownerPlan?: string;
+  consoleLogs?: ConsoleLogEntry[];
+  consoleLogAllowed?: boolean;
+}
+
 let modalOverlay: HTMLDivElement | null = null;
 let isSubmitting = false;
 let screenshotDataUrl: string | null = null;
+let currentOptions: ReportModalOptions = {};
 
 export function mount(
   root: ShadowRoot,
   callbacks: ReportModalCallbacks,
   screenshotUrl?: string,
   branding?: BugSparkBranding,
+  options?: ReportModalOptions,
 ): void {
   if (modalOverlay) return;
   screenshotDataUrl = screenshotUrl ?? null;
+  currentOptions = options ?? {};
 
   modalOverlay = document.createElement('div');
   modalOverlay.className = 'bugspark-overlay';
@@ -136,10 +148,76 @@ function createCameraButton(onCapture: () => void): HTMLDivElement {
   container.appendChild(svg);
 
   const label = document.createElement('span');
-  label.textContent = 'Capture Screenshot';
+  label.textContent = 'Capture Screen';
   container.appendChild(label);
 
   return container;
+}
+
+function formatConsoleEntries(entries: ConsoleLogEntry[]): string {
+  if (entries.length === 0) return 'No console errors captured.';
+  return entries
+    .filter((e) => e.level === 'error' || e.level === 'warn')
+    .map((e) => {
+      const time = new Date(e.timestamp).toLocaleTimeString();
+      const tag = e.level.toUpperCase();
+      return `[${tag}] ${time} — ${e.message}`;
+    })
+    .join('\n') || 'No console errors captured.';
+}
+
+function createConsoleLogSection(): HTMLDivElement {
+  const section = document.createElement('div');
+  section.className = 'bugspark-field';
+
+  const consoleLogs = currentOptions.consoleLogs ?? [];
+  const allowed = currentOptions.consoleLogAllowed !== false;
+  const errorWarnEntries = consoleLogs.filter((e) => e.level === 'error' || e.level === 'warn');
+  const hasEntries = errorWarnEntries.length > 0;
+
+  const headerRow = document.createElement('div');
+  headerRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;';
+
+  const label = document.createElement('label');
+  label.textContent = 'Console Log Check';
+  label.style.cssText = 'margin-bottom:0;';
+  headerRow.appendChild(label);
+
+  if (hasEntries && allowed) {
+    const toggleLabel = document.createElement('label');
+    toggleLabel.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;margin-bottom:0;';
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = true;
+    checkbox.setAttribute('data-name', 'include-console-logs');
+    checkbox.style.cssText = 'margin:0;';
+    toggleLabel.appendChild(checkbox);
+    toggleLabel.appendChild(document.createTextNode('Include in report'));
+    headerRow.appendChild(toggleLabel);
+  }
+
+  section.appendChild(headerRow);
+
+  const textarea = document.createElement('textarea');
+  textarea.readOnly = true;
+  textarea.rows = 4;
+  textarea.style.cssText = 'font-family:monospace;font-size:11px;background:#f5f5f5;color:#333;resize:vertical;cursor:default;opacity:' + (allowed ? '1' : '0.5') + ';';
+  textarea.value = formatConsoleEntries(consoleLogs);
+  section.appendChild(textarea);
+
+  if (!allowed) {
+    const notice = document.createElement('div');
+    notice.style.cssText = 'font-size:11px;color:#e94560;margin-top:4px;';
+    notice.textContent = 'Daily limit reached (5/day). Console logs will not be included.';
+    section.appendChild(notice);
+  } else if (!hasEntries) {
+    const notice = document.createElement('div');
+    notice.style.cssText = 'font-size:11px;color:#888;margin-top:4px;';
+    notice.textContent = 'No console errors or warnings detected.';
+    section.appendChild(notice);
+  }
+
+  return section;
 }
 
 function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding): HTMLDivElement {
@@ -170,7 +248,7 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
     annotateBtn.addEventListener('click', callbacks.onAnnotate);
     actions.appendChild(annotateBtn);
 
-    if (callbacks.onCapture) {
+    if (callbacks.onCapture && currentOptions.ownerPlan && currentOptions.ownerPlan !== 'free') {
       const recaptureBtn = document.createElement('button');
       recaptureBtn.className = 'bugspark-btn bugspark-btn--secondary bugspark-btn--small bugspark-screenshot-recapture';
       recaptureBtn.textContent = 'Re-capture';
@@ -186,6 +264,9 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
 
   body.appendChild(createField('Title *', 'input', 'title'));
   body.appendChild(createField('Description', 'textarea', 'description'));
+
+  // Console Log Check section
+  body.appendChild(createConsoleLogSection());
 
   const row = document.createElement('div');
   row.className = 'bugspark-field__row';
@@ -272,6 +353,9 @@ function handleSubmit(onSubmit: (data: ReportFormData) => void): void {
     return;
   }
 
+  const consoleCheckbox = root.querySelector<HTMLInputElement>('[data-name="include-console-logs"]');
+  const includeConsoleLogs = consoleCheckbox ? consoleCheckbox.checked : false;
+
   const formData: ReportFormData = {
     title: titleValue,
     description: root.querySelector<HTMLTextAreaElement>('[data-name="description"]')?.value ?? '',
@@ -279,6 +363,7 @@ function handleSubmit(onSubmit: (data: ReportFormData) => void): void {
     category: (root.querySelector<HTMLSelectElement>('[data-name="category"]')?.value ?? 'bug') as ReportFormData['category'],
     email: root.querySelector<HTMLInputElement>('[data-name="email"]')?.value ?? '',
     hpField: (root.querySelector<HTMLInputElement>('[data-name="hp-field"]'))?.value ?? '',
+    includeConsoleLogs,
   };
 
   onSubmit(formData);
@@ -310,5 +395,6 @@ export function unmount(): void {
     modalOverlay = null;
     isSubmitting = false;
     screenshotDataUrl = null;
+    currentOptions = {};
   }
 }

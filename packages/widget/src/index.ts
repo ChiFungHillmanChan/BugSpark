@@ -69,10 +69,29 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       if (typeof data.showWatermark === 'boolean') {
         config.branding = { ...config.branding, showWatermark: data.showWatermark };
       }
+      if (typeof data.ownerPlan === 'string') {
+        config.ownerPlan = data.ownerPlan;
+      }
     })
     .catch(() => {
       // Silently ignore — widget continues with local config
     });
+}
+
+let consoleLogAllowed = true;
+
+async function fetchConsoleLogQuota(): Promise<boolean> {
+  if (!config) return true;
+  try {
+    const res = await fetch(`${config.endpoint}/projects/console-log-quota`, {
+      headers: { 'X-API-Key': config.projectKey },
+    });
+    if (!res.ok) return true;
+    const data = await res.json() as { allowed: boolean };
+    return data.allowed !== false;
+  } catch {
+    return true;
+  }
 }
 
 async function open(): Promise<void> {
@@ -82,14 +101,30 @@ async function open(): Promise<void> {
   floatingButton.hide();
   annotatedBlob = null;
 
+  consoleLogAllowed = await fetchConsoleLogQuota();
+
+  const modalOptions: import('./ui/report-modal').ReportModalOptions = {
+    ownerPlan: config.ownerPlan,
+    consoleLogs: config.collectConsole ? consoleInterceptor.getEntries() : [],
+    consoleLogAllowed,
+  };
+
   reportModal.mount(root, {
     onSubmit: handleSubmit,
     onAnnotate: handleAnnotate,
     onClose: close,
     onCapture: config.enableScreenshot ? handleCapture : undefined,
-  }, undefined, config.branding);
+  }, undefined, config.branding, modalOptions);
 
   config.onOpen?.();
+}
+
+function buildModalOptions(): import('./ui/report-modal').ReportModalOptions {
+  return {
+    ownerPlan: config?.ownerPlan,
+    consoleLogs: config?.collectConsole ? consoleInterceptor.getEntries() : [],
+    consoleLogAllowed,
+  };
 }
 
 async function handleCapture(): Promise<void> {
@@ -107,7 +142,7 @@ async function handleCapture(): Promise<void> {
     onAnnotate: handleAnnotate,
     onClose: close,
     onCapture: config.enableScreenshot ? handleCapture : undefined,
-  }, screenshotDataUrl, config.branding);
+  }, screenshotDataUrl, config.branding, buildModalOptions());
 }
 
 function close(): void {
@@ -138,7 +173,7 @@ function handleAnnotate(): void {
         onAnnotate: handleAnnotate,
         onClose: close,
         onCapture: captureCallback,
-      }, annotatedDataUrl, config?.branding);
+      }, annotatedDataUrl, config?.branding, buildModalOptions());
     },
     onCancel: () => {
       annotationOverlay.unmount();
@@ -148,7 +183,7 @@ function handleAnnotate(): void {
         onAnnotate: handleAnnotate,
         onClose: close,
         onCapture: captureCallback,
-      }, dataUrl, config?.branding);
+      }, dataUrl, config?.branding, buildModalOptions());
     },
   });
 }
@@ -164,6 +199,8 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
 
   reportModal.setSubmitting(true);
 
+  const shouldIncludeConsole = formData.includeConsoleLogs && consoleLogAllowed;
+
   const report: BugReport = {
     title: formData.title,
     description: formData.description,
@@ -171,7 +208,7 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
     category: formData.category,
     screenshot: screenshotBlob ?? undefined,
     annotatedScreenshot: annotatedBlob ?? undefined,
-    consoleLogs: consoleInterceptor.getEntries(),
+    consoleLogs: shouldIncludeConsole ? consoleInterceptor.getEntries() : [],
     networkLogs: networkInterceptor.getEntries(),
     userActions: sessionRecorder.getEvents(),
     metadata: collectMetadata(),

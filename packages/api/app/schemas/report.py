@@ -63,6 +63,7 @@ class ReportResponse(CamelModel):
     user_actions: dict | list | None
     metadata: dict | None = None
     reporter_identifier: str | None
+    console_logs_included: bool = False
     created_at: datetime
     updated_at: datetime
 

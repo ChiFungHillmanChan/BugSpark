@@ -32,6 +32,7 @@ export interface BugSparkConfig {
   onClose?: () => void;
   onError?: (error: Error) => void;
   branding?: BugSparkBranding;
+  ownerPlan?: string;
 }
 
 export interface BugSparkUser {

@@ -22,7 +22,6 @@ import { ProjectSwitcher } from "@/components/layout/project-switcher";
 const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard },
   { href: "/bugs", labelKey: "bugs" as const, icon: Bug },
-  { href: "/docs", labelKey: "docs" as const, icon: BookOpen, external: true },
 ];
 
 const ADMIN_NAV_ITEMS = [
@@ -80,7 +79,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
@@ -109,6 +107,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               {t("projectSettings")}
             </Link>
           )}
+
+          <Link
+            href="/docs"
+            onClick={onClose}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              pathname.startsWith("/docs")
+                ? "bg-accent/10 text-accent border-l-2 border-accent"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.04]",
+            )}
+          >
+            <BookOpen className="w-5 h-5" />
+            {t("docs")}
+          </Link>
 
           {isSuperadmin && (
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/[0.06]">

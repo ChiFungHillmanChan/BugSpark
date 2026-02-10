@@ -10,12 +10,12 @@ from app.schemas import CamelModel
 
 class ProjectCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
-    domain: str = Field(default="", max_length=255)
+    domain: str = Field(default="", max_length=1024)
 
 
 class ProjectUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
-    domain: str | None = Field(default=None, min_length=1, max_length=255)
+    domain: str | None = Field(default=None, max_length=1024)
     settings: dict | None = None
     is_active: bool | None = None
 

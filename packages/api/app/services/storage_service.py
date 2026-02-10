@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import uuid
 
 import boto3
@@ -110,6 +111,14 @@ async def upload_file(file_content: bytes, filename: str, content_type: str) -> 
         raise BadRequestException(f"Failed to upload file: {str(e)}")
 
     return object_key
+
+
+_VALID_KEY_PATTERN = re.compile(r"^screenshots/[0-9a-f-]{36}\.\w{1,5}$")
+
+
+def validate_object_key(key: str) -> bool:
+    """Check an object key matches the upload-generated format (screenshots/<uuid>.<ext>)."""
+    return bool(_VALID_KEY_PATTERN.match(key))
 
 
 def _is_object_key(value: str) -> bool:

@@ -21,7 +21,7 @@ from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.plan_limits_service import check_report_limit
 from app.services.spam_protection_service import check_honeypot, is_duplicate_report, validate_origin
 from app.services.similarity_service import find_similar_reports
-from app.services.storage_service import delete_file, generate_presigned_url
+from app.services.storage_service import delete_file, generate_presigned_url, validate_object_key
 from app.services.tracking_id_service import generate_tracking_id
 from app.services.webhook_service import dispatch_webhooks
 
@@ -34,6 +34,9 @@ async def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
         return None
     if key_or_url.startswith("http://") or key_or_url.startswith("https://"):
         return key_or_url
+    # Defense-in-depth: only sign keys that match the upload-generated format
+    if not validate_object_key(key_or_url):
+        return None
     return await generate_presigned_url(key_or_url)
 
 
@@ -84,6 +87,12 @@ async def create_report(
         raise BadRequestException("Duplicate report detected")
 
     await check_report_limit(db, project)
+
+    # Validate screenshot keys match upload-generated format before persisting
+    for key in (body.screenshot_url, body.annotated_screenshot_url):
+        if key and not key.startswith(("http://", "https://")) and not validate_object_key(key):
+            raise BadRequestException("Invalid screenshot key")
+
     tracking_id = await generate_tracking_id(db, str(project.id))
 
     report = Report(

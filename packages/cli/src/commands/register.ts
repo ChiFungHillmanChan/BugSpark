@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import prompts from "prompts";
+import { input, password } from "@inquirer/prompts";
 import { createUnauthClient } from "../lib/api-client.js";
 import { DEFAULT_API_URL, DEFAULT_DASHBOARD_URL, saveConfig } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
@@ -19,59 +19,49 @@ export async function registerCommand(): Promise<void> {
   console.log(chalk.bold("  🐛⚡ BugSpark Register"));
   console.log();
 
-  const answers = await prompts([
-    {
-      type: "text",
-      name: "apiUrl",
+  try {
+    const apiUrl = await input({
       message: "BugSpark API URL",
-      initial: DEFAULT_API_URL,
-    },
-    {
-      type: "text",
-      name: "name",
+      default: DEFAULT_API_URL,
+    });
+
+    const name = await input({
       message: "Your name",
       validate: (v: string) => (v.trim().length > 0 ? true : "Name is required"),
-    },
-    {
-      type: "text",
-      name: "email",
+    });
+
+    const email = await input({
       message: "Email address",
       validate: (v: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? true : "Enter a valid email",
-    },
-    {
-      type: "password",
-      name: "password",
+    });
+
+    const pw = await password({
       message: "Password (min 8 characters)",
       validate: (v: string) =>
         v.length >= 8 ? true : "Password must be at least 8 characters",
-    },
-    {
-      type: "password",
-      name: "confirmPassword",
+    });
+
+    const confirmPassword = await password({
       message: "Confirm password",
-    },
-  ]);
+    });
 
-  if (!answers.apiUrl || !answers.name || !answers.email || !answers.password) return;
+    if (pw !== confirmPassword) {
+      error("Passwords do not match.");
+      process.exit(1);
+    }
 
-  if (answers.password !== answers.confirmPassword) {
-    error("Passwords do not match.");
-    process.exit(1);
-  }
+    info("Creating account...");
 
-  info("Creating account...");
-
-  try {
-    const client = createUnauthClient(answers.apiUrl);
+    const client = createUnauthClient(apiUrl);
     const res = await client.post<CLIAuthResponse>("/auth/cli/register", {
-      name: answers.name.trim(),
-      email: answers.email.trim(),
-      password: answers.password,
+      name: name.trim(),
+      email: email.trim(),
+      password: pw,
     });
 
     await saveConfig({
-      apiUrl: answers.apiUrl,
+      apiUrl,
       dashboardUrl: DEFAULT_DASHBOARD_URL,
       token: res.token,
     });
@@ -87,6 +77,7 @@ export async function registerCommand(): Promise<void> {
     );
     console.log();
   } catch (err) {
+    if ((err as Error).name === "ExitPromptError") return;
     error(`Registration failed: ${formatError(err)}`);
     process.exit(1);
   }

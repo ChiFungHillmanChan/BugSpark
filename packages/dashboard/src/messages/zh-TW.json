@@ -15,7 +15,8 @@
     "adminReports": "錯誤回報",
     "adminBeta": "Beta 申請者",
     "manageProjects": "管理專案",
-    "newProject": "新增專案"
+    "newProject": "新增專案",
+    "projectSettings": "專案設定"
   },
   "auth": {
     "signIn": "登入",
@@ -149,8 +150,12 @@
     "noProjectsDescription": "建立您的第一個專案以開始追蹤錯誤。",
     "projectName": "專案名稱",
     "projectNamePlaceholder": "我的應用程式",
-    "domain": "網域",
-    "domainPlaceholder": "myapp.com",
+    "domain": "允許的網域",
+    "domainPlaceholder": "https://myapp.com",
+    "domainsHint": "輸入完整網址（例如 https://myapp.com、http://localhost:3000）",
+    "addDomain": "新增",
+    "domainInvalid": "網域必須以 http:// 或 https:// 開頭",
+    "removeDomain": "移除",
     "cancel": "取消",
     "create": "建立",
     "creating": "建立中...",

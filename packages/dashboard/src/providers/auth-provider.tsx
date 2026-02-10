@@ -31,6 +31,12 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** Only allow redirects to local paths (starts with "/" but not "//"). */
+function isSafeRedirect(path: string | undefined): path is string {
+  if (!path) return false;
+  return path.startsWith("/") && !path.startsWith("//");
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string, redirectTo?: string) => {
       const data = await loginApi(email, password);
       setUser(data);
-      router.push(redirectTo ?? "/dashboard");
+      router.push(isSafeRedirect(redirectTo) ? redirectTo : "/dashboard");
     },
     [router],
   );
@@ -57,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const result = await registerApi(name, email, password);
       if (result.kind === "user") {
         setUser(result.user);
-        router.push(redirectTo ?? "/dashboard");
+        router.push(isSafeRedirect(redirectTo) ? redirectTo : "/dashboard");
       }
       // When kind === "beta", the caller (register page) handles the UI
       return result;

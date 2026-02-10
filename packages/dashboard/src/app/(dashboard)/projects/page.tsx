@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, type FormEvent } from "react";
-import { Plus, FolderKanban } from "lucide-react";
+import { Plus, FolderKanban, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
@@ -17,7 +17,9 @@ export default function ProjectsPage() {
   const createProject = useCreateProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
-  const [projectDomain, setProjectDomain] = useState("");
+  const [projectDomains, setProjectDomains] = useState<string[]>([]);
+  const [domainInput, setDomainInput] = useState("");
+  const [domainError, setDomainError] = useState("");
   const [createError, setCreateError] = useState("");
 
   useEffect(() => {
@@ -37,17 +39,38 @@ export default function ProjectsPage() {
     }
   }, [isModalOpen, handleEscKey]);
 
+  function handleAddDomain() {
+    const trimmed = domainInput.trim();
+    if (!trimmed) return;
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+      setDomainError(t("domainInvalid"));
+      return;
+    }
+    if (projectDomains.includes(trimmed)) {
+      setDomainInput("");
+      return;
+    }
+    setProjectDomains((prev) => [...prev, trimmed]);
+    setDomainInput("");
+    setDomainError("");
+  }
+
+  function handleRemoveDomain(index: number) {
+    setProjectDomains((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function handleCreate(event: FormEvent) {
     event.preventDefault();
-    if (!projectName.trim() || !projectDomain.trim()) return;
+    if (!projectName.trim() || projectDomains.length === 0) return;
     setCreateError("");
     createProject.mutate(
-      { name: projectName, domain: projectDomain },
+      { name: projectName, domain: projectDomains.join(", ") },
       {
         onSuccess: () => {
           setIsModalOpen(false);
           setProjectName("");
-          setProjectDomain("");
+          setProjectDomains([]);
+          setDomainInput("");
         },
         onError: () => {
           setCreateError(t("createFailed"));
@@ -133,15 +156,49 @@ export default function ProjectsPage() {
                 <label htmlFor="project-domain" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t("domain")}
                 </label>
-                <input
-                  id="project-domain"
-                  type="text"
-                  value={projectDomain}
-                  onChange={(e) => setProjectDomain(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
-                  placeholder={t("domainPlaceholder")}
-                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t("domainsHint")}</p>
+                {projectDomains.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {projectDomains.map((d, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20"
+                      >
+                        {d}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveDomain(i)}
+                          className="hover:text-red-500 transition-colors"
+                          aria-label={t("removeDomain")}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    id="project-domain"
+                    type="text"
+                    value={domainInput}
+                    onChange={(e) => { setDomainInput(e.target.value); setDomainError(""); }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddDomain(); } }}
+                    placeholder={t("domainPlaceholder")}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddDomain}
+                    className="px-3 py-2 bg-gray-100 dark:bg-navy-700 hover:bg-gray-200 dark:hover:bg-navy-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    {t("addDomain")}
+                  </button>
+                </div>
+                {domainError && (
+                  <p className="text-xs text-red-500 mt-1">{domainError}</p>
+                )}
               </div>
               <div className="flex justify-end gap-3">
                 <button

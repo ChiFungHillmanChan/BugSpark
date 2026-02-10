@@ -11,9 +11,11 @@ import {
   Shield,
   Users,
   FlaskConical,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
+import { useProjectContext } from "@/providers/project-provider";
 import { PlanBadge } from "@/components/shared/plan-badge";
 import { ProjectSwitcher } from "@/components/layout/project-switcher";
 
@@ -38,6 +40,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, isSuperadmin } = useAuth();
+  const { selectedProjectId } = useProjectContext();
   const t = useTranslations("nav");
 
   const userInitials = user?.name
@@ -90,6 +93,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               </Link>
             );
           })}
+
+          {selectedProjectId && (
+            <Link
+              href={`/projects/${selectedProjectId}`}
+              onClick={onClose}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                pathname === `/projects/${selectedProjectId}`
+                  ? "bg-accent/10 text-accent border-l-2 border-accent"
+                  : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.04]",
+              )}
+            >
+              <Wrench className="w-5 h-5" />
+              {t("projectSettings")}
+            </Link>
+          )}
 
           {isSuperadmin && (
             <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/[0.06]">

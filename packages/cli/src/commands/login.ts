@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import open from "open";
-import prompts from "prompts";
+import { select, input, password } from "@inquirer/prompts";
 import { ApiError, createClient, createUnauthClient } from "../lib/api-client.js";
 import {
   DEFAULT_API_URL,
@@ -54,44 +54,43 @@ export async function loginCommand(options?: {
   console.log(chalk.bold("  🐛⚡ BugSpark Login"));
   console.log();
 
-  // 1. Ask for API URL
-  const { apiUrl } = await prompts({
-    type: "text",
-    name: "apiUrl",
-    message: "BugSpark API URL",
-    initial: DEFAULT_API_URL,
-  });
-  if (!apiUrl) return;
+  try {
+    // 1. Ask for API URL
+    const apiUrl = await input({
+      message: "BugSpark API URL",
+      default: DEFAULT_API_URL,
+    });
 
-  // 2. Choose authentication method (default: browser / device flow)
-  const method = options?.method ?? await pickMethod();
-  if (!method) return;
+    // 2. Choose authentication method (default: browser / device flow)
+    const method = options?.method ?? await pickMethod();
 
-  if (method === "browser") {
-    await loginWithDeviceFlow(apiUrl);
-  } else if (method === "email") {
-    await loginWithEmail(apiUrl);
-  } else {
-    await loginWithPAT(apiUrl);
+    if (method === "browser") {
+      await loginWithDeviceFlow(apiUrl);
+    } else if (method === "email") {
+      await loginWithEmail(apiUrl);
+    } else {
+      await loginWithPAT(apiUrl);
+    }
+  } catch (err) {
+    if ((err as Error).name === "ExitPromptError") return;
+    error(formatError(err));
+    process.exit(1);
   }
 }
 
-async function pickMethod(): Promise<string | undefined> {
-  const { method } = await prompts({
-    type: "select",
-    name: "method",
+async function pickMethod(): Promise<string> {
+  return select({
     message: "How would you like to authenticate?",
     choices: [
       {
-        title: "Login with browser (recommended)",
+        name: "Login with browser (recommended)",
         description: "Opens your browser to authorize this CLI",
         value: "browser",
       },
-      { title: "Email and password", value: "email" },
-      { title: "Personal Access Token", value: "pat" },
+      { name: "Email and password", value: "email" },
+      { name: "Personal Access Token", value: "pat" },
     ],
   });
-  return method;
 }
 
 // ── Device flow (like `gh auth login`) ─────────────────────────────────
@@ -183,31 +182,25 @@ function sleep(ms: number): Promise<void> {
 // ── Email / password flow ──────────────────────────────────────────────
 
 async function loginWithEmail(apiUrl: string): Promise<void> {
-  const answers = await prompts([
-    {
-      type: "text",
-      name: "email",
-      message: "Email address",
-      validate: (v: string) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? true : "Enter a valid email",
-    },
-    {
-      type: "password",
-      name: "password",
-      message: "Password",
-      validate: (v: string) =>
-        v.length >= 8 ? true : "Password must be at least 8 characters",
-    },
-  ]);
-  if (!answers.email || !answers.password) return;
+  const email = await input({
+    message: "Email address",
+    validate: (v: string) =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? true : "Enter a valid email",
+  });
+
+  const pw = await password({
+    message: "Password",
+    validate: (v: string) =>
+      v.length >= 8 ? true : "Password must be at least 8 characters",
+  });
 
   info("Authenticating...");
 
   try {
     const client = createUnauthClient(apiUrl);
     const res = await client.post<CLIAuthResponse>("/auth/cli/login", {
-      email: answers.email.trim(),
-      password: answers.password,
+      email: email.trim(),
+      password: pw,
     });
 
     await saveConfig({ apiUrl, dashboardUrl: DEFAULT_DASHBOARD_URL, token: res.token });
@@ -240,11 +233,9 @@ async function loginWithEmail(apiUrl: string): Promise<void> {
 
 async function loginWithPAT(apiUrl: string): Promise<void> {
   // Ask for Dashboard URL to open token creation page
-  const { dashboardUrl } = await prompts({
-    type: "text",
-    name: "dashboardUrl",
+  const dashboardUrl = await input({
     message: "BugSpark Dashboard URL (to open token page)",
-    initial: DEFAULT_DASHBOARD_URL,
+    default: DEFAULT_DASHBOARD_URL,
   });
 
   if (dashboardUrl) {
@@ -268,14 +259,11 @@ async function loginWithPAT(apiUrl: string): Promise<void> {
   }
 
   // Prompt for the token
-  const { token } = await prompts({
-    type: "password",
-    name: "token",
+  const token = await password({
     message: "Paste your Personal Access Token (bsk_pat_...)",
     validate: (v: string) =>
       v.startsWith("bsk_pat_") ? true : "Token must start with bsk_pat_",
   });
-  if (!token) return;
 
   info("Verifying token...");
 

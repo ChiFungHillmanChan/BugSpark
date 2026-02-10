@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     SUPERADMIN_PASSWORD: str = ""
 
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:5173"
+    CORS_ORIGIN_REGEX: str = ""  # Optional regex for dynamic origins, e.g. ^https://bugspark-[a-z0-9-]+\.vercel\.app$
     FRONTEND_URL: str = "http://localhost:3000"
 
     COOKIE_SECURE: bool = False

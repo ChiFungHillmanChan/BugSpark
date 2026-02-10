@@ -40,7 +40,12 @@ async def is_duplicate_report(
 
 
 def validate_origin(request: Request, project: _HasDomain) -> bool:
-    """Returns True if origin is valid. Skips check if no domain is configured."""
+    """Returns True if origin is valid. Skips check if no domain is configured.
+
+    Supports comma-separated domains (e.g. "https://myapp.com, http://localhost:3000").
+    Each domain entry may include a port; when a port is specified the request must
+    match that port exactly.
+    """
     project_domain = project.domain
     if not project_domain:
         return True
@@ -52,26 +57,39 @@ def validate_origin(request: Request, project: _HasDomain) -> bool:
     try:
         parsed = urlparse(origin)
         request_host = (parsed.hostname or "").lower()
+        request_port = parsed.port
     except ValueError:
         return False
 
-    normalized_domain = _extract_hostname(project_domain)
+    # Split comma-separated domains and check each
+    domains = [d.strip() for d in project_domain.split(",") if d.strip()]
+    for domain_entry in domains:
+        domain_host, domain_port = _extract_host_and_port(domain_entry)
+        if not domain_host:
+            continue
 
-    if request_host == normalized_domain:
-        return True
+        # Exact host match or subdomain match
+        is_exact = request_host == domain_host
+        is_subdomain = request_host.endswith(f".{domain_host}")
 
-    if request_host.endswith(f".{normalized_domain}"):
-        return True
+        if is_exact or is_subdomain:
+            # Port constraint only applies to exact host matches;
+            # subdomains are allowed regardless of port.
+            if domain_port is not None and is_exact and request_port != domain_port:
+                continue
+            return True
 
     return False
 
 
-def _extract_hostname(domain: str) -> str:
-    """Extract the hostname from a domain string that may be a bare host, host:port, or full URL."""
+def _extract_host_and_port(domain: str) -> tuple[str, int | None]:
+    """Extract the hostname and optional port from a domain string.
+
+    Handles bare hosts, host:port, and full URLs (http://host:port).
+    """
     domain = domain.strip().lower()
     if "://" in domain:
         parsed = urlparse(domain)
-        return (parsed.hostname or "").lower()
-    # Prepend scheme so urlparse treats the value as a network location
-    parsed = urlparse(f"https://{domain}")
-    return (parsed.hostname or "").lower()
+    else:
+        parsed = urlparse(f"https://{domain}")
+    return (parsed.hostname or "").lower(), parsed.port

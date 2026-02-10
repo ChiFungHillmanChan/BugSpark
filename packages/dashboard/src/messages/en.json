@@ -15,7 +15,8 @@
     "adminReports": "Bug Reports",
     "adminBeta": "Beta Applicants",
     "manageProjects": "Manage Projects",
-    "newProject": "New Project"
+    "newProject": "New Project",
+    "projectSettings": "Project Settings"
   },
   "auth": {
     "signIn": "Sign in",
@@ -149,8 +150,12 @@
     "noProjectsDescription": "Create your first project to start tracking bugs.",
     "projectName": "Project Name",
     "projectNamePlaceholder": "My App",
-    "domain": "Domain",
-    "domainPlaceholder": "myapp.com",
+    "domain": "Allowed Domains",
+    "domainPlaceholder": "https://myapp.com",
+    "domainsHint": "Add full URLs (e.g. https://myapp.com, http://localhost:3000)",
+    "addDomain": "Add",
+    "domainInvalid": "Domain must start with http:// or https://",
+    "removeDomain": "Remove",
     "cancel": "Cancel",
     "create": "Create",
     "creating": "Creating...",

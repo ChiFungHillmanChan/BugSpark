@@ -27,10 +27,16 @@ def _get_fernet() -> Fernet | None:
 
 def encrypt_value(plaintext: str) -> str:
     """Encrypt a plaintext string. Returns ciphertext as URL-safe base64.
-    If no encryption key is configured, returns the plaintext unchanged (dev mode).
+    If no encryption key is configured in development, returns the plaintext unchanged.
+    In production, raises RuntimeError to prevent storing secrets in plaintext.
     """
     fernet = _get_fernet()
     if fernet is None:
+        if get_settings().ENVIRONMENT != "development":
+            raise RuntimeError(
+                "ENCRYPTION_KEY must be set in production. "
+                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            )
         return plaintext
     return fernet.encrypt(plaintext.encode("utf-8")).decode("utf-8")
 

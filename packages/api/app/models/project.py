@@ -20,7 +20,7 @@ class Project(Base):
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    domain: Mapped[str] = mapped_column(String(255), nullable=False)
+    domain: Mapped[str] = mapped_column(String(1024), nullable=False)
     api_key_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     api_key_prefix: Mapped[str] = mapped_column(
         String(16), nullable=False, index=True

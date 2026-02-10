@@ -8,7 +8,7 @@ import { ApiKeyDisplay } from "@/components/projects/api-key-display";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import { Skeleton } from "@/components/shared/skeleton-loader";
-import { Copy, Check, AlertTriangle, FileCode } from "lucide-react";
+import { Copy, Check, AlertTriangle, FileCode, X, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
@@ -41,7 +41,9 @@ export default function ProjectDetailPage({
   const updateProject = useUpdateProject();
   const deleteProject = useDeleteProject();
   const [name, setName] = useState("");
-  const [domain, setDomain] = useState("");
+  const [domains, setDomains] = useState<string[]>([]);
+  const [domainInput, setDomainInput] = useState("");
+  const [domainError, setDomainError] = useState("");
   const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -61,7 +63,10 @@ export default function ProjectDetailPage({
     if (project && !hasSyncedRef.current) {
       hasSyncedRef.current = true;
       setName(project.name);
-      setDomain(project.domain);
+      const parsed = project.domain
+        ? project.domain.split(",").map((d: string) => d.trim()).filter(Boolean)
+        : [];
+      setDomains(parsed);
     }
   }, [project]);
 
@@ -77,9 +82,29 @@ export default function ProjectDetailPage({
     }
   }, [project]);
 
+  function handleAddDomain() {
+    const trimmed = domainInput.trim();
+    if (!trimmed) return;
+    if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+      setDomainError(t("domainInvalid"));
+      return;
+    }
+    if (domains.includes(trimmed)) {
+      setDomainInput("");
+      return;
+    }
+    setDomains((prev) => [...prev, trimmed]);
+    setDomainInput("");
+    setDomainError("");
+  }
+
+  function handleRemoveDomain(index: number) {
+    setDomains((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function handleSave(event: FormEvent) {
     event.preventDefault();
-    updateProject.mutate({ id, data: { name, domain } });
+    updateProject.mutate({ id, data: { name, domain: domains.join(", ") } });
   }
 
   async function handleRotateKey() {
@@ -171,7 +196,14 @@ export class AppComponent implements OnInit {
 }`,
   };
 
-  const envLine = project ? `BUGSPARK_PROJECT_KEY=${project.apiKey}` : "";
+  // Masked version for display — never show the full key in the UI
+  const maskedApiKey = project
+    ? project.apiKey.slice(0, 8) + "..." + project.apiKey.slice(-4)
+    : "";
+  const envLineDisplay = project ? `BUGSPARK_PROJECT_KEY=${maskedApiKey}` : "";
+
+  // Full version for copy (when user clicks the copy button)
+  const envLineCopy = project ? `BUGSPARK_PROJECT_KEY=${project.apiKey}` : "";
 
   async function handleCopySnippet() {
     await navigator.clipboard.writeText(SNIPPET_CODE[snippetTab]);
@@ -180,7 +212,7 @@ export class AppComponent implements OnInit {
   }
 
   async function handleCopyEnv() {
-    await navigator.clipboard.writeText(envLine);
+    await navigator.clipboard.writeText(envLineCopy);
     setHasCopiedEnv(true);
     setTimeout(() => setHasCopiedEnv(false), 2000);
   }
@@ -214,12 +246,48 @@ export class AppComponent implements OnInit {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("domain")}</label>
-          <input
-            type="text"
-            value={domain}
-            onChange={(e) => setDomain(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
-          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t("domainsHint")}</p>
+          {domains.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {domains.map((d, i) => (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20"
+                >
+                  {d}
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDomain(i)}
+                    className="hover:text-red-500 transition-colors"
+                    aria-label={t("removeDomain")}
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={domainInput}
+              onChange={(e) => { setDomainInput(e.target.value); setDomainError(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddDomain(); } }}
+              placeholder={t("domainPlaceholder")}
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+            />
+            <button
+              type="button"
+              onClick={handleAddDomain}
+              className="px-3 py-2 bg-gray-100 dark:bg-navy-700 hover:bg-gray-200 dark:hover:bg-navy-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              {t("addDomain")}
+            </button>
+          </div>
+          {domainError && (
+            <p className="text-xs text-red-500 mt-1">{domainError}</p>
+          )}
         </div>
         <button
           type="submit"
@@ -263,7 +331,7 @@ export class AppComponent implements OnInit {
           <div className="relative">
             <div className="bg-navy-800 px-4 py-1.5 text-xs text-gray-400 font-mono rounded-t-lg">.env</div>
             <pre className="bg-navy-900 rounded-b-lg p-4 overflow-x-auto">
-              <code className="text-sm text-emerald-400 font-mono leading-relaxed">{envLine}</code>
+              <code className="text-sm text-emerald-400 font-mono leading-relaxed">{envLineDisplay}</code>
             </pre>
             <button
               onClick={handleCopyEnv}

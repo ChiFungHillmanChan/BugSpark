@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import prompts from "prompts";
+import { input, password } from "@inquirer/prompts";
 import { createUnauthClient } from "../lib/api-client.js";
 import { DEFAULT_API_URL } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
@@ -22,61 +22,51 @@ export async function registerBetaCommand(): Promise<void> {
   );
   console.log();
 
-  const answers = await prompts([
-    {
-      type: "text",
-      name: "apiUrl",
+  try {
+    const apiUrl = await input({
       message: "BugSpark API URL",
-      initial: DEFAULT_API_URL,
-    },
-    {
-      type: "text",
-      name: "name",
+      default: DEFAULT_API_URL,
+    });
+
+    const name = await input({
       message: "Your name",
       validate: (v: string) => (v.trim().length > 0 ? true : "Name is required"),
-    },
-    {
-      type: "text",
-      name: "email",
+    });
+
+    const email = await input({
       message: "Email address",
       validate: (v: string) =>
         /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? true : "Enter a valid email",
-    },
-    {
-      type: "password",
-      name: "password",
+    });
+
+    const pw = await password({
       message: "Password (min 8 characters)",
       validate: (v: string) =>
         v.length >= 8 ? true : "Password must be at least 8 characters",
-    },
-    {
-      type: "password",
-      name: "confirmPassword",
+    });
+
+    const confirmPassword = await password({
       message: "Confirm password",
-    },
-    {
-      type: "text",
-      name: "reason",
+    });
+
+    const reason = await input({
       message: "Why do you want to join the beta? (optional)",
-    },
-  ]);
+      default: "",
+    });
 
-  if (!answers.apiUrl || !answers.name || !answers.email || !answers.password) return;
+    if (pw !== confirmPassword) {
+      error("Passwords do not match.");
+      process.exit(1);
+    }
 
-  if (answers.password !== answers.confirmPassword) {
-    error("Passwords do not match.");
-    process.exit(1);
-  }
+    info("Submitting beta application...");
 
-  info("Submitting beta application...");
-
-  try {
-    const client = createUnauthClient(answers.apiUrl);
+    const client = createUnauthClient(apiUrl);
     await client.post<BetaRegisterResponse>("/auth/cli/register/beta", {
-      name: answers.name.trim(),
-      email: answers.email.trim(),
-      password: answers.password,
-      reason: answers.reason?.trim() || "",
+      name: name.trim(),
+      email: email.trim(),
+      password: pw,
+      reason: reason?.trim() || "",
     });
 
     console.log();
@@ -94,6 +84,7 @@ export async function registerBetaCommand(): Promise<void> {
     );
     console.log();
   } catch (err) {
+    if ((err as Error).name === "ExitPromptError") return;
     error(`Beta registration failed: ${formatError(err)}`);
     process.exit(1);
   }

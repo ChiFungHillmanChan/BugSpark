@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import prompts from "prompts";
+import { select, input } from "@inquirer/prompts";
 import { createClient } from "../lib/api-client.js";
 import { getConfigOrExit } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
@@ -30,22 +30,19 @@ export async function initCommand(): Promise<void> {
 
     if (projects.length > 0) {
       const choices = [
-        ...projects.map((p) => ({ title: `${p.name} (${p.apiKey})`, value: p.id })),
-        { title: chalk.green("+ Create new project"), value: "__new__" },
+        ...projects.map((p) => ({ name: `${p.name} (${p.apiKey})`, value: p.id })),
+        { name: chalk.green("+ Create new project"), value: "__new__" },
       ];
 
-      const { selected } = await prompts({
-        type: "select",
-        name: "selected",
+      const selected_value = await select({
         message: "Select a project or create a new one",
         choices,
       });
-      if (!selected) return;
 
-      if (selected === "__new__") {
+      if (selected_value === "__new__") {
         project = await createNewProject(client, config.apiUrl);
       } else {
-        project = projects.find((p) => p.id === selected)!;
+        project = projects.find((p) => p.id === selected_value)!;
         info(`Using existing project: ${chalk.bold(project.name)}`);
         info(`API key (masked): ${project.apiKey}`);
         console.log();
@@ -105,6 +102,7 @@ export async function initCommand(): Promise<void> {
     );
     console.log();
   } catch (err) {
+    if ((err as Error).name === "ExitPromptError") return;
     error(formatError(err));
     process.exit(1);
   }
@@ -114,19 +112,14 @@ async function createNewProject(
   client: ReturnType<typeof createClient>,
   apiUrl: string
 ): Promise<ProjectResponse> {
-  const { name } = await prompts({
-    type: "text",
-    name: "name",
+  const name = await input({
     message: "Project name",
     validate: (v: string) => (v.length > 0 ? true : "Name is required"),
   });
-  if (!name) process.exit(0);
 
-  const { domain } = await prompts({
-    type: "text",
-    name: "domain",
+  const domain = await input({
     message: "Domain (optional, e.g. example.com)",
-    initial: "",
+    default: "",
   });
 
   const body: Record<string, string> = { name };

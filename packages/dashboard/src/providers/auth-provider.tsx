@@ -24,7 +24,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isSuperadmin: boolean;
   login: (email: string, password: string, redirectTo?: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, redirectTo?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -52,10 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
+    async (name: string, email: string, password: string, redirectTo?: string) => {
       const data = await registerApi(name, email, password);
       setUser(data);
-      router.push("/dashboard");
+      router.push(redirectTo ?? "/dashboard");
     },
     [router],
   );

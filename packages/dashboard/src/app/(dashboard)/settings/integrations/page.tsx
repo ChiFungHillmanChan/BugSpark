@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useProjects } from "@/hooks/use-projects";
 import {
   useIntegrations,
@@ -37,7 +38,8 @@ function providerLabel(provider: string, t: ReturnType<typeof useTranslations<"i
 export default function IntegrationsPage() {
   const t = useTranslations("integrations");
   const { data: projects } = useProjects();
-  const projectId = projects?.[0]?.id ?? "";
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const projectId = selectedProjectId || projects?.[0]?.id || "";
   const { data: integrations, isLoading } = useIntegrations(projectId);
   const createIntegration = useCreateIntegration();
   const deleteIntegration = useDeleteIntegration();
@@ -50,6 +52,8 @@ export default function IntegrationsPage() {
 
   const [linearApiKey, setLinearApiKey] = useState("");
   const [linearTeamId, setLinearTeamId] = useState("");
+
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   function handleGithubSubmit(event: FormEvent) {
     event.preventDefault();
@@ -97,8 +101,13 @@ export default function IntegrationsPage() {
   }
 
   function handleDelete(integrationId: string) {
-    if (!confirm(t("removeConfirm"))) return;
-    deleteIntegration.mutate({ integrationId, projectId });
+    setDeleteTarget(integrationId);
+  }
+
+  function confirmDelete() {
+    if (!deleteTarget) return;
+    deleteIntegration.mutate({ integrationId: deleteTarget, projectId });
+    setDeleteTarget(null);
   }
 
   function handleToggle(integrationId: string, isCurrentlyActive: boolean) {
@@ -126,6 +135,25 @@ export default function IntegrationsPage() {
         title={t("title")}
         description={t("description")}
       />
+
+      {projects && projects.length > 1 && (
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            {t("project")}
+          </label>
+          <select
+            value={projectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+            className="w-full max-w-xs px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <div className="space-y-4">
         {isLoading && (
@@ -333,6 +361,16 @@ export default function IntegrationsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title={t("removeTitle")}
+        message={t("removeConfirm")}
+        confirmLabel={t("remove")}
+        isDestructive
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

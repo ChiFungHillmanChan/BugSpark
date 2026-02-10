@@ -25,24 +25,29 @@ describe('formatDate', () => {
     vi.useRealTimers();
   });
 
-  it('returns "just now" for recent dates', () => {
+  it('returns relative time for recent dates', () => {
     const tenSecondsAgo = new Date('2025-06-15T11:59:50Z').toISOString();
-    expect(formatDate(tenSecondsAgo)).toBe('just now');
+    const result = formatDate(tenSecondsAgo);
+    // Intl.RelativeTimeFormat uses "now" for 0 seconds
+    expect(result).toMatch(/now|just now/i);
   });
 
-  it('returns "Xm ago" for minutes', () => {
+  it('returns relative minutes for minutes', () => {
     const fiveMinutesAgo = new Date('2025-06-15T11:55:00Z').toISOString();
-    expect(formatDate(fiveMinutesAgo)).toBe('5m ago');
+    const result = formatDate(fiveMinutesAgo);
+    expect(result).toMatch(/5\s*min/i);
   });
 
-  it('returns "Xh ago" for hours', () => {
+  it('returns relative hours for hours', () => {
     const threeHoursAgo = new Date('2025-06-15T09:00:00Z').toISOString();
-    expect(formatDate(threeHoursAgo)).toBe('3h ago');
+    const result = formatDate(threeHoursAgo);
+    expect(result).toMatch(/3\s*hour/i);
   });
 
-  it('returns "Xd ago" for days', () => {
+  it('returns relative days for days', () => {
     const twoDaysAgo = new Date('2025-06-13T12:00:00Z').toISOString();
-    expect(formatDate(twoDaysAgo)).toBe('2d ago');
+    const result = formatDate(twoDaysAgo);
+    expect(result).toMatch(/2\s*day/i);
   });
 
   it('returns full date for old dates (30+ days)', () => {

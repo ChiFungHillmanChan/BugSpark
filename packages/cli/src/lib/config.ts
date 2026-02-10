@@ -13,7 +13,7 @@ const CONFIG_DIR = path.join(os.homedir(), ".bugspark");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 const DEFAULT_API_URL = "https://bugspark-api.onrender.com/api/v1";
-const DEFAULT_DASHBOARD_URL = "http://localhost:3000";
+const DEFAULT_DASHBOARD_URL = "https://dashboard-wine-pi-78.vercel.app";
 
 function ensureDir(): void {
   if (!fs.existsSync(CONFIG_DIR)) {

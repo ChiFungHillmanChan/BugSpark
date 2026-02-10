@@ -21,7 +21,7 @@
 ```html
 <script
   src="https://cdn.bugspark.dev/widget.js"
-  data-project="YOUR_API_KEY"
+  data-project-key="${BUGSPARK_PROJECT_KEY}"
   data-position="bottom-right"
   async
 ></script>
@@ -37,7 +37,7 @@ npm install @bugspark/widget
 import { BugSpark } from "@bugspark/widget";
 
 BugSpark.init({
-  projectKey: "YOUR_API_KEY",
+  projectKey: process.env.BUGSPARK_PROJECT_KEY,
   position: "bottom-right",
 });
 ```

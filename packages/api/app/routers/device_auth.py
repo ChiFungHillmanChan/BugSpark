@@ -74,6 +74,7 @@ class DeviceTokenUser(BaseModel):
     email: str
     name: str
     role: str
+    plan: str
 
 
 class DeviceApproveRequest(BaseModel):
@@ -253,5 +254,6 @@ async def poll_device_token(
             email=user.email,
             name=user.name,
             role=user.role.value if hasattr(user.role, "value") else str(user.role),
+            plan=user.plan.value if hasattr(user.plan, "value") else str(user.plan),
         ),
     )

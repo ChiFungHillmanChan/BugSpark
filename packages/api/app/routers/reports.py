@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
@@ -38,6 +39,10 @@ async def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
 
 async def _report_to_response(report: Report) -> ReportResponse:
     """Build ReportResponse avoiding the metadata/metadata_ naming conflict."""
+    screenshot_url, annotated_screenshot_url = await asyncio.gather(
+        _resolve_screenshot_url(report.screenshot_url),
+        _resolve_screenshot_url(report.annotated_screenshot_url),
+    )
     return ReportResponse(
         id=report.id,
         project_id=report.project_id,
@@ -48,8 +53,8 @@ async def _report_to_response(report: Report) -> ReportResponse:
         category=report.category.value if isinstance(report.category, Category) else report.category,
         status=report.status.value if isinstance(report.status, Status) else report.status,
         assignee_id=report.assignee_id,
-        screenshot_url=await _resolve_screenshot_url(report.screenshot_url),
-        annotated_screenshot_url=await _resolve_screenshot_url(report.annotated_screenshot_url),
+        screenshot_url=screenshot_url,
+        annotated_screenshot_url=annotated_screenshot_url,
         console_logs=report.console_logs,
         network_logs=report.network_logs,
         user_actions=report.user_actions,
@@ -155,7 +160,7 @@ async def list_reports(
     result = await db.execute(query)
     reports = result.scalars().all()
 
-    items = [await _report_to_response(report) for report in reports]
+    items = await asyncio.gather(*[_report_to_response(report) for report in reports])
 
     return ReportListResponse(items=items, total=total, page=page, page_size=page_size)
 

@@ -32,6 +32,9 @@ MESSAGES: dict[str, str] = {
     "admin.invalid_role": "無效的角色",
     "admin.invalid_plan": "無效的方案",
     "admin.forbidden": "需要管理員權限",
+    # 裝置驗證
+    "device.invalid_code": "無效或已過期的裝置代碼",
+    "device.code_expired": "裝置代碼已過期",
     # 方案限制
     "plan.project_limit": "已達方案上限：您的方案最多允許 {limit} 個專案。請升級方案。",
     "plan.report_per_project_limit": "已達方案上限：您的方案每個專案最多允許 {limit} 則回報。請升級方案。",

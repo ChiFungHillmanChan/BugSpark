@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 import { useAdminUsers, useAdminUpdateUser } from "@/hooks/use-admin";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { PlanBadge } from "@/components/shared/plan-badge";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 import type { AdminUser, UserRole, UserPlan } from "@/types";
 
 const ROLES: UserRole[] = ["user", "admin", "superadmin"];
@@ -205,8 +205,9 @@ export default function AdminUsersPage() {
   const { user: currentUser, isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const { data, isLoading } = useAdminUsers({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page: 1,
     pageSize: 50,
   });

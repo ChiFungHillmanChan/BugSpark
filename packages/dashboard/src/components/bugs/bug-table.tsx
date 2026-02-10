@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "./severity-badge";
@@ -21,6 +21,7 @@ interface BugTableProps {
 export function BugTable({ bugs, isLoading }: BugTableProps) {
   const t = useTranslations("bugs");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
   const deleteBug = useDeleteBug();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -88,7 +89,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                       {bug.assigneeId ? t("assigned") : t("unassigned")}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                      {formatDate(bug.createdAt)}
+                      {formatDate(bug.createdAt, locale)}
                     </td>
                     <td className="px-4 py-3">
                       <button

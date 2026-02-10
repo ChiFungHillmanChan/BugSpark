@@ -2,12 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const searchParams = useSearchParams();
   const t = useTranslations("auth");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -22,7 +24,8 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register(name, email, password);
+      const redirectTo = searchParams.get("redirect") ?? undefined;
+      await register(name, email, password, redirectTo);
     } catch {
       setError(t("registrationFailed"));
     } finally {
@@ -38,7 +41,14 @@ export default function RegisterPage() {
         </h2>
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
           {t("hasAccount")}{" "}
-          <Link href="/login" className="text-accent hover:underline font-medium">
+          <Link
+            href={
+              searchParams.get("redirect")
+                ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
+                : "/login"
+            }
+            className="text-accent hover:underline font-medium"
+          >
             {t("signIn")}
           </Link>
         </p>

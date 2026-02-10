@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
@@ -11,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.dependencies import PAT_PREFIX_LEN, get_current_user, get_db
+from app.dependencies import get_current_user, get_db
 from app.exceptions import BadRequestException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.personal_access_token import PersonalAccessToken
@@ -20,6 +19,7 @@ from app.schemas.auth import CLIAuthResponse, LoginRequest, RegisterRequest
 from app.schemas.user import PasswordChange, UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
+    create_cli_pat,
     create_refresh_token,
     generate_jti,
     hash_password,
@@ -248,24 +248,6 @@ async def change_password(
 
 # ── CLI-specific auth (returns PAT in body, no cookies) ────────────────────
 
-_PAT_PREFIX = "bsk_pat_"
-
-
-def _create_cli_pat(user: User, db: AsyncSession) -> tuple[str, PersonalAccessToken]:
-    """Generate a PAT for CLI usage and return (raw_token, pat_model)."""
-    raw_token = f"{_PAT_PREFIX}{secrets.token_urlsafe(48)}="
-    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-    token_prefix = raw_token[:PAT_PREFIX_LEN]
-
-    pat = PersonalAccessToken(
-        user_id=user.id,
-        name="BugSpark CLI",
-        token_hash=token_hash,
-        token_prefix=token_prefix,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=90),
-    )
-    return raw_token, pat
-
 
 @router.post("/cli/register", response_model=CLIAuthResponse, status_code=201)
 @_auth_limiter.limit("5/minute")
@@ -286,7 +268,7 @@ async def cli_register(
     db.add(user)
     await db.flush()
 
-    raw_token, pat = _create_cli_pat(user, db)
+    raw_token, pat = create_cli_pat(user.id)
     db.add(pat)
     await db.commit()
     await db.refresh(user)
@@ -296,6 +278,7 @@ async def cli_register(
         email=user.email,
         name=user.name,
         role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        plan=user.plan.value if hasattr(user.plan, "value") else str(user.plan),
         token=raw_token,
     )
 
@@ -327,7 +310,7 @@ async def cli_login(
         await db.delete(old_pat)
     await db.flush()
 
-    raw_token, pat = _create_cli_pat(user, db)
+    raw_token, pat = create_cli_pat(user.id)
     db.add(pat)
     await db.commit()
 
@@ -336,5 +319,6 @@ async def cli_login(
         email=user.email,
         name=user.name,
         role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        plan=user.plan.value if hasattr(user.plan, "value") else str(user.plan),
         token=raw_token,
     )

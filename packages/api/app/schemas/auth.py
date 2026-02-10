@@ -25,4 +25,5 @@ class CLIAuthResponse(CamelModel):
     email: str
     name: str
     role: str
+    plan: str
     token: str

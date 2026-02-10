@@ -19,6 +19,11 @@ from app.schemas.project import ProjectResponse
 from app.schemas.report import ReportListResponse
 from app.schemas.user import AdminUserUpdate
 
+
+def _escape_like(value: str) -> str:
+    """Escape %, _, and \\ so they are treated as literal characters in LIKE patterns."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
@@ -55,7 +60,8 @@ async def list_users(
     query = select(User)
 
     if search is not None:
-        search_filter = f"%{search}%"
+        escaped = _escape_like(search)
+        search_filter = f"%{escaped}%"
         query = query.where(
             User.email.ilike(search_filter) | User.name.ilike(search_filter)
         )
@@ -266,7 +272,8 @@ async def list_all_reports(
     query = select(Report)
 
     if search:
-        search_filter = f"%{search}%"
+        escaped = _escape_like(search)
+        search_filter = f"%{escaped}%"
         query = query.where(
             Report.title.ilike(search_filter) | Report.tracking_id.ilike(search_filter)
         )

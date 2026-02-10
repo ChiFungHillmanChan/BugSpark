@@ -37,7 +37,8 @@ program
 program
   .command("login")
   .description("Authenticate with BugSpark")
-  .action(loginCommand);
+  .option("-m, --method <method>", "Auth method: browser (default), email, pat")
+  .action((opts) => loginCommand(opts));
 
 program
   .command("logout")

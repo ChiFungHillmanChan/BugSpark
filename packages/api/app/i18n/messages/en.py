@@ -32,6 +32,9 @@ MESSAGES: dict[str, str] = {
     "admin.invalid_role": "Invalid role",
     "admin.invalid_plan": "Invalid plan",
     "admin.forbidden": "Admin access required",
+    # Device auth
+    "device.invalid_code": "Invalid or expired device code",
+    "device.code_expired": "Device code has expired",
     # Plan limits
     "plan.project_limit": "Plan limit reached: your plan allows up to {limit} project(s). Please upgrade your plan.",
     "plan.report_per_project_limit": "Plan limit reached: your plan allows up to {limit} report(s) per project. Please upgrade your plan.",

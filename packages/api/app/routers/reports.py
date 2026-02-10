@@ -17,7 +17,7 @@ from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.similarity_service import find_similar_reports
-from app.services.storage_service import generate_presigned_url
+from app.services.storage_service import delete_file, generate_presigned_url
 from app.services.tracking_id_service import generate_tracking_id
 from app.services.webhook_service import dispatch_webhooks
 
@@ -239,6 +239,12 @@ async def delete_report(
         )
         if project_check.scalar_one_or_none() is None:
             raise ForbiddenException(translate("report.not_authorized_delete", locale))
+
+    # Clean up screenshots from R2/S3 before deleting the DB record
+    if report.screenshot_url:
+        await delete_file(report.screenshot_url)
+    if report.annotated_screenshot_url:
+        await delete_file(report.annotated_screenshot_url)
 
     await db.delete(report)
     await db.commit()

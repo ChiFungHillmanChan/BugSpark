@@ -8,3 +8,6 @@ class AnalysisResponse(CamelModel):
     suggested_category: str
     suggested_severity: str
     reproduction_steps: list[str]
+    root_cause: str = ""
+    fix_suggestions: list[str] = []
+    affected_area: str = ""

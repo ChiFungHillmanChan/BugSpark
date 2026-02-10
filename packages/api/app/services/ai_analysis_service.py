@@ -17,8 +17,15 @@ _SYSTEM_PROMPT = (
     '- "suggestedCategory": one of "bug", "ui", "performance", "crash", "other"\n'
     '- "suggestedSeverity": one of "critical", "high", "medium", "low"\n'
     '- "reproductionSteps": an array of step strings to reproduce the issue\n'
+    '- "rootCause": 1-3 sentences explaining the likely root cause\n'
+    '- "fixSuggestions": an array of 1-3 actionable fix suggestions\n'
+    '- "affectedArea": a string identifying the component/area affected '
+    '(e.g. "Authentication", "UI/Forms", "API/Network")\n'
     "Respond ONLY with valid JSON. No markdown fences, no extra text."
 )
+
+
+_MAX_STACK_LENGTH = 300
 
 
 def _format_logs(logs: list[Any] | dict[str, Any] | None) -> str:
@@ -30,10 +37,17 @@ def _format_logs(logs: list[Any] | dict[str, Any] | None) -> str:
         if isinstance(entry, dict):
             level = entry.get("level", "")
             message = entry.get("message", "")
-            lines.append(f"[{level}] {message}")
+            stack = entry.get("stack", "")
+            line = f"[{level}] {message}"
+            if stack:
+                line += f"\n  Stack: {str(stack)[:_MAX_STACK_LENGTH]}"
+            lines.append(line)
         else:
             lines.append(str(entry))
     return "\n".join(lines) or "None"
+
+
+_FAILED_STATUS_THRESHOLD = 400
 
 
 def _format_network(logs: list[Any] | dict[str, Any] | None) -> str:
@@ -47,7 +61,8 @@ def _format_network(logs: list[Any] | dict[str, Any] | None) -> str:
             url = entry.get("url", "")
             status = entry.get("status", "")
             duration = entry.get("duration", "")
-            lines.append(f"{method} {url} -> {status} ({duration}ms)")
+            prefix = "[FAILED] " if isinstance(status, int) and status >= _FAILED_STATUS_THRESHOLD else ""
+            lines.append(f"{prefix}{method} {url} -> {status} ({duration}ms)")
         else:
             lines.append(str(entry))
     return "\n".join(lines) or "None"
@@ -108,6 +123,9 @@ async def analyze_bug_report(
         messages=[{"role": "user", "content": user_prompt}],
     )
 
+    if not message.content or not hasattr(message.content[0], "text"):
+        raise ValueError("AI returned an empty or non-text response")
+
     raw_text = message.content[0].text
     try:
         parsed = json.loads(raw_text)
@@ -118,6 +136,9 @@ async def analyze_bug_report(
             "suggestedCategory": "other",
             "suggestedSeverity": "medium",
             "reproductionSteps": [],
+            "rootCause": "",
+            "fixSuggestions": [],
+            "affectedArea": "",
         }
 
     return {
@@ -125,4 +146,7 @@ async def analyze_bug_report(
         "suggested_category": str(parsed.get("suggestedCategory", "other")),
         "suggested_severity": str(parsed.get("suggestedSeverity", "medium")),
         "reproduction_steps": list(parsed.get("reproductionSteps", [])),
+        "root_cause": str(parsed.get("rootCause", "")),
+        "fix_suggestions": list(parsed.get("fixSuggestions", [])),
+        "affected_area": str(parsed.get("affectedArea", "")),
     }

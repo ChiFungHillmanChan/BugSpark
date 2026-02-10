@@ -1,8 +1,10 @@
-export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'): string {
+import type { BugSparkBranding } from '../types';
+
+export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto', branding?: BugSparkBranding): string {
   const isDark = theme === 'dark';
-  const bgColor = isDark ? '#1a1a2e' : '#ffffff';
-  const textColor = isDark ? '#e0e0e0' : '#333333';
-  const borderColor = isDark ? '#333355' : '#e0e0e0';
+  const bgColor = branding?.customColors?.background ?? (isDark ? '#1a1a2e' : '#ffffff');
+  const textColor = branding?.customColors?.text ?? (isDark ? '#e0e0e0' : '#333333');
+  const borderColor = branding?.customColors?.border ?? (isDark ? '#333355' : '#e0e0e0');
   const inputBg = isDark ? '#16213e' : '#f8f8f8';
   const overlayBg = isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)';
   const surfaceBg = isDark ? '#16213e' : '#f5f5f5';
@@ -81,7 +83,22 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       width: 120px; height: 68px; object-fit: cover; border-radius: 4px;
       border: 1px solid ${borderColor};
     }
-    .bugspark-screenshot-preview__actions { flex: 1; }
+    .bugspark-screenshot-preview__actions { flex: 1; display: flex; gap: 8px; }
+
+    .bugspark-screenshot-capture {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 24px; margin-bottom: 16px;
+      border: 2px dashed ${borderColor}; border-radius: 8px;
+      cursor: pointer; color: ${textColor}; opacity: 0.6;
+      transition: opacity 0.2s, border-color 0.2s;
+    }
+    .bugspark-screenshot-capture:hover {
+      opacity: 1; border-color: ${primaryColor};
+    }
+    .bugspark-screenshot-capture svg { width: 32px; height: 32px; }
+    .bugspark-screenshot-capture span { font-size: 13px; font-weight: 500; }
+
+    .bugspark-screenshot-recapture { margin-left: 0; }
 
     .bugspark-btn {
       padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500;
@@ -357,6 +374,20 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       .bugspark-annotation-toolbar__separator {
         height: 28px; margin: 0 2px;
       }
+    }
+
+    .bugspark-watermark {
+      text-align: center;
+      padding: 8px 0 4px;
+      font-size: 11px;
+    }
+    .bugspark-watermark a {
+      color: #999;
+      text-decoration: none;
+    }
+    .bugspark-watermark a:hover {
+      color: #666;
+      text-decoration: underline;
     }
   `;
 }

@@ -50,10 +50,15 @@ export default function PricingPage() {
                 {tLanding("pricingEnterpriseDesc")}
               </p>
               <ul className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-300 dark:text-gray-400">
-                {ENTERPRISE_FEATURE_KEYS.map((key) => (
-                  <li key={key} className="flex items-center gap-1.5">
+                {ENTERPRISE_FEATURE_KEYS.map((item) => (
+                  <li key={item.key} className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-accent/70" />
-                    {tLanding(key)}
+                    {tLanding(item.key)}
+                    {item.comingSoon && (
+                      <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                        {tLanding("comingSoon")}
+                      </span>
+                    )}
                   </li>
                 ))}
               </ul>

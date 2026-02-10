@@ -1,5 +1,15 @@
+export interface BugSparkBranding {
+  showWatermark?: boolean;
+  customColors?: { background?: string; text?: string; border?: string };
+  buttonText?: string;
+  modalTitle?: string;
+  logo?: string;
+}
+
 export interface BugSparkConfig {
-  apiKey: string;
+  projectKey: string;
+  /** @deprecated Use `projectKey` instead */
+  apiKey?: string;
   endpoint: string;
   position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
   theme: 'light' | 'dark' | 'auto';
@@ -8,9 +18,20 @@ export interface BugSparkConfig {
   onSubmit?: (report: BugReport) => void;
   user?: BugSparkUser;
   enableScreenshot: boolean;
-  enableConsoleLogs: boolean;
-  enableNetworkLogs: boolean;
+  collectConsole: boolean;
+  collectNetwork: boolean;
+  /** @deprecated Use `collectConsole` instead */
+  enableConsoleLogs?: boolean;
+  /** @deprecated Use `collectNetwork` instead */
+  enableNetworkLogs?: boolean;
   enableSessionRecording: boolean;
+  maxConsoleLogs: number;
+  maxNetworkLogs: number;
+  reporterIdentifier?: string;
+  onOpen?: () => void;
+  onClose?: () => void;
+  onError?: (error: Error) => void;
+  branding?: BugSparkBranding;
 }
 
 export interface BugSparkUser {
@@ -31,6 +52,7 @@ export interface BugReport {
   userActions: SessionEvent[];
   metadata: DeviceMetadata;
   reporterIdentifier?: string;
+  hpField?: string;
 }
 
 export interface ConsoleLogEntry {

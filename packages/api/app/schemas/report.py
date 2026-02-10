@@ -22,6 +22,7 @@ class ReportCreate(BaseModel):
     network_logs: dict | list | None = None
     user_actions: dict | list | None = None
     metadata: dict | None = None
+    hp_field: str | None = Field(default=None, max_length=500, alias="hpField")
 
     @field_validator("title", "description")
     @classmethod

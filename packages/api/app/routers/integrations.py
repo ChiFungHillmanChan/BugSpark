@@ -25,6 +25,10 @@ from app.services.github_integration import (
     create_github_issue,
     format_report_as_github_issue,
 )
+from app.services.linear_integration import (
+    create_linear_issue,
+    format_report_as_linear_issue,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +201,24 @@ async def export_report_to_tracker(
         return ExportResponse(
             issue_url=issue_data["html_url"],
             issue_number=issue_data["number"],
+        )
+
+    elif provider == "linear":
+        config = integration.config
+        formatted = format_report_as_linear_issue(report)
+
+        issue_data = await create_linear_issue(
+            api_key=config["apiKey"],
+            team_id=config["teamId"],
+            title=formatted.title,
+            description=formatted.description,
+            priority=formatted.priority,
+        )
+
+        return ExportResponse(
+            issue_url=issue_data["issue_url"],
+            issue_number=0,
+            issue_identifier=issue_data["issue_identifier"],
         )
 
     raise BadRequestException(f"Unsupported provider: {provider}")

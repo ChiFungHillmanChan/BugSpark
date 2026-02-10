@@ -2,12 +2,13 @@
 
 import { useState, useEffect, use, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { ApiKeyDisplay } from "@/components/projects/api-key-display";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { useProject, useUpdateProject } from "@/hooks/use-projects";
+import { useProject, useUpdateProject, useDeleteProject } from "@/hooks/use-projects";
 import { Skeleton } from "@/components/shared/skeleton-loader";
-import { Copy, Check } from "lucide-react";
+import { Copy, Check, AlertTriangle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
@@ -34,25 +35,38 @@ export default function ProjectDetailPage({
   const { id } = use(params);
   const t = useTranslations("projects");
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
+  const deleteProject = useDeleteProject();
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
   const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [hasCopiedSnippet, setHasCopiedSnippet] = useState(false);
   const [widgetColor, setWidgetColor] = useState("#e94560");
+  const [showWatermark, setShowWatermark] = useState(true);
+  const [modalTitle, setModalTitle] = useState("");
+  const [buttonText, setButtonText] = useState("");
   const [colorSaved, setColorSaved] = useState(false);
 
-  const hasNameLoaded = project && name === "";
-  if (hasNameLoaded) {
-    setName(project.name);
-    setDomain(project.domain);
-  }
+  useEffect(() => {
+    if (project && name === "") {
+      setName(project.name);
+      setDomain(project.domain);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync once when project first loads
+  }, [project]);
 
   useEffect(() => {
     if (project?.settings && typeof project.settings === "object") {
-      const saved = (project.settings as Record<string, unknown>).widgetColor;
-      if (typeof saved === "string") setWidgetColor(saved);
+      const settings = project.settings as Record<string, unknown>;
+      const savedColor = settings.widgetColor;
+      if (typeof savedColor === "string") setWidgetColor(savedColor);
+      if (typeof settings.showWatermark === "boolean") setShowWatermark(settings.showWatermark);
+      if (typeof settings.modalTitle === "string") setModalTitle(settings.modalTitle);
+      if (typeof settings.buttonText === "string") setButtonText(settings.buttonText);
     }
   }, [project]);
 
@@ -73,6 +87,19 @@ export default function ProjectDetailPage({
       { id, data: { isActive: false } },
       { onSuccess: () => setIsDeactivateOpen(false) },
     );
+  }
+
+  const deleteExpectedText = `delete project ${project?.name ?? ""}`;
+  const isDeleteConfirmed = deleteConfirmText === deleteExpectedText;
+
+  function handleDeleteProject() {
+    if (!isDeleteConfirmed) return;
+    deleteProject.mutate(id, {
+      onSuccess: () => {
+        setIsDeleteOpen(false);
+        router.push("/projects");
+      },
+    });
   }
 
   const snippetCode = project
@@ -210,11 +237,59 @@ export default function ProjectDetailPage({
             </div>
           )}
 
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={showWatermark}
+                onChange={(e) => setShowWatermark(e.target.checked)}
+                className="rounded border-gray-300 dark:border-navy-600"
+              />
+              {t("showWatermark")}
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">{t("showWatermarkDesc")}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("modalTitle")}</label>
+            <input
+              type="text"
+              value={modalTitle}
+              onChange={(e) => setModalTitle(e.target.value)}
+              placeholder="Report a Bug"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t("modalTitleDesc")}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("buttonText")}</label>
+            <input
+              type="text"
+              value={buttonText}
+              onChange={(e) => setButtonText(e.target.value)}
+              placeholder=""
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t("buttonTextDesc")}</p>
+          </div>
+
           <button
             type="button"
             onClick={() => {
               updateProject.mutate(
-                { id, data: { settings: { ...((project?.settings as Record<string, unknown>) ?? {}), widgetColor } } },
+                {
+                  id,
+                  data: {
+                    settings: {
+                      ...((project?.settings as Record<string, unknown>) ?? {}),
+                      widgetColor,
+                      showWatermark,
+                      modalTitle: modalTitle || null,
+                      buttonText: buttonText || null,
+                    },
+                  },
+                },
                 {
                   onSuccess: () => {
                     setColorSaved(true);
@@ -231,17 +306,38 @@ export default function ProjectDetailPage({
         </div>
       </div>
 
-      <div className="border-t border-red-200 pt-8">
-        <h3 className="text-sm font-medium text-red-600 mb-2">{t("dangerZone")}</h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-          {t("deactivateMessage")}
-        </p>
-        <button
-          onClick={() => setIsDeactivateOpen(true)}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium"
-        >
-          {t("deactivateProject")}
-        </button>
+      <div className="border-t border-red-200 dark:border-red-900/50 pt-8 space-y-6">
+        <h3 className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">{t("dangerZone")}</h3>
+
+        <div className="rounded-lg border border-red-200 dark:border-red-900/50 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t("deactivateProject")}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("deactivateMessage")}</p>
+            </div>
+            <button
+              onClick={() => setIsDeactivateOpen(true)}
+              className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm font-medium shrink-0 ml-4"
+            >
+              {t("deactivateProject")}
+            </button>
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-red-200 dark:border-red-900/50 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t("deleteProject")}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("deleteMessage")}</p>
+            </div>
+            <button
+              onClick={() => { setDeleteConfirmText(""); setIsDeleteOpen(true); }}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shrink-0 ml-4"
+            >
+              {t("deleteProject")}
+            </button>
+          </div>
+        </div>
       </div>
 
       <ConfirmDialog
@@ -253,6 +349,55 @@ export default function ProjectDetailPage({
         onConfirm={handleDeactivate}
         onCancel={() => setIsDeactivateOpen(false)}
       />
+
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsDeleteOpen(false)} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="relative bg-white dark:bg-navy-800 dark:border dark:border-white/[0.08] rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-red-100 dark:bg-red-950/50">
+                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {t("deleteProject")}
+              </h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+              {t("deleteConfirmMessage")}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
+              {t("deleteConfirmInstruction", { text: deleteExpectedText })}
+            </p>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder={deleteExpectedText}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 dark:bg-navy-900 dark:text-white mb-4 font-mono"
+              autoFocus
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-navy-700 rounded-lg hover:bg-gray-200 dark:hover:bg-navy-600"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                onClick={handleDeleteProject}
+                disabled={!isDeleteConfirmed || deleteProject.isPending}
+                className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {deleteProject.isPending ? t("deleting") : t("deleteProject")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

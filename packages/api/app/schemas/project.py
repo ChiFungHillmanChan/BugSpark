@@ -20,6 +20,14 @@ class ProjectUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class WidgetConfigResponse(CamelModel):
+    primary_color: str = "#e94560"
+    show_watermark: bool = True
+    modal_title: str | None = None
+    button_text: str | None = None
+    logo_url: str | None = None
+
+
 class ProjectResponse(CamelModel):
     id: uuid.UUID
     name: str

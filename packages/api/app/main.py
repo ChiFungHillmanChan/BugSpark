@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from slowapi.util import get_remote_address
 from sqlalchemy import text
 
 from app.config import get_settings
+from app.rate_limiter import limiter
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
 from app.routers import admin, analysis, auth, comments, integrations, plans, projects, reports, stats, tokens, upload, webhooks
@@ -23,15 +23,6 @@ if settings.ENVIRONMENT != "development" and settings.JWT_SECRET == "change-me-i
         "Set a strong random secret via the JWT_SECRET environment variable."
     )
 
-
-def _get_rate_limit_key(request: Request) -> str:
-    api_key = request.headers.get("X-API-Key")
-    if api_key and len(api_key) >= 8:
-        return f"apikey:{api_key[:8]}"
-    return get_remote_address(request)
-
-
-limiter = Limiter(key_func=_get_rate_limit_key, default_limits=["100/minute"])
 
 app = FastAPI(
     title="BugSpark API",

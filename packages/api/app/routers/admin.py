@@ -279,8 +279,10 @@ async def list_all_reports(
     result = await db.execute(query)
     reports = result.scalars().all()
 
+    items = [await _report_to_response(r) for r in reports]
+
     return ReportListResponse(
-        items=[_report_to_response(r) for r in reports],
+        items=items,
         total=total,
         page=page,
         page_size=page_size,

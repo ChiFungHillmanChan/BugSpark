@@ -1,10 +1,11 @@
 import type { NetworkLogEntry } from '../types';
 
-const MAX_ENTRIES = 50;
+const DEFAULT_MAX_ENTRIES = 30;
 
 let entries: NetworkLogEntry[] = [];
 let isRunning = false;
 let bugsparkEndpoint = '';
+let maxEntries = DEFAULT_MAX_ENTRIES;
 
 const originalFetch = window.fetch.bind(window);
 const originalXhrOpen = XMLHttpRequest.prototype.open;
@@ -16,7 +17,7 @@ function isBugSparkRequest(url: string): boolean {
 
 function pushEntry(entry: NetworkLogEntry): void {
   entries.push(entry);
-  if (entries.length > MAX_ENTRIES) {
+  if (entries.length > maxEntries) {
     entries.shift();
   }
 }
@@ -144,10 +145,11 @@ function patchXhr(): void {
   };
 }
 
-export function start(endpoint: string): void {
+export function start(endpoint: string, limit: number = DEFAULT_MAX_ENTRIES): void {
   if (isRunning) return;
   isRunning = true;
   bugsparkEndpoint = endpoint;
+  maxEntries = limit;
   patchFetch();
   patchXhr();
 }

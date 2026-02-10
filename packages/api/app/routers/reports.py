@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.dependencies import get_current_user, get_db, validate_api_key
-from app.exceptions import ForbiddenException, NotFoundException
+from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
+from app.rate_limiter import limiter
 from app.i18n import get_locale, translate
 from app.models.enums import Role
 from app.models.project import Project
@@ -17,6 +18,7 @@ from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.plan_limits_service import check_report_limit
+from app.services.spam_protection_service import check_honeypot, is_duplicate_report, validate_origin
 from app.services.similarity_service import find_similar_reports
 from app.services.storage_service import delete_file, generate_presigned_url
 from app.services.tracking_id_service import generate_tracking_id
@@ -59,12 +61,23 @@ async def _report_to_response(report: Report) -> ReportResponse:
 
 
 @router.post("", response_model=ReportResponse, status_code=201)
+@limiter.limit("10/minute")
 async def create_report(
+    request: Request,
     body: ReportCreate,
     background_tasks: BackgroundTasks,
     project: Project = Depends(validate_api_key),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
+    if check_honeypot(body.hp_field):
+        raise BadRequestException("Invalid request")
+
+    if not validate_origin(request, project):
+        raise BadRequestException("Invalid origin")
+
+    if await is_duplicate_report(db, str(project.id), body.title):
+        raise BadRequestException("Duplicate report detected")
+
     await check_report_limit(db, project)
     tracking_id = await generate_tracking_id(db, str(project.id))
 

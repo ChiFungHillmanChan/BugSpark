@@ -62,7 +62,7 @@ export async function submitReport(
   if (processedReport.screenshot) {
     screenshotUrl = await uploadScreenshot(
       config.endpoint,
-      config.apiKey,
+      config.projectKey,
       processedReport.screenshot,
     );
   }
@@ -70,12 +70,12 @@ export async function submitReport(
   if (processedReport.annotatedScreenshot) {
     annotatedScreenshotUrl = await uploadScreenshot(
       config.endpoint,
-      config.apiKey,
+      config.projectKey,
       processedReport.annotatedScreenshot,
     );
   }
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     title: processedReport.title,
     description: processedReport.description,
     severity: processedReport.severity,
@@ -89,11 +89,15 @@ export async function submitReport(
     reporter_identifier: processedReport.reporterIdentifier,
   };
 
+  if (processedReport.hpField) {
+    payload.hpField = processedReport.hpField;
+  }
+
   const response = await fetchWithRetry(`${config.endpoint}/reports`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-API-Key': config.apiKey,
+      'X-API-Key': config.projectKey,
     },
     body: JSON.stringify(payload),
   });

@@ -16,7 +16,6 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  Monitor,
   LogOut,
 } from "lucide-react";
 import { PlanBadge } from "@/components/shared/plan-badge";
@@ -29,7 +28,6 @@ const LOCALE_LABELS: Record<Locale, string> = {
 const THEME_OPTIONS: { value: Theme; icon: typeof Sun; key: string }[] = [
   { value: "light", icon: Sun, key: "light" },
   { value: "dark", icon: Moon, key: "dark" },
-  { value: "system", icon: Monitor, key: "system" },
 ];
 
 export default function SettingsPage() {

@@ -1,6 +1,6 @@
 import type { ConsoleLogEntry } from '../types';
 
-const MAX_ENTRIES = 100;
+const DEFAULT_MAX_ENTRIES = 50;
 const INTERCEPTED_LEVELS = ['log', 'warn', 'error', 'info', 'debug'] as const;
 
 type ConsoleLevel = (typeof INTERCEPTED_LEVELS)[number];
@@ -8,6 +8,7 @@ type ConsoleLevel = (typeof INTERCEPTED_LEVELS)[number];
 const originalMethods: Partial<Record<ConsoleLevel, (...args: unknown[]) => void>> = {};
 let entries: ConsoleLogEntry[] = [];
 let isRunning = false;
+let maxEntries = DEFAULT_MAX_ENTRIES;
 
 function safeStringify(value: unknown): string {
   const seen = new WeakSet();
@@ -38,7 +39,7 @@ function formatArgs(args: unknown[]): string {
 
 function pushEntry(entry: ConsoleLogEntry): void {
   entries.push(entry);
-  if (entries.length > MAX_ENTRIES) {
+  if (entries.length > maxEntries) {
     entries.shift();
   }
 }
@@ -47,9 +48,10 @@ export function addEntry(entry: ConsoleLogEntry): void {
   pushEntry(entry);
 }
 
-export function start(): void {
+export function start(limit: number = DEFAULT_MAX_ENTRIES): void {
   if (isRunning) return;
   isRunning = true;
+  maxEntries = limit;
 
   for (const level of INTERCEPTED_LEVELS) {
     originalMethods[level] = console[level].bind(console);

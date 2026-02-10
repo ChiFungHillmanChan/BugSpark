@@ -7,12 +7,23 @@ import { COMPARISON_FEATURES, PRICING_TIERS } from "./pricing-data";
 function CellValue({
   value,
   t,
+  isComingSoon,
 }: {
   value: string | boolean;
   t: (key: string) => string;
+  isComingSoon?: boolean;
 }) {
   if (value === true) {
-    return <Check className="w-4 h-4 text-accent mx-auto" />;
+    return (
+      <div className="flex flex-col items-center gap-0.5">
+        <Check className="w-4 h-4 text-accent mx-auto" />
+        {isComingSoon && (
+          <span className="text-[10px] text-amber-600 dark:text-amber-400">
+            {t("comingSoon")}
+          </span>
+        )}
+      </div>
+    );
   }
   if (value === false) {
     return <X className="w-4 h-4 text-gray-300 dark:text-gray-600 mx-auto" />;
@@ -61,7 +72,11 @@ export function PricingComparison() {
                     key={tier.id}
                     className="py-3 px-4 text-center text-gray-600 dark:text-gray-400"
                   >
-                    <CellValue value={feature.values[tier.id]} t={t} />
+                    <CellValue
+                      value={feature.values[tier.id]}
+                      t={t}
+                      isComingSoon={feature.comingSoon?.includes(tier.id)}
+                    />
                   </td>
                 ))}
               </tr>

@@ -2,17 +2,21 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING, Any
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 from app.schemas import CamelModel
 
-SUPPORTED_PROVIDERS = {"github"}
+if TYPE_CHECKING:
+    from app.models.integration import Integration as IntegrationModel
+
+SUPPORTED_PROVIDERS = {"github", "linear"}
 
 
 class IntegrationCreate(BaseModel):
     provider: str = Field(..., min_length=1, max_length=50)
-    config: dict = Field(..., max_length=20)
+    config: dict[str, Any] = Field(...)
 
     @field_validator("provider")
     @classmethod
@@ -23,18 +27,23 @@ class IntegrationCreate(BaseModel):
 
     @field_validator("config")
     @classmethod
-    def validate_config(cls, value: dict, info) -> dict:  # noqa: ANN001
+    def validate_config(cls, value: dict[str, Any], info: ValidationInfo) -> dict[str, Any]:
         provider = info.data.get("provider")
         if provider == "github":
             required_keys = {"token", "owner", "repo"}
             missing = required_keys - set(value.keys())
             if missing:
                 raise ValueError(f"GitHub config missing keys: {', '.join(missing)}")
+        elif provider == "linear":
+            required_keys = {"apiKey", "teamId"}
+            missing = required_keys - set(value.keys())
+            if missing:
+                raise ValueError(f"Linear config missing keys: {', '.join(missing)}")
         return value
 
 
 class IntegrationUpdate(CamelModel):
-    config: dict | None = None
+    config: dict[str, Any] | None = None
     is_active: bool | None = None
 
 
@@ -47,7 +56,7 @@ class IntegrationResponse(CamelModel):
     has_token: bool = False
 
     @classmethod
-    def from_integration(cls, integration) -> IntegrationResponse:  # noqa: ANN001
+    def from_integration(cls, integration: IntegrationModel) -> IntegrationResponse:
         config = integration.config or {}
         return cls(
             id=integration.id,
@@ -62,3 +71,4 @@ class IntegrationResponse(CamelModel):
 class ExportResponse(CamelModel):
     issue_url: str
     issue_number: int
+    issue_identifier: str | None = None

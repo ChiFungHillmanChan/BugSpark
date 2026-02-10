@@ -1,4 +1,4 @@
-import type { BugSparkConfig, BugReport, BugSparkUser } from './types';
+import type { BugSparkConfig, BugReport, BugSparkUser, BugSparkBranding } from './types';
 import { mergeConfig } from './config';
 import * as consoleInterceptor from './core/console-interceptor';
 import * as networkInterceptor from './core/network-interceptor';
@@ -19,6 +19,8 @@ let screenshotCanvas: HTMLCanvasElement | null = null;
 let screenshotBlob: Blob | null = null;
 let annotatedBlob: Blob | null = null;
 let isInitialized = false;
+let lastSubmitTime = 0;
+const SUBMIT_COOLDOWN_MS = 30000;
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -38,15 +40,15 @@ function init(userConfig: Partial<BugSparkConfig>): void {
   config = mergeConfig(userConfig);
   isInitialized = true;
 
-  if (config.enableConsoleLogs) consoleInterceptor.start();
-  if (config.enableNetworkLogs) networkInterceptor.start(config.endpoint);
+  if (config.collectConsole) consoleInterceptor.start(config.maxConsoleLogs);
+  if (config.collectNetwork) networkInterceptor.start(config.endpoint, config.maxNetworkLogs);
   errorTracker.start();
   performanceCollector.initPerformanceObservers();
   if (config.enableSessionRecording) sessionRecorder.start();
 
-  widgetContainer.mount(config.primaryColor, config.theme);
+  widgetContainer.mount(config.primaryColor, config.theme, config.branding);
   const root = widgetContainer.getRoot();
-  floatingButton.mount(root, config.position, () => open());
+  floatingButton.mount(root, config.position, () => open(), config.branding?.buttonText);
 }
 
 async function open(): Promise<void> {
@@ -56,18 +58,31 @@ async function open(): Promise<void> {
   floatingButton.hide();
   annotatedBlob = null;
 
-  let screenshotDataUrl: string | undefined;
-  if (config.enableScreenshot) {
-    screenshotCanvas = await captureScreenshot();
-    screenshotBlob = await canvasToBlob(screenshotCanvas);
-    screenshotDataUrl = screenshotCanvas.toDataURL();
-  }
+  reportModal.mount(root, {
+    onSubmit: handleSubmit,
+    onAnnotate: handleAnnotate,
+    onClose: close,
+    onCapture: handleCapture,
+  }, undefined, config.branding);
+
+  config.onOpen?.();
+}
+
+async function handleCapture(): Promise<void> {
+  if (!config) return;
+  const root = widgetContainer.getRoot();
+
+  reportModal.unmount();
+  screenshotCanvas = await captureScreenshot();
+  screenshotBlob = await canvasToBlob(screenshotCanvas);
+  const screenshotDataUrl = screenshotCanvas.toDataURL();
 
   reportModal.mount(root, {
     onSubmit: handleSubmit,
     onAnnotate: handleAnnotate,
     onClose: close,
-  }, screenshotDataUrl);
+    onCapture: handleCapture,
+  }, screenshotDataUrl, config.branding);
 }
 
 function close(): void {
@@ -77,6 +92,7 @@ function close(): void {
   screenshotCanvas = null;
   screenshotBlob = null;
   annotatedBlob = null;
+  config?.onClose?.();
 }
 
 function handleAnnotate(): void {
@@ -94,7 +110,8 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
-      }, annotatedDataUrl);
+        onCapture: handleCapture,
+      }, annotatedDataUrl, config?.branding);
     },
     onCancel: () => {
       annotationOverlay.unmount();
@@ -103,7 +120,8 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
-      }, dataUrl);
+        onCapture: handleCapture,
+      }, dataUrl, config?.branding);
     },
   });
 }
@@ -111,6 +129,11 @@ function handleAnnotate(): void {
 async function handleSubmit(formData: import('./ui/report-modal').ReportFormData): Promise<void> {
   if (!config) return;
   const root = widgetContainer.getRoot();
+
+  if (Date.now() - lastSubmitTime < SUBMIT_COOLDOWN_MS) {
+    showToast(root, 'Please wait before submitting another report.', 'error');
+    return;
+  }
 
   reportModal.setSubmitting(true);
 
@@ -125,17 +148,20 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
     networkLogs: networkInterceptor.getEntries(),
     userActions: sessionRecorder.getEvents(),
     metadata: collectMetadata(),
-    reporterIdentifier: formData.email || config.user?.email || config.user?.id,
+    reporterIdentifier: formData.email || config.reporterIdentifier || config.user?.email || config.user?.id,
+    hpField: formData.hpField,
   };
 
   try {
     await submitReport(config, report);
+    lastSubmitTime = Date.now();
     close();
     showToast(root, 'Bug report submitted successfully!', 'success');
   } catch (error) {
     reportModal.setSubmitting(false);
-    const message = error instanceof Error ? error.message : 'Submission failed';
-    showToast(root, message, 'error');
+    const typedError = error instanceof Error ? error : new Error('Submission failed');
+    config.onError?.(typedError);
+    showToast(root, typedError.message, 'error');
   }
 }
 
@@ -160,23 +186,31 @@ function destroy(): void {
   annotatedBlob = null;
 }
 
+function setReporter(identifier: string): void {
+  if (config) {
+    config.reporterIdentifier = identifier;
+  }
+}
+
+/** @deprecated Use `setReporter` instead */
 function identify(user: BugSparkUser): void {
   if (config) {
     config.user = user;
   }
 }
 
-const BugSpark = { init, open, close, destroy, identify };
+const BugSpark = { init, open, close, destroy, identify, setReporter };
 
 function autoInit(): void {
-  const scripts = document.querySelectorAll('script[data-api-key]');
+  const scripts = document.querySelectorAll('script[data-project-key], script[data-api-key]');
   const currentScript = scripts[scripts.length - 1];
   if (!currentScript) return;
 
-  const apiKey = currentScript.getAttribute('data-api-key');
-  if (!apiKey) return;
+  const projectKey = currentScript.getAttribute('data-project-key')
+    || currentScript.getAttribute('data-api-key');
+  if (!projectKey) return;
 
-  const autoConfig: Partial<BugSparkConfig> = { apiKey };
+  const autoConfig: Partial<BugSparkConfig> = { projectKey };
 
   const endpoint = currentScript.getAttribute('data-endpoint');
   if (endpoint) autoConfig.endpoint = endpoint;
@@ -187,11 +221,22 @@ function autoInit(): void {
   const theme = currentScript.getAttribute('data-theme');
   if (theme) autoConfig.theme = theme as BugSparkConfig['theme'];
 
+  const watermarkAttr = currentScript.getAttribute('data-watermark');
+  if (watermarkAttr === 'false') {
+    autoConfig.branding = { ...autoConfig.branding, showWatermark: false };
+  }
+
   BugSpark.init(autoConfig);
 }
 
+declare global {
+  interface Window {
+    BugSpark?: typeof BugSpark;
+  }
+}
+
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, typeof BugSpark>).BugSpark = BugSpark;
+  window.BugSpark = BugSpark;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', autoInit, { once: true });
@@ -201,5 +246,5 @@ if (typeof window !== 'undefined') {
 }
 
 export default BugSpark;
-export { init, open, close, destroy, identify };
-export type { BugSparkConfig, BugReport, BugSparkUser };
+export { init, open, close, destroy, identify, setReporter };
+export type { BugSparkConfig, BugReport, BugSparkUser, BugSparkBranding };

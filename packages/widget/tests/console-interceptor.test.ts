@@ -1,4 +1,4 @@
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import * as consoleInterceptor from '../src/core/console-interceptor';
 
 describe('ConsoleInterceptor', () => {
@@ -39,13 +39,23 @@ describe('ConsoleInterceptor', () => {
     expect(entries[2].level).toBe('error');
   });
 
-  it('ring buffer limits to 100 entries', () => {
+  it('ring buffer limits to default of 50 entries', () => {
     consoleInterceptor.start();
-    for (let i = 0; i < 110; i++) {
+    for (let i = 0; i < 60; i++) {
       console.log(`message-${i}`);
     }
     const entries = consoleInterceptor.getEntries();
-    expect(entries).toHaveLength(100);
+    expect(entries).toHaveLength(50);
+    expect(entries[0].message).toBe('message-10');
+  });
+
+  it('ring buffer respects custom limit', () => {
+    consoleInterceptor.start(20);
+    for (let i = 0; i < 30; i++) {
+      console.log(`message-${i}`);
+    }
+    const entries = consoleInterceptor.getEntries();
+    expect(entries).toHaveLength(20);
     expect(entries[0].message).toBe('message-10');
   });
 

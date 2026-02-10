@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { DocsMobileSidebar } from "@/components/docs/docs-mobile-sidebar";
 import { DocsSearch } from "@/components/docs/docs-search";
 
 export default function PublicDocsLayout({
@@ -10,6 +11,7 @@ export default function PublicDocsLayout({
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       <DocsSearch basePath="/docs" />
+      <DocsMobileSidebar basePath="/docs" />
       <div className="flex gap-8">
         <div className="hidden md:block">
           <DocsSidebar basePath="/docs" />

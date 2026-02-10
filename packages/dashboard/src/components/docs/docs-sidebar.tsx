@@ -13,9 +13,10 @@ interface NavItemProps {
   basePath: string;
   pathname: string;
   t: (key: string) => string;
+  onNavigate?: () => void;
 }
 
-function NavItem({ item, basePath, pathname, t }: NavItemProps) {
+function NavItem({ item, basePath, pathname, t, onNavigate }: NavItemProps) {
   const fullPath = `${basePath}/${item.slug}`;
   const isActive = pathname === fullPath;
   const hasChildren = item.children && item.children.length > 0;
@@ -38,13 +39,14 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
         </button>
         {isOpen && (
           <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-700 pl-3">
-            {item.children!.map((child) => (
+            {item.children?.map((child) => (
               <NavItem
                 key={child.slug}
                 item={child}
                 basePath={basePath}
                 pathname={pathname}
                 t={t}
+                onNavigate={onNavigate}
               />
             ))}
           </div>
@@ -56,6 +58,7 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
   return (
     <Link
       href={fullPath}
+      onClick={onNavigate}
       className={cn(
         "block px-3 py-1.5 text-sm rounded-md transition-colors",
         isActive
@@ -70,9 +73,10 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
 
 interface DocsSidebarProps {
   basePath: string;
+  onNavigate?: () => void;
 }
 
-export function DocsSidebar({ basePath }: DocsSidebarProps) {
+export function DocsSidebar({ basePath, onNavigate }: DocsSidebarProps) {
   const pathname = usePathname();
   const t = useTranslations("docs");
 
@@ -85,6 +89,7 @@ export function DocsSidebar({ basePath }: DocsSidebarProps) {
           basePath={basePath}
           pathname={pathname}
           t={t}
+          onNavigate={onNavigate}
         />
       ))}
     </nav>

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-export type Theme = "light" | "dark" | "system";
+export type Theme = "light" | "dark";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -21,13 +21,6 @@ const STORAGE_KEY = "bugspark_theme";
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-function getSystemTheme(): "light" | "dark" {
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
-}
-
 function applyTheme(resolved: "light" | "dark") {
   const root = document.documentElement;
   if (resolved === "dark") {
@@ -38,52 +31,34 @@ function applyTheme(resolved: "light" | "dark") {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  // Always start with "system" / "light" on both server and client to avoid
+  // Always start with "light" on both server and client to avoid
   // hydration mismatch (React error #418).  The useEffect below immediately
   // syncs with localStorage on mount.
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>("light");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
 
   // Sync from localStorage after mount (client-only)
   useEffect(() => {
-    const stored = (localStorage.getItem(STORAGE_KEY) as Theme) ?? "system";
-    setThemeState(stored);
-    const resolved = stored === "system" ? getSystemTheme() : stored;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    // Migrate legacy "system" value to "light"
+    const resolved: Theme = stored === "dark" ? "dark" : "light";
+    setThemeState(resolved);
     setResolvedTheme(resolved);
     applyTheme(resolved);
-    setMounted(true);
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem(STORAGE_KEY, newTheme);
-    const resolved = newTheme === "system" ? getSystemTheme() : newTheme;
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
+    setResolvedTheme(newTheme);
+    applyTheme(newTheme);
   }, []);
-
-  // Listen for system theme changes when in "system" mode
-  useEffect(() => {
-    if (!mounted || theme !== "system") return;
-
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    function handleChange(e: MediaQueryListEvent) {
-      const resolved = e.matches ? "dark" : "light";
-      setResolvedTheme(resolved);
-      applyTheme(resolved);
-    }
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [mounted, theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
       <script
         dangerouslySetInnerHTML={{
-          __html: `(function(){try{var t=localStorage.getItem("bugspark_theme");var r=t==="dark"?true:t==="light"?false:window.matchMedia("(prefers-color-scheme:dark)").matches;document.documentElement.classList.toggle("dark",r)}catch(e){}})()`,
+          __html: `(function(){try{var r=localStorage.getItem("bugspark_theme")==="dark";document.documentElement.classList.toggle("dark",r)}catch(e){}})()`,
         }}
       />
       {children}

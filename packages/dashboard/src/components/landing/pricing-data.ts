@@ -1,5 +1,7 @@
 export type PricingTierId = "free" | "starter" | "team";
 
+export type HighlightItem = string | { key: string; comingSoon: boolean };
+
 export interface PricingTier {
   id: PricingTierId;
   nameKey: string;
@@ -9,7 +11,7 @@ export interface PricingTier {
   isPopular: boolean;
   ctaKey: string;
   ctaHref: string;
-  highlightKeys: string[];
+  highlightKeys: HighlightItem[];
 }
 
 export const PRICING_TIERS: PricingTier[] = [
@@ -44,7 +46,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "pricingStarterHighlightProjects",
       "pricingStarterHighlightSeats",
       "pricingStarterHighlightIncludes",
-      "pricingStarterHighlightReplay",
+      { key: "pricingStarterHighlightReplay", comingSoon: true },
       "pricingStarterHighlightGithub",
       "pricingStarterHighlightRetention",
     ],
@@ -64,8 +66,8 @@ export const PRICING_TIERS: PricingTier[] = [
       "pricingTeamHighlightSeats",
       "pricingTeamHighlightIncludes",
       "pricingTeamHighlightAi",
-      "pricingTeamHighlightIntegrations",
-      "pricingTeamHighlightBranding",
+      { key: "pricingTeamHighlightIntegrations", comingSoon: true },
+      { key: "pricingTeamHighlightBranding", comingSoon: true },
       "pricingTeamHighlightRetention",
     ],
   },
@@ -74,6 +76,7 @@ export const PRICING_TIERS: PricingTier[] = [
 export interface ComparisonFeature {
   labelKey: string;
   values: Record<PricingTierId, boolean | string>;
+  comingSoon?: PricingTierId[];
 }
 
 export const COMPARISON_FEATURES: ComparisonFeature[] = [
@@ -100,6 +103,7 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
   {
     labelKey: "compSessionReplay",
     values: { free: false, starter: true, team: true },
+    comingSoon: ["starter", "team"],
   },
   {
     labelKey: "compGithub",
@@ -112,10 +116,12 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
   {
     labelKey: "compJiraLinearSlack",
     values: { free: false, starter: false, team: true },
+    comingSoon: ["team"],
   },
   {
     labelKey: "compCustomBranding",
     values: { free: false, starter: false, team: true },
+    comingSoon: ["team"],
   },
   {
     labelKey: "compDataRetention",
@@ -127,9 +133,9 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
   },
 ];
 
-export const ENTERPRISE_FEATURE_KEYS = [
-  "pricingEnterpriseSso",
-  "pricingEnterpriseAudit",
-  "pricingEnterpriseSupport",
-  "pricingEnterpriseRetention",
-] as const;
+export const ENTERPRISE_FEATURE_KEYS: Array<{ key: string; comingSoon: boolean }> = [
+  { key: "pricingEnterpriseSso", comingSoon: true },
+  { key: "pricingEnterpriseAudit", comingSoon: true },
+  { key: "pricingEnterpriseSupport", comingSoon: false },
+  { key: "pricingEnterpriseRetention", comingSoon: false },
+];

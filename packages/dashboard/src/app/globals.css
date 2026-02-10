@@ -29,6 +29,13 @@
   --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
   --animate-fade-in-up: fade-in-up 0.6s ease-out both;
+  --animate-demo-cursor-move: demo-cursor-move 0.5s ease-in-out forwards;
+  --animate-demo-button-press: demo-button-press 0.3s ease-in-out;
+  --animate-demo-modal-enter: demo-modal-enter 0.4s ease-out forwards;
+  --animate-demo-submit-glow: demo-submit-glow 1s ease-in-out infinite;
+  --animate-demo-check-pop: demo-check-pop 0.4s ease-out forwards;
+  --animate-demo-toast-enter: demo-toast-enter 0.4s ease-out forwards;
+  --animate-demo-fade-out: demo-fade-out 0.8s ease-in forwards;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -81,6 +88,43 @@
   animation-timing-function: ease-in;
   animation-iteration-count: infinite;
   will-change: transform, opacity;
+}
+
+@keyframes demo-cursor-move {
+  from { transform: translate(0, 0); opacity: 1; }
+  to { transform: translate(var(--cursor-dx, 0px), var(--cursor-dy, 0px)); opacity: 1; }
+}
+
+@keyframes demo-button-press {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.88); }
+  100% { transform: scale(1); }
+}
+
+@keyframes demo-modal-enter {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes demo-submit-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(233, 69, 96, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.6); }
+}
+
+@keyframes demo-check-pop {
+  0% { transform: scale(0); opacity: 0; }
+  60% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes demo-toast-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes demo-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 body {

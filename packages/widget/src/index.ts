@@ -63,6 +63,8 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
     })
     .then((data: Record<string, unknown> | undefined) => {
       if (!data || !config) return;
+      let shouldUpdateTheme = false;
+
       if (typeof data.enableScreenshot === 'boolean') {
         config.enableScreenshot = data.enableScreenshot;
       }
@@ -71,6 +73,23 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       }
       if (typeof data.ownerPlan === 'string') {
         config.ownerPlan = data.ownerPlan;
+      }
+      if (typeof data.primaryColor === 'string' && data.primaryColor !== config.primaryColor) {
+        config.primaryColor = data.primaryColor;
+        shouldUpdateTheme = true;
+      }
+      if (typeof data.buttonText === 'string') {
+        config.branding = { ...config.branding, buttonText: data.buttonText };
+      }
+      if (typeof data.modalTitle === 'string') {
+        config.branding = { ...config.branding, modalTitle: data.modalTitle };
+      }
+      if (typeof data.logoUrl === 'string') {
+        config.branding = { ...config.branding, logo: data.logoUrl };
+      }
+
+      if (shouldUpdateTheme) {
+        widgetContainer.updateTheme(config.primaryColor, config.theme, config.branding);
       }
     })
     .catch(() => {

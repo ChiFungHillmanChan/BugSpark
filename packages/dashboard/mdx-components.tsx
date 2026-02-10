@@ -9,7 +9,7 @@ import {
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
     ...components,
-    pre: ({ children, ...props }) => {
+    pre: ({ children }) => {
       const codeElement = children as React.ReactElement<{
         children?: string;
         className?: string;

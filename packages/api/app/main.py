@@ -71,14 +71,14 @@ app.include_router(analysis.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
 
 
-@app.api_route("/health", methods=["GET", "HEAD"])
-async def health_check() -> dict[str, str] | JSONResponse:
+@app.api_route("/health", methods=["GET", "HEAD"], response_model=None)
+async def health_check() -> JSONResponse:
     from app.database import engine
 
     try:
         async with engine.connect() as conn:
             await conn.execute(text("SELECT 1"))
-        return {"status": "healthy", "db": "connected"}
+        return JSONResponse(content={"status": "healthy", "db": "connected"})
     except Exception:
         import logging
         logging.getLogger(__name__).warning("Health check DB probe failed", exc_info=True)

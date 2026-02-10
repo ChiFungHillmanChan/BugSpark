@@ -20,7 +20,7 @@ const BREAKDOWN_LABELS: Record<string, string> = {
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
     <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-navy-700 p-6">
-      <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-300">{label}</p>
       <p className="text-3xl font-bold mt-1 dark:text-white">{value}</p>
     </div>
   );
@@ -38,7 +38,7 @@ function BreakdownCard({
   const t = useTranslations("admin");
   return (
     <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-navy-700 p-6">
-      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-300 mb-4">
         {title}
       </h3>
       <div className="space-y-3">

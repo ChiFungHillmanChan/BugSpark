@@ -22,7 +22,7 @@ PAT_PREFIX = "bsk_pat_"
 
 
 def _generate_pat() -> str:
-    return f"{PAT_PREFIX}{secrets.token_hex(24)}"
+    return f"{PAT_PREFIX}{secrets.token_urlsafe(48)}="
 
 
 def _hash_token(token: str) -> str:

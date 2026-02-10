@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import case, cast, func, select, Date
+from sqlalchemy import case, cast, func, literal, select, Date
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import Project
@@ -21,7 +21,7 @@ async def get_overview_stats(
             select(Project.id).where(Project.owner_id == user_id)
         )
     else:
-        project_filter = True
+        project_filter = literal(True)
 
     if project_id is not None:
         project_filter = project_filter & (Report.project_id == project_id)
@@ -90,7 +90,7 @@ async def get_aggregated_project_stats(
             select(Project.id).where(Project.owner_id == user_id)
         )
     else:
-        project_filter = True  # type: ignore[assignment]
+        project_filter = literal(True)
 
     severity_result = await db.execute(
         select(Report.severity, func.count(Report.id))
@@ -142,7 +142,7 @@ async def get_bug_trends_all(
             select(Project.id).where(Project.owner_id == user_id)
         )
     else:
-        project_filter = True  # type: ignore[assignment]
+        project_filter = literal(True)
 
     result = await db.execute(
         select(date_col, func.count(Report.id))

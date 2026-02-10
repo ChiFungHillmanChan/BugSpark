@@ -71,22 +71,22 @@ export default function AdminReportsPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-navy-700 bg-gray-50 dark:bg-navy-900">
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("trackingId")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {t("project")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("bugTitle")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("severity")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("status")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("created")}
               </th>
             </tr>

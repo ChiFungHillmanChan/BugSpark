@@ -26,7 +26,7 @@ router = APIRouter(prefix="/projects", tags=["projects"])
 
 
 def _generate_api_key() -> str:
-    return f"bsk_pub_{secrets.token_hex(16)}"
+    return f"bsk_pub_{secrets.token_urlsafe(48)}="
 
 
 def _hash_api_key(api_key: str) -> str:

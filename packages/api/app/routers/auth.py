@@ -245,7 +245,7 @@ _PAT_PREFIX = "bsk_pat_"
 
 def _create_cli_pat(user: User, db: AsyncSession) -> tuple[str, PersonalAccessToken]:
     """Generate a PAT for CLI usage and return (raw_token, pat_model)."""
-    raw_token = f"{_PAT_PREFIX}{secrets.token_hex(24)}"
+    raw_token = f"{_PAT_PREFIX}{secrets.token_urlsafe(48)}="
     token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
     token_prefix = raw_token[:PAT_PREFIX_LEN]
 

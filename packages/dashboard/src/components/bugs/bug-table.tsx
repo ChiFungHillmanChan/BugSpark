@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
@@ -22,6 +22,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
   const t = useTranslations("bugs");
   const tCommon = useTranslations("common");
   const locale = useLocale();
+  const router = useRouter();
   const deleteBug = useDeleteBug();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -64,20 +65,16 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
               : bugs?.map((bug) => (
                   <tr
                     key={bug.id}
-                    className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
+                    onClick={() => router.push(`/bugs/${bug.id}`)}
+                    className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors cursor-pointer"
                   >
                     <td className="px-4 py-3">
-                      <Link
-                        href={`/bugs/${bug.id}`}
-                        className="text-xs font-mono text-accent hover:underline"
-                      >
+                      <span className="text-xs font-mono text-accent">
                         {bug.trackingId}
-                      </Link>
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-[300px] truncate">
-                      <Link href={`/bugs/${bug.id}`} className="hover:underline">
-                        {bug.title}
-                      </Link>
+                      {bug.title}
                     </td>
                     <td className="px-4 py-3">
                       <SeverityBadge severity={bug.severity} />
@@ -94,7 +91,10 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                     <td className="px-4 py-3">
                       <button
                         type="button"
-                        onClick={() => setConfirmDeleteId(bug.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setConfirmDeleteId(bug.id);
+                        }}
                         className="text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         title={t("deleteBug")}
                       >

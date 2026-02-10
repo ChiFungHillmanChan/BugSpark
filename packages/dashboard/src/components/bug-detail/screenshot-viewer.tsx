@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { X, Maximize2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -64,11 +63,11 @@ export function ScreenshotViewer({
         >
           <Maximize2 className="w-4 h-4" />
         </button>
-        <Image
+        {/* Use native <img> because presigned R2/S3 URLs change on every
+            API call and expire after 15 min, defeating Next.js image cache. */}
+        <img
           src={currentUrl!}
           alt="Bug screenshot"
-          width={800}
-          height={450}
           className="w-full h-auto object-contain"
         />
       </div>
@@ -84,11 +83,9 @@ export function ScreenshotViewer({
           >
             <X className="w-6 h-6" />
           </button>
-          <Image
+          <img
             src={currentUrl}
             alt="Bug screenshot fullscreen"
-            width={1920}
-            height={1080}
             className="max-w-full max-h-full object-contain"
           />
         </div>

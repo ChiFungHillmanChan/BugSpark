@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trash2, Sparkles } from "lucide-react";
+import { ArrowLeft, Trash2, Sparkles, CheckCircle } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
@@ -222,6 +222,22 @@ export default function BugDetailPage({
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">{t("export")}</label>
               <ExportToTracker reportId={bug.id} />
             </div>
+
+            {bug.status !== "resolved" && bug.status !== "closed" && (
+              <div className="pt-3 border-t border-gray-100 dark:border-navy-700">
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateBug.mutate({ id: bug.id, data: { status: "resolved" } })
+                  }
+                  disabled={updateBug.isPending}
+                  className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 border border-green-200 dark:border-green-900/50 rounded-lg hover:bg-green-50 dark:hover:bg-green-950/30 transition-colors w-full justify-center disabled:opacity-50"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  {t("markResolved")}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">

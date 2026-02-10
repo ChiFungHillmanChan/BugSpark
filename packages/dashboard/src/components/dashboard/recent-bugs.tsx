@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
@@ -24,6 +25,7 @@ export function RecentBugs({
   const t = useTranslations("dashboard");
   const tBugs = useTranslations("bugs");
   const locale = useLocale();
+  const router = useRouter();
 
   return (
     <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] shadow-sm">
@@ -57,15 +59,13 @@ export function RecentBugs({
           {bugs?.slice(0, 5).map((bug) => (
             <tr
               key={bug.id}
-              className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+              onClick={() => router.push(`/bugs/${bug.id}`)}
+              className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02] cursor-pointer"
             >
               <td className="px-4 py-3">
-                <Link
-                  href={`/bugs/${bug.id}`}
-                  className="text-xs font-mono text-accent hover:underline"
-                >
+                <span className="text-xs font-mono text-accent">
                   {bug.trackingId}
-                </Link>
+                </span>
               </td>
               {showProject && (
                 <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 truncate max-w-[120px]">

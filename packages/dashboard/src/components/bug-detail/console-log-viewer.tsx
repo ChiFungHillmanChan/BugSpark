@@ -10,11 +10,11 @@ interface ConsoleLogViewerProps {
 }
 
 const LEVEL_STYLES: Record<ConsoleLogEntry["level"], string> = {
-  error: "text-red-600 bg-red-50 border-red-200",
-  warn: "text-yellow-700 bg-yellow-50 border-yellow-200",
-  info: "text-blue-600 bg-blue-50 border-blue-200",
-  log: "text-gray-600 bg-gray-50 border-gray-200",
-  debug: "text-purple-600 bg-purple-50 border-purple-200",
+  error: "text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-950/30 dark:border-red-900/50",
+  warn: "text-yellow-700 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-950/30 dark:border-yellow-900/50",
+  info: "text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950/30 dark:border-blue-900/50",
+  log: "text-gray-600 bg-gray-50 border-gray-200 dark:text-gray-400 dark:bg-gray-800/30 dark:border-gray-700/50",
+  debug: "text-purple-600 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-950/30 dark:border-purple-900/50",
 };
 
 const LEVEL_LABELS: Record<ConsoleLogEntry["level"], string> = {
@@ -66,7 +66,7 @@ export function ConsoleLogViewer({ logs }: ConsoleLogViewerProps) {
               "px-2 py-0.5 rounded text-xs font-medium border transition-colors",
               activeFilters.has(level)
                 ? LEVEL_STYLES[level]
-                : "text-gray-400 bg-gray-100 border-gray-200",
+                : "text-gray-400 bg-gray-100 border-gray-200 dark:text-gray-500 dark:bg-gray-800/30 dark:border-gray-700/50",
             )}
           >
             {LEVEL_LABELS[level]}
@@ -76,7 +76,7 @@ export function ConsoleLogViewer({ logs }: ConsoleLogViewerProps) {
 
       <div className="space-y-1 max-h-96 overflow-y-auto font-mono text-xs">
         {filteredLogs.length === 0 && (
-          <p className="text-gray-400 text-sm py-4 text-center">
+          <p className="text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
             No logs to display
           </p>
         )}
@@ -102,7 +102,7 @@ export function ConsoleLogViewer({ logs }: ConsoleLogViewerProps) {
                 {LEVEL_LABELS[log.level]}
               </span>
               <span className="flex-1 break-all">{log.message}</span>
-              <span className="shrink-0 text-gray-400 text-[10px]">
+              <span className="shrink-0 text-gray-400 dark:text-gray-500 text-[10px]">
                 {log.timestamp}
               </span>
             </div>

@@ -31,12 +31,13 @@ class User(Base):
         default=Plan.FREE,
         server_default="free",
         nullable=False,
+        index=True,
     )
     plan_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
     is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, server_default="true", nullable=False
+        Boolean, default=True, server_default="true", nullable=False, index=True
     )
     beta_status: Mapped[BetaStatus] = mapped_column(
         SAEnum(BetaStatus, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),

@@ -13,6 +13,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+uv.lock
 
 # Environment (all variants)
 .env
@@ -46,11 +47,18 @@ Thumbs.db
 # Turbo
 .turbo/
 
-# Claude Code
-.claude/settings.local.json
+# Claude Code — AI tooling config (skills, agents, fonts, schemas)
+# These are machine-local and should not be in the repo
+.claude/
+
+# Cursor — keep rules/ tracked for team consistency
+# but ignore everything else
+.cursor/*
+!.cursor/rules/
 
 # Testing
 .pytest_cache/
+htmlcov/
 
 # Misc
 *.log

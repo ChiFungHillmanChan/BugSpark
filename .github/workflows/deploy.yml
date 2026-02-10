@@ -17,6 +17,9 @@ name: Deploy
 on:
   push:
     branches: [main]
+  # Explicitly exclude pull_request events to ensure deployments only happen after merge
+  pull_request:
+    types: [] # This ensures PR events never trigger this workflow
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -89,6 +92,7 @@ jobs:
     name: Deploy API → Render
     runs-on: ubuntu-latest
     needs: [test-api, test-dashboard, test-widget]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Trigger Render deploy hook
         run: |
@@ -105,6 +109,7 @@ jobs:
     name: Deploy Dashboard → Vercel
     runs-on: ubuntu-latest
     needs: [test-api, test-dashboard, test-widget]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -149,6 +154,7 @@ jobs:
     name: Build Widget
     runs-on: ubuntu-latest
     needs: [test-api, test-dashboard, test-widget]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 

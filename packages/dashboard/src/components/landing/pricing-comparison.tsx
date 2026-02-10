@@ -17,7 +17,8 @@ function CellValue({
   if (value === false) {
     return <X className="w-4 h-4 text-gray-300 dark:text-gray-600 mx-auto" />;
   }
-  return <span>{t(value)}</span>;
+  const isTranslationKey = value.startsWith("comp") || value.startsWith("pricing");
+  return <span>{isTranslationKey ? t(value) : value}</span>;
 }
 
 export function PricingComparison() {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight, BookOpen } from "lucide-react";
 import { CosmicBackground } from "@/components/shared/cosmic-background";
+import { ShootingStars } from "./shooting-stars";
 
 export function HeroSection() {
   const t = useTranslations("landing");
@@ -11,6 +12,7 @@ export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-navy-900 to-navy-800 dark:from-navy-950 dark:to-navy-900 dark:cosmic-bg text-white">
       <CosmicBackground variant="full" />
+      <ShootingStars />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent" />
       <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-32 sm:py-40 lg:py-52">
         <div className="max-w-3xl mx-auto text-center animate-fade-in-up">

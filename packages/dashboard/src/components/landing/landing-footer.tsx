@@ -12,24 +12,24 @@ export function LandingFooter() {
     {
       title: t("footerProduct"),
       links: [
-        { label: t("features"), href: "#features" },
-        { label: t("pricing"), href: "#pricing" },
+        { label: t("features"), href: "/features" },
+        { label: t("pricing"), href: "/pricing" },
         { label: t("viewDocs"), href: "/docs" },
-        { label: t("footerChangelog"), href: "#" },
+        { label: t("footerChangelog"), href: "/changelog" },
       ],
     },
     {
       title: t("footerResources"),
       links: [
         { label: t("viewDocs"), href: "/docs" },
-        { label: t("footerGitHub"), href: "#" },
+        { label: t("footerGitHub"), href: "https://github.com/hillmanchan/bugspark" },
         { label: t("footerBlog"), href: "#" },
       ],
     },
     {
       title: t("footerCompany"),
       links: [
-        { label: t("footerAbout"), href: "#" },
+        { label: t("footerAbout"), href: "/about" },
         { label: t("footerBlog"), href: "#" },
       ],
     },
@@ -71,8 +71,19 @@ export function LandingFooter() {
           ))}
         </div>
 
-        <div className="mt-10 pt-6 border-t border-gray-200 dark:border-white/[0.06] text-center text-xs text-gray-400">
-          &copy; {new Date().getFullYear()} BugSpark. {t("footerRights")}
+        <div className="mt-10 pt-6 border-t border-gray-200 dark:border-white/[0.06] text-center text-xs text-gray-400 space-y-1">
+          <p>&copy; {new Date().getFullYear()} BugSpark. {t("footerRights")}</p>
+          <p>
+            Built by{" "}
+            <a
+              href="https://hillmanchan.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-accent hover:text-accent-hover transition-colors font-medium"
+            >
+              Hillman Chan
+            </a>
+          </p>
         </div>
       </div>
     </footer>

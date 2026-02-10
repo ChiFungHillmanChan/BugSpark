@@ -59,6 +59,30 @@
   }
 }
 
+@keyframes shooting-star-move {
+  0% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  3% {
+    opacity: var(--star-opacity, 0.6);
+  }
+  60% {
+    opacity: var(--star-opacity, 0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-350px);
+  }
+}
+
+.shooting-star {
+  animation-name: shooting-star-move;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

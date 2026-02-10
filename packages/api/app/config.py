@@ -10,8 +10,8 @@ class Settings(BaseSettings):
 
     JWT_SECRET: str = "change-me-in-production"
     JWT_ALGORITHM: str = "HS256"
-    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
-    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 60  # Short-lived for security (industry standard: 15-60 min)
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int = 30  # Extended from 7 to 30 days for better UX (industry standard: 7-30 days)
 
     S3_ENDPOINT_URL: str = "http://localhost:9000"
     S3_ACCESS_KEY: str = "bugspark"

@@ -140,7 +140,7 @@
 }
 
 @keyframes demo-annotation-draw {
-  from { stroke-dashoffset: 220; }
+  from { stroke-dashoffset: 290; }
   to { stroke-dashoffset: 0; }
 }
 

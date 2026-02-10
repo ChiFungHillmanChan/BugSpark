@@ -100,9 +100,9 @@ function AnnotationCircle() {
         fill="none"
         stroke="#e94560"
         strokeWidth="2.5"
-        strokeDasharray="220"
+        strokeDasharray="290"
         className="animate-[demo-annotation-draw_1.5s_ease-out_forwards]"
-        style={{ strokeDashoffset: 220 }}
+        style={{ strokeDashoffset: 290 }}
       />
     </svg>
   );

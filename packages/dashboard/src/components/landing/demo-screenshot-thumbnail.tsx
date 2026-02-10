@@ -10,7 +10,7 @@ export function DemoScreenshotThumbnail({ className }: DemoScreenshotThumbnailPr
   return (
     <div
       className={cn(
-        "relative w-full h-12 sm:h-16 rounded border border-gray-200 dark:border-white/[0.08]",
+        "relative w-full h-10 sm:h-14 rounded border border-gray-200 dark:border-white/[0.08]",
         "bg-gray-50 dark:bg-navy-900 overflow-hidden",
         className,
       )}

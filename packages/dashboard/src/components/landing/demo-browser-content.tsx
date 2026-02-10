@@ -42,13 +42,13 @@ function DemoCameraButton() {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 p-2 sm:p-2.5",
+        "flex items-center gap-1.5 p-1.5 sm:p-2",
         "border border-dashed border-gray-300 dark:border-white/[0.12]",
         "rounded bg-gray-50 dark:bg-navy-900 cursor-default",
       )}
     >
-      <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
-      <span className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">
+      <Camera className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-400 dark:text-gray-500" />
+      <span className="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-500">
         Capture Screenshot
       </span>
     </div>
@@ -67,56 +67,56 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
   return (
     <div
       className={cn(
-        "absolute bottom-14 sm:bottom-16 right-3 sm:right-4 w-56 sm:w-72 max-w-[calc(100%-24px)]",
+        "absolute bottom-14 sm:bottom-16 right-3 sm:right-4 w-48 sm:w-64 max-w-[calc(100%-24px)]",
         "bg-white dark:bg-navy-800 rounded-xl shadow-2xl",
         "border border-gray-200 dark:border-white/[0.08] overflow-hidden",
         "animate-[demo-modal-enter_0.4s_ease-out_forwards]",
       )}
     >
       {/* Header */}
-      <div className="bg-accent px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
-        <span className="text-xs sm:text-sm font-medium text-white">
+      <div className="bg-accent px-2.5 sm:px-3 py-1.5 sm:py-2 flex items-center justify-between">
+        <span className="text-[10px] sm:text-xs font-medium text-white">
           {t("widgetReportBug")}
         </span>
-        <X className="w-3 h-3 sm:w-4 sm:h-4 text-white/80" aria-hidden="true" />
+        <X className="w-3 h-3 text-white/80" aria-hidden="true" />
       </div>
 
       {/* Body */}
-      <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+      <div className="p-2 sm:p-3 space-y-1.5 sm:space-y-2">
         {/* Screenshot area: camera button when first opened, thumbnail after capture */}
         {isInitialOpen ? <DemoCameraButton /> : <DemoScreenshotThumbnail />}
 
         {/* Title field */}
         <div>
-          <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+          <label className="block text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
             {t("widgetTitle")}
           </label>
-          <div className="w-full px-2 sm:px-2.5 py-1 sm:py-1.5 border border-gray-200 dark:border-white/[0.08] rounded text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 min-h-[24px] sm:min-h-[28px]">
+          <div className="w-full px-1.5 sm:px-2 py-0.5 sm:py-1 border border-gray-200 dark:border-white/[0.08] rounded text-[9px] sm:text-[10px] text-gray-700 dark:text-gray-300 min-h-[20px] sm:min-h-[24px]">
             <TypewriterText text={t("demoTypedTitle")} isVisible={isFilling} />
           </div>
         </div>
 
         {/* Description field */}
         <div>
-          <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+          <label className="block text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
             {t("widgetDescription")}
           </label>
-          <div className="w-full px-2 sm:px-2.5 py-1.5 sm:py-2 border border-gray-200 dark:border-white/[0.08] rounded text-[10px] sm:text-xs text-gray-700 dark:text-gray-300 min-h-[32px] sm:min-h-[40px]">
+          <div className="w-full px-1.5 sm:px-2 py-1 sm:py-1.5 border border-gray-200 dark:border-white/[0.08] rounded text-[9px] sm:text-[10px] text-gray-700 dark:text-gray-300 min-h-[26px] sm:min-h-[32px]">
             <TypewriterText text={t("demoTypedDesc")} isVisible={isFilling} />
           </div>
         </div>
 
         {/* Severity */}
         <div>
-          <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+          <label className="block text-[9px] sm:text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-0.5">
             Severity
           </label>
-          <div className="flex gap-1 sm:gap-1.5">
+          <div className="flex gap-1">
             {SEVERITY_OPTIONS.map((level) => (
               <span
                 key={level}
                 className={cn(
-                  "px-1.5 sm:px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-medium transition-all duration-500",
+                  "px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-medium transition-all duration-500",
                   level === "High" && isFilling
                     ? "bg-severity-high/20 text-severity-high ring-1 ring-severity-high/40"
                     : "bg-gray-100 dark:bg-navy-900 text-gray-400 dark:text-gray-500",
@@ -129,11 +129,11 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
         </div>
 
         {/* Submit row */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2">
           <button
             className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5",
-              "bg-accent text-white rounded text-[10px] sm:text-xs font-medium",
+              "flex-1 flex items-center justify-center gap-1 px-2 py-1",
+              "bg-accent text-white rounded text-[9px] sm:text-[10px] font-medium",
               "transition-all duration-300",
               isSubmitting && "animate-[demo-submit-glow_1s_ease-in-out_infinite]",
             )}
@@ -141,12 +141,12 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
           >
             {isSubmitting ? (
               <>
-                <Check className="w-3 h-3 animate-[demo-check-pop_0.4s_ease-out_forwards]" />
+                <Check className="w-2.5 h-2.5 animate-[demo-check-pop_0.4s_ease-out_forwards]" />
                 <span>Sent!</span>
               </>
             ) : (
               <>
-                <Send className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <Send className="w-2.5 h-2.5" />
                 {t("widgetSubmit")}
               </>
             )}

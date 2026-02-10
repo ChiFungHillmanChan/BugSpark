@@ -89,6 +89,7 @@ async def get_widget_config(
     return WidgetConfigResponse(
         primary_color=settings.get("widgetColor", "#e94560"),
         show_watermark=settings.get("showWatermark", True),
+        enable_screenshot=settings.get("enableScreenshot", True),
         modal_title=settings.get("modalTitle"),
         button_text=settings.get("buttonText"),
         logo_url=settings.get("logoUrl"),

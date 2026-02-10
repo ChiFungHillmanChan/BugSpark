@@ -177,6 +177,8 @@
     "showWatermarkDesc": "在小工具底部顯示一個小的歸屬連結。",
     "modalTitle": "對話框標題",
     "modalTitleDesc": "錯誤回報對話框的自訂標題。留空使用預設值。",
+    "enableScreenshot": "啟用螢幕截圖擷取",
+    "enableScreenshotDesc": "允許使用者在錯誤回報小工具中擷取和標註螢幕截圖。",
     "buttonText": "按鈕文字",
     "buttonTextDesc": "浮動按鈕圖示旁的文字標籤。留空僅顯示圖示。",
     "deleteMessage": "永久刪除此專案及其所有錯誤回報、螢幕截圖和資料。此操作無法復原。",

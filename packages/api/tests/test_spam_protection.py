@@ -153,3 +153,28 @@ class TestValidateOrigin:
         project = _make_project("example.com")
         request = _make_request({"referer": "https://evil.com/page"})
         assert validate_origin(request, project) is False
+
+    def test_domain_stored_as_full_url(self) -> None:
+        project = _make_project("https://example.com")
+        request = _make_request({"origin": "https://example.com"})
+        assert validate_origin(request, project) is True
+
+    def test_domain_stored_as_url_with_path(self) -> None:
+        project = _make_project("https://example.com/app")
+        request = _make_request({"origin": "https://example.com"})
+        assert validate_origin(request, project) is True
+
+    def test_domain_stored_as_host_with_port(self) -> None:
+        project = _make_project("localhost:3000")
+        request = _make_request({"origin": "http://localhost:3000"})
+        assert validate_origin(request, project) is True
+
+    def test_domain_stored_as_host_port_subdomain(self) -> None:
+        project = _make_project("example.com:8080")
+        request = _make_request({"origin": "https://app.example.com"})
+        assert validate_origin(request, project) is True
+
+    def test_domain_stored_as_url_rejects_mismatch(self) -> None:
+        project = _make_project("https://example.com")
+        request = _make_request({"origin": "https://evil.com"})
+        assert validate_origin(request, project) is False

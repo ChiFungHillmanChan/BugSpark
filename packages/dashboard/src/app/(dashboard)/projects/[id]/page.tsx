@@ -47,6 +47,7 @@ export default function ProjectDetailPage({
   const [hasCopiedSnippet, setHasCopiedSnippet] = useState(false);
   const [widgetColor, setWidgetColor] = useState("#e94560");
   const [showWatermark, setShowWatermark] = useState(true);
+  const [enableScreenshot, setEnableScreenshot] = useState(true);
   const [modalTitle, setModalTitle] = useState("");
   const [buttonText, setButtonText] = useState("");
   const [colorSaved, setColorSaved] = useState(false);
@@ -65,6 +66,7 @@ export default function ProjectDetailPage({
       const savedColor = settings.widgetColor;
       if (typeof savedColor === "string") setWidgetColor(savedColor);
       if (typeof settings.showWatermark === "boolean") setShowWatermark(settings.showWatermark);
+      if (typeof settings.enableScreenshot === "boolean") setEnableScreenshot(settings.enableScreenshot);
       if (typeof settings.modalTitle === "string") setModalTitle(settings.modalTitle);
       if (typeof settings.buttonText === "string") setButtonText(settings.buttonText);
     }
@@ -251,6 +253,19 @@ export default function ProjectDetailPage({
           </div>
 
           <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={enableScreenshot}
+                onChange={(e) => setEnableScreenshot(e.target.checked)}
+                className="rounded border-gray-300 dark:border-navy-600"
+              />
+              {t("enableScreenshot")}
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">{t("enableScreenshotDesc")}</p>
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("modalTitle")}</label>
             <input
               type="text"
@@ -285,6 +300,7 @@ export default function ProjectDetailPage({
                       ...((project?.settings as Record<string, unknown>) ?? {}),
                       widgetColor,
                       showWatermark,
+                      enableScreenshot,
                       modalTitle: modalTitle || null,
                       buttonText: buttonText || null,
                     },

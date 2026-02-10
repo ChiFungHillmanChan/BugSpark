@@ -49,6 +49,30 @@ function init(userConfig: Partial<BugSparkConfig>): void {
   widgetContainer.mount(config.primaryColor, config.theme, config.branding);
   const root = widgetContainer.getRoot();
   floatingButton.mount(root, config.position, () => open(), config.branding?.buttonText);
+
+  fetchRemoteConfig(config);
+}
+
+function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
+  fetch(`${currentConfig.endpoint}/projects/widget-config`, {
+    headers: { 'X-API-Key': currentConfig.projectKey },
+  })
+    .then((res) => {
+      if (!res.ok) return;
+      return res.json();
+    })
+    .then((data: Record<string, unknown> | undefined) => {
+      if (!data || !config) return;
+      if (typeof data.enableScreenshot === 'boolean') {
+        config.enableScreenshot = data.enableScreenshot;
+      }
+      if (typeof data.showWatermark === 'boolean') {
+        config.branding = { ...config.branding, showWatermark: data.showWatermark };
+      }
+    })
+    .catch(() => {
+      // Silently ignore — widget continues with local config
+    });
 }
 
 async function open(): Promise<void> {
@@ -62,7 +86,7 @@ async function open(): Promise<void> {
     onSubmit: handleSubmit,
     onAnnotate: handleAnnotate,
     onClose: close,
-    onCapture: handleCapture,
+    onCapture: config.enableScreenshot ? handleCapture : undefined,
   }, undefined, config.branding);
 
   config.onOpen?.();
@@ -73,6 +97,7 @@ async function handleCapture(): Promise<void> {
   const root = widgetContainer.getRoot();
 
   reportModal.unmount();
+  annotatedBlob = null;
   screenshotCanvas = await captureScreenshot();
   screenshotBlob = await canvasToBlob(screenshotCanvas);
   const screenshotDataUrl = screenshotCanvas.toDataURL();
@@ -81,7 +106,7 @@ async function handleCapture(): Promise<void> {
     onSubmit: handleSubmit,
     onAnnotate: handleAnnotate,
     onClose: close,
-    onCapture: handleCapture,
+    onCapture: config.enableScreenshot ? handleCapture : undefined,
   }, screenshotDataUrl, config.branding);
 }
 
@@ -100,6 +125,8 @@ function handleAnnotate(): void {
   const root = widgetContainer.getRoot();
   reportModal.unmount();
 
+  const captureCallback = config.enableScreenshot ? handleCapture : undefined;
+
   annotationOverlay.mount(root, screenshotCanvas, {
     onDone: async (annotatedCanvas) => {
       annotatedBlob = await canvasToBlob(annotatedCanvas);
@@ -110,7 +137,7 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
-        onCapture: handleCapture,
+        onCapture: captureCallback,
       }, annotatedDataUrl, config?.branding);
     },
     onCancel: () => {
@@ -120,7 +147,7 @@ function handleAnnotate(): void {
         onSubmit: handleSubmit,
         onAnnotate: handleAnnotate,
         onClose: close,
-        onCapture: handleCapture,
+        onCapture: captureCallback,
       }, dataUrl, config?.branding);
     },
   });
@@ -224,6 +251,11 @@ function autoInit(): void {
   const watermarkAttr = currentScript.getAttribute('data-watermark');
   if (watermarkAttr === 'false') {
     autoConfig.branding = { ...autoConfig.branding, showWatermark: false };
+  }
+
+  const enableScreenshotAttr = currentScript.getAttribute('data-enable-screenshot');
+  if (enableScreenshotAttr === 'false') {
+    autoConfig.enableScreenshot = false;
   }
 
   BugSpark.init(autoConfig);

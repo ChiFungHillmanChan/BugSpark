@@ -177,6 +177,8 @@
     "showWatermarkDesc": "Display a small attribution link in the widget footer.",
     "modalTitle": "Modal Title",
     "modalTitleDesc": "Custom title for the bug report modal. Leave empty for default.",
+    "enableScreenshot": "Enable screenshot capture",
+    "enableScreenshotDesc": "Allow users to capture and annotate screenshots in the bug report widget.",
     "buttonText": "Button Text",
     "buttonTextDesc": "Text label next to the floating button icon. Leave empty for icon only.",
     "deleteMessage": "Permanently delete this project and all its bug reports, screenshots, and data. This action cannot be undone.",

@@ -55,12 +55,23 @@ def validate_origin(request: Request, project: _HasDomain) -> bool:
     except ValueError:
         return False
 
-    project_domain = project_domain.lower()
+    normalized_domain = _extract_hostname(project_domain)
 
-    if request_host == project_domain:
+    if request_host == normalized_domain:
         return True
 
-    if request_host.endswith(f".{project_domain}"):
+    if request_host.endswith(f".{normalized_domain}"):
         return True
 
     return False
+
+
+def _extract_hostname(domain: str) -> str:
+    """Extract the hostname from a domain string that may be a bare host, host:port, or full URL."""
+    domain = domain.strip().lower()
+    if "://" in domain:
+        parsed = urlparse(domain)
+        return (parsed.hostname or "").lower()
+    # Prepend scheme so urlparse treats the value as a network location
+    parsed = urlparse(f"https://{domain}")
+    return (parsed.hostname or "").lower()

@@ -13,7 +13,7 @@ export interface ReportModalCallbacks {
   onSubmit: (formData: ReportFormData) => void;
   onAnnotate: () => void;
   onClose: () => void;
-  onCapture: () => void;
+  onCapture?: () => void;
 }
 
 let modalOverlay: HTMLDivElement | null = null;
@@ -170,15 +170,17 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
     annotateBtn.addEventListener('click', callbacks.onAnnotate);
     actions.appendChild(annotateBtn);
 
-    const recaptureBtn = document.createElement('button');
-    recaptureBtn.className = 'bugspark-btn bugspark-btn--secondary bugspark-btn--small bugspark-screenshot-recapture';
-    recaptureBtn.textContent = 'Re-capture';
-    recaptureBtn.addEventListener('click', callbacks.onCapture);
-    actions.appendChild(recaptureBtn);
+    if (callbacks.onCapture) {
+      const recaptureBtn = document.createElement('button');
+      recaptureBtn.className = 'bugspark-btn bugspark-btn--secondary bugspark-btn--small bugspark-screenshot-recapture';
+      recaptureBtn.textContent = 'Re-capture';
+      recaptureBtn.addEventListener('click', callbacks.onCapture);
+      actions.appendChild(recaptureBtn);
+    }
 
     preview.appendChild(actions);
     body.appendChild(preview);
-  } else {
+  } else if (callbacks.onCapture) {
     body.appendChild(createCameraButton(callbacks.onCapture));
   }
 

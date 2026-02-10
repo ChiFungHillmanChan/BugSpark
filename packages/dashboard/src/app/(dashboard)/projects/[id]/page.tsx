@@ -8,7 +8,10 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useProject, useUpdateProject } from "@/hooks/use-projects";
 import { Skeleton } from "@/components/shared/skeleton-loader";
 import { Copy, Check } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
+import { queryKeys } from "@/lib/query-keys";
+import type { Project } from "@/types";
 
 const PRESET_COLORS = [
   "#e94560", // Default red
@@ -30,7 +33,8 @@ export default function ProjectDetailPage({
 }) {
   const { id } = use(params);
   const t = useTranslations("projects");
-  const { data: project, isLoading, refetch } = useProject(id);
+  const queryClient = useQueryClient();
+  const { data: project, isLoading } = useProject(id);
   const updateProject = useUpdateProject();
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
@@ -58,8 +62,10 @@ export default function ProjectDetailPage({
   }
 
   async function handleRotateKey() {
-    await apiClient.post(`/projects/${id}/rotate-key`);
-    refetch();
+    const response = await apiClient.post<Project>(`/projects/${id}/rotate-key`);
+    // The rotate endpoint returns the full (unhashed) API key.
+    // Cache it so the user can see / copy / use the full key.
+    queryClient.setQueryData(queryKeys.projects.detail(id), response.data);
   }
 
   async function handleDeactivate() {
@@ -213,7 +219,6 @@ export default function ProjectDetailPage({
                   onSuccess: () => {
                     setColorSaved(true);
                     setTimeout(() => setColorSaved(false), 3000);
-                    refetch();
                   },
                 },
               );

@@ -38,17 +38,22 @@ function applyTheme(resolved: "light" | "dark") {
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "system";
-    return (localStorage.getItem(STORAGE_KEY) as Theme) ?? "system";
-  });
+  // Always start with "system" / "light" on both server and client to avoid
+  // hydration mismatch (React error #418).  The useEffect below immediately
+  // syncs with localStorage on mount.
+  const [theme, setThemeState] = useState<Theme>("system");
+  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [mounted, setMounted] = useState(false);
 
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">(() => {
-    if (typeof window === "undefined") return "light";
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
-    const current = stored ?? "system";
-    return current === "system" ? getSystemTheme() : current;
-  });
+  // Sync from localStorage after mount (client-only)
+  useEffect(() => {
+    const stored = (localStorage.getItem(STORAGE_KEY) as Theme) ?? "system";
+    setThemeState(stored);
+    const resolved = stored === "system" ? getSystemTheme() : stored;
+    setResolvedTheme(resolved);
+    applyTheme(resolved);
+    setMounted(true);
+  }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
@@ -58,16 +63,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     applyTheme(resolved);
   }, []);
 
-  // Apply theme on mount
-  useEffect(() => {
-    const resolved = theme === "system" ? getSystemTheme() : theme;
-    setResolvedTheme(resolved);
-    applyTheme(resolved);
-  }, [theme]);
-
   // Listen for system theme changes when in "system" mode
   useEffect(() => {
-    if (theme !== "system") return;
+    if (!mounted || theme !== "system") return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
@@ -79,7 +77,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [theme]);
+  }, [mounted, theme]);
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>

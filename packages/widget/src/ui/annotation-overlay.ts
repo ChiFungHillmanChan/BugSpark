@@ -8,13 +8,33 @@ const LINE_WIDTHS: Array<{ label: string; value: number }> = [
   { label: 'Thick', value: 8 },
 ];
 
-const TOOLS: Array<{ type: AnnotationToolType; label: string; icon: string }> = [
-  { type: 'pen', label: 'Pen', icon: '\u270E' },
-  { type: 'arrow', label: 'Arrow', icon: '\u2192' },
-  { type: 'rectangle', label: 'Rectangle', icon: '\u25A1' },
-  { type: 'circle', label: 'Circle', icon: '\u25CB' },
-  { type: 'text', label: 'Text', icon: 'T' },
-  { type: 'blur', label: 'Blur', icon: '\u25A8' },
+/**
+ * SVG icons for annotation tools — crisp, consistent across all platforms.
+ * Each icon is a 20x20 viewBox SVG string with stroke-based rendering.
+ */
+const TOOL_ICONS: Record<AnnotationToolType, string> = {
+  pen: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5l3 3L6 17H3v-3L13.5 3.5z"/><path d="M11.5 5.5l3 3"/></svg>',
+  arrow: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16L16 4"/><path d="M9 4h7v7"/></svg>',
+  rectangle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="12" rx="1.5"/></svg>',
+  circle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/></svg>',
+  text: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12"/><path d="M10 5v12"/><path d="M7 17h6"/></svg>',
+  blur: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14" stroke-dasharray="2 2"/><rect x="5" y="5" width="10" height="10" rx="2" stroke-dasharray="0"/></svg>',
+  none: '',
+};
+
+const ACTION_ICONS = {
+  undo: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l4-4M4 8l4 4"/><path d="M4 8h9a4 4 0 010 8H11"/></svg>',
+  done: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4 4 8-8"/></svg>',
+  cancel: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
+};
+
+const TOOLS: Array<{ type: AnnotationToolType; label: string }> = [
+  { type: 'pen', label: 'Pen' },
+  { type: 'arrow', label: 'Arrow' },
+  { type: 'rectangle', label: 'Rect' },
+  { type: 'circle', label: 'Circle' },
+  { type: 'text', label: 'Text' },
+  { type: 'blur', label: 'Blur' },
 ];
 
 let overlayElement: HTMLDivElement | null = null;
@@ -115,10 +135,6 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   // Tools section
   const toolsSection = document.createElement('div');
   toolsSection.className = 'bugspark-toolbar-section';
-  const toolsLabel = document.createElement('span');
-  toolsLabel.className = 'bugspark-toolbar-section__label';
-  toolsLabel.textContent = 'Tools';
-  toolsSection.appendChild(toolsLabel);
   const toolsGroup = document.createElement('div');
   toolsGroup.className = 'bugspark-toolbar-group';
   for (const tool of TOOLS) {
@@ -127,10 +143,10 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
     btn.setAttribute('data-tool', tool.type);
     btn.setAttribute('aria-label', tool.label);
     btn.title = tool.label;
-    const icon = document.createElement('span');
-    icon.className = 'bugspark-tool-btn__icon';
-    icon.textContent = tool.icon;
-    btn.appendChild(icon);
+    const iconWrap = document.createElement('span');
+    iconWrap.className = 'bugspark-tool-btn__icon';
+    iconWrap.innerHTML = TOOL_ICONS[tool.type];
+    btn.appendChild(iconWrap);
     const label = document.createElement('span');
     label.className = 'bugspark-tool-btn__label';
     label.textContent = tool.label;
@@ -146,10 +162,6 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   // Colors section
   const colorsSection = document.createElement('div');
   colorsSection.className = 'bugspark-toolbar-section';
-  const colorsLabel = document.createElement('span');
-  colorsLabel.className = 'bugspark-toolbar-section__label';
-  colorsLabel.textContent = 'Color';
-  colorsSection.appendChild(colorsLabel);
   const colorsGroup = document.createElement('div');
   colorsGroup.className = 'bugspark-toolbar-group bugspark-toolbar-group--colors';
   for (const color of PRESET_COLORS) {
@@ -160,7 +172,7 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
     btn.setAttribute('aria-label', `Color ${color}`);
     btn.title = color;
     if (color === '#ffffff') {
-      btn.style.border = '1px solid rgba(255,255,255,0.3)';
+      btn.style.border = '2px solid rgba(255,255,255,0.4)';
     }
     btn.addEventListener('click', () => selectColor(color));
     colorsGroup.appendChild(btn);
@@ -173,10 +185,6 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   // Line width section
   const widthSection = document.createElement('div');
   widthSection.className = 'bugspark-toolbar-section';
-  const widthLabel = document.createElement('span');
-  widthLabel.className = 'bugspark-toolbar-section__label';
-  widthLabel.textContent = 'Width';
-  widthSection.appendChild(widthLabel);
   const widthGroup = document.createElement('div');
   widthGroup.className = 'bugspark-toolbar-group';
   const currentWidth = annotationCanvas.getLineWidth();
@@ -189,13 +197,9 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
     btn.title = lw.label;
     const indicator = document.createElement('span');
     indicator.className = 'bugspark-width-btn__indicator';
-    indicator.style.width = `${Math.max(4, lw.value * 2)}px`;
-    indicator.style.height = `${Math.max(4, lw.value * 2)}px`;
+    indicator.style.width = `${Math.max(4, lw.value * 2.5)}px`;
+    indicator.style.height = `${Math.max(4, lw.value * 2.5)}px`;
     btn.appendChild(indicator);
-    const label = document.createElement('span');
-    label.className = 'bugspark-width-btn__label';
-    label.textContent = lw.label;
-    btn.appendChild(label);
     btn.addEventListener('click', () => {
       annotationCanvas.setLineWidth(lw.value);
       updateWidthButtons(lw.value);
@@ -205,25 +209,30 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   widthSection.appendChild(widthGroup);
   toolbar.appendChild(widthSection);
 
-  toolbar.appendChild(createSeparator());
-
-  // Actions section
+  // Actions section — pushed to the right on desktop
   const actionsSection = document.createElement('div');
   actionsSection.className = 'bugspark-toolbar-section bugspark-toolbar-section--actions';
+
   const undoBtn = document.createElement('button');
   undoBtn.className = 'bugspark-action-btn bugspark-action-btn--undo';
   undoBtn.setAttribute('aria-label', 'Undo');
   undoBtn.title = 'Undo';
-  const undoIcon = document.createElement('span');
-  undoIcon.className = 'bugspark-action-btn__icon';
-  undoIcon.textContent = '\u21A9';
-  undoBtn.appendChild(undoIcon);
+  undoBtn.innerHTML = ACTION_ICONS.undo;
   undoBtn.addEventListener('click', () => annotationCanvas.undo());
   actionsSection.appendChild(undoBtn);
 
   const doneBtn = document.createElement('button');
-  doneBtn.className = 'bugspark-btn bugspark-btn--primary bugspark-btn--done';
-  doneBtn.textContent = 'Done';
+  doneBtn.className = 'bugspark-action-btn bugspark-action-btn--done';
+  doneBtn.setAttribute('aria-label', 'Done');
+  doneBtn.title = 'Done';
+  const doneIconWrap = document.createElement('span');
+  doneIconWrap.className = 'bugspark-action-btn__icon';
+  doneIconWrap.innerHTML = ACTION_ICONS.done;
+  doneBtn.appendChild(doneIconWrap);
+  const doneLabel = document.createElement('span');
+  doneLabel.className = 'bugspark-action-btn__text';
+  doneLabel.textContent = 'Done';
+  doneBtn.appendChild(doneLabel);
   doneBtn.addEventListener('click', () => {
     const result = annotationCanvas.getAnnotatedCanvas();
     callbacks.onDone(result);
@@ -231,8 +240,17 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   actionsSection.appendChild(doneBtn);
 
   const cancelBtn = document.createElement('button');
-  cancelBtn.className = 'bugspark-btn bugspark-btn--secondary bugspark-btn--cancel';
-  cancelBtn.textContent = 'Cancel';
+  cancelBtn.className = 'bugspark-action-btn bugspark-action-btn--cancel';
+  cancelBtn.setAttribute('aria-label', 'Cancel');
+  cancelBtn.title = 'Cancel';
+  const cancelIconWrap = document.createElement('span');
+  cancelIconWrap.className = 'bugspark-action-btn__icon';
+  cancelIconWrap.innerHTML = ACTION_ICONS.cancel;
+  cancelBtn.appendChild(cancelIconWrap);
+  const cancelLabel = document.createElement('span');
+  cancelLabel.className = 'bugspark-action-btn__text';
+  cancelLabel.textContent = 'Cancel';
+  cancelBtn.appendChild(cancelLabel);
   cancelBtn.addEventListener('click', callbacks.onCancel);
   actionsSection.appendChild(cancelBtn);
 

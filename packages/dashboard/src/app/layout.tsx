@@ -27,12 +27,14 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
-        <Script
-          src="https://unpkg.com/@bugspark/widget@0.1.0/dist/bugspark.iife.js"
-          data-api-key="bsk_pub_a49e6629571e475f7b9377091cf440ae"
-          data-endpoint="https://bugspark-api.onrender.com/api/v1"
-          strategy="afterInteractive"
-        />
+        {process.env.NEXT_PUBLIC_BUGSPARK_API_KEY && (
+          <Script
+            src="https://unpkg.com/@bugspark/widget@0.1.0/dist/bugspark.iife.js"
+            data-api-key={process.env.NEXT_PUBLIC_BUGSPARK_API_KEY}
+            data-endpoint={process.env.NEXT_PUBLIC_API_URL ?? "https://bugspark-api.onrender.com/api/v1"}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );

@@ -200,7 +200,15 @@ async def logout(
 
 
 @router.get("/me", response_model=UserResponse)
-async def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
+async def get_me(
+    request: Request, response: Response, current_user: User = Depends(get_current_user)
+) -> UserResponse:
+    # Echo the CSRF token back so cross-origin clients can repopulate
+    # their in-memory store after a page refresh (document.cookie can't
+    # read cookies from a different domain).
+    csrf_token = request.cookies.get("bugspark_csrf_token")
+    if csrf_token:
+        response.headers["X-CSRF-Token"] = csrf_token
     return UserResponse.model_validate(current_user)
 
 

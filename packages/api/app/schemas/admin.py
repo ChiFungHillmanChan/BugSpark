@@ -13,6 +13,7 @@ class AdminUserResponse(CamelModel):
     role: str
     plan: str
     is_active: bool
+    plan_expires_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
     project_count: int = 0

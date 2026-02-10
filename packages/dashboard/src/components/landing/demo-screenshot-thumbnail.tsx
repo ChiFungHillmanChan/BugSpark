@@ -25,7 +25,7 @@ export function DemoScreenshotThumbnail({ className }: DemoScreenshotThumbnailPr
         </div>
       </div>
 
-      {/* Red annotation circle overlay */}
+      {/* Red annotation circle overlay on button area */}
       <svg
         className="absolute inset-0 w-full h-full pointer-events-none"
         viewBox="0 0 100 60"
@@ -33,9 +33,9 @@ export function DemoScreenshotThumbnail({ className }: DemoScreenshotThumbnailPr
       >
         <ellipse
           cx="50"
-          cy="38"
-          rx="20"
-          ry="10"
+          cy="44"
+          rx="22"
+          ry="8"
           fill="none"
           stroke="#e94560"
           strokeWidth="1.5"

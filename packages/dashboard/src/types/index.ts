@@ -18,6 +18,7 @@ export interface AdminUser {
   role: UserRole;
   plan: UserPlan;
   isActive: boolean;
+  planExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
   projectCount: number;

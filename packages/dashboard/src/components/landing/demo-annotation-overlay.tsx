@@ -85,18 +85,18 @@ function AnnotationCircle() {
       className="absolute z-10 pointer-events-none"
       style={{
         left: "50%",
-        top: "55%",
+        top: "66%",
         transform: "translate(-50%, -50%)",
-        width: "120px",
-        height: "60px",
+        width: "140px",
+        height: "50px",
       }}
-      viewBox="0 0 120 60"
+      viewBox="0 0 140 50"
     >
       <ellipse
-        cx="60"
-        cy="30"
-        rx="55"
-        ry="25"
+        cx="70"
+        cy="25"
+        rx="65"
+        ry="20"
         fill="none"
         stroke="#e94560"
         strokeWidth="2.5"

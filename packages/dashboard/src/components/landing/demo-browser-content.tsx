@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Bug, X, Send, Check } from "lucide-react";
+import { Bug, X, Send, Check, Camera } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DemoBrokenLogin } from "@/components/landing/demo-broken-login";
 import { DemoAnnotationOverlay } from "@/components/landing/demo-annotation-overlay";
@@ -38,9 +38,27 @@ function TypewriterText({ text, isVisible }: { text: string; isVisible: boolean 
   );
 }
 
+function DemoCameraButton() {
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-2 p-2 sm:p-2.5",
+        "border border-dashed border-gray-300 dark:border-white/[0.12]",
+        "rounded bg-gray-50 dark:bg-navy-900 cursor-default",
+      )}
+    >
+      <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
+      <span className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500">
+        Capture Screenshot
+      </span>
+    </div>
+  );
+}
+
 function WidgetModal({ phase }: { phase: ReportPhase }) {
   const t = useTranslations("landing");
   const showModal = phase === "modal" || phase === "fill" || phase === "submit";
+  const isInitialOpen = phase === "modal";
   const isFilling = phase === "fill" || phase === "submit";
   const isSubmitting = phase === "submit";
 
@@ -52,7 +70,7 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
         "absolute bottom-14 sm:bottom-16 right-3 sm:right-4 w-56 sm:w-72 max-w-[calc(100%-24px)]",
         "bg-white dark:bg-navy-800 rounded-xl shadow-2xl",
         "border border-gray-200 dark:border-white/[0.08] overflow-hidden",
-        phase === "modal" && "animate-[demo-modal-enter_0.4s_ease-out_forwards]",
+        "animate-[demo-modal-enter_0.4s_ease-out_forwards]",
       )}
     >
       {/* Header */}
@@ -65,8 +83,8 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
 
       {/* Body */}
       <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
-        {/* Screenshot thumbnail */}
-        <DemoScreenshotThumbnail />
+        {/* Screenshot area: camera button when first opened, thumbnail after capture */}
+        {isInitialOpen ? <DemoCameraButton /> : <DemoScreenshotThumbnail />}
 
         {/* Title field */}
         <div>
@@ -142,6 +160,10 @@ function WidgetModal({ phase }: { phase: ReportPhase }) {
 function FloatingButton({ phase }: { phase: ReportPhase }) {
   const isIdle = phase === "idle";
   const isPressed = phase === "click";
+  const isHidden = phase === "modal" || phase === "capture" || phase === "annotate"
+    || phase === "fill" || phase === "submit";
+
+  if (isHidden) return null;
 
   return (
     <div

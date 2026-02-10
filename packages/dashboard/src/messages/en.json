@@ -12,7 +12,9 @@
     "adminPanel": "Admin Panel",
     "adminDashboard": "Platform",
     "adminUsers": "Users",
-    "adminReports": "Bug Reports"
+    "adminReports": "Bug Reports",
+    "manageProjects": "Manage Projects",
+    "newProject": "New Project"
   },
   "auth": {
     "signIn": "Sign in",
@@ -491,7 +493,12 @@
     "totalReportsCount": "{count, plural, one {# report} other {# reports}} total",
     "project": "Project",
     "save": "Save",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "planExpired": "Plan expired",
+    "planExpiresIn": "{days, plural, one {Expires in # day} other {Expires in # days}}",
+    "noExpiry": "No expiry",
+    "editExpiry": "Edit",
+    "clearExpiry": "Clear"
   },
   "featuresPage": {
     "title": "Features",

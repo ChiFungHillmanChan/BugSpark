@@ -4,10 +4,14 @@ import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { LocaleSwitcher } from "@/components/shared/locale-switcher";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { useProjectContext } from "@/providers/project-provider";
+import { useProjects } from "@/hooks/use-projects";
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
+
+const PROJECT_SCOPED_PREFIXES = ["/dashboard", "/bugs"];
 
 function getBreadcrumbs(pathname: string): string[] {
   const segments = pathname.split("/").filter(Boolean);
@@ -19,7 +23,22 @@ function getBreadcrumbs(pathname: string): string[] {
 
 export function Topbar({ onMenuClick }: TopbarProps) {
   const pathname = usePathname();
+  const { selectedProjectId } = useProjectContext();
+  const { data: projects } = useProjects();
+
   const breadcrumbs = getBreadcrumbs(pathname);
+
+  const isProjectScoped = PROJECT_SCOPED_PREFIXES.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+  const selectedProject = selectedProjectId
+    ? projects?.find((p) => p.id === selectedProjectId)
+    : null;
+
+  const displayCrumbs =
+    isProjectScoped && selectedProject
+      ? [selectedProject.name, ...breadcrumbs]
+      : breadcrumbs;
 
   return (
     <header className="h-14 border-b border-gray-200 dark:border-white/[0.06] bg-white dark:bg-navy-950/80 dark:backdrop-blur-xl flex items-center px-6 gap-4">
@@ -31,12 +50,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
       </button>
 
       <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-        {breadcrumbs.map((crumb, index) => (
+        {displayCrumbs.map((crumb, index) => (
           <span key={index} className="flex items-center">
             {index > 0 && <span className="mx-2">/</span>}
             <span
               className={
-                index === breadcrumbs.length - 1
+                index === displayCrumbs.length - 1
                   ? "text-gray-900 dark:text-white font-semibold"
                   : ""
               }

@@ -12,7 +12,9 @@
     "adminPanel": "管理面板",
     "adminDashboard": "平台總覽",
     "adminUsers": "使用者管理",
-    "adminReports": "錯誤回報"
+    "adminReports": "錯誤回報",
+    "manageProjects": "管理專案",
+    "newProject": "新增專案"
   },
   "auth": {
     "signIn": "登入",
@@ -491,7 +493,12 @@
     "totalReportsCount": "共 {count} 則回報",
     "project": "專案",
     "save": "儲存",
-    "cancel": "取消"
+    "cancel": "取消",
+    "planExpired": "方案已過期",
+    "planExpiresIn": "還有 {days} 天到期",
+    "noExpiry": "無期限",
+    "editExpiry": "編輯",
+    "clearExpiry": "清除"
   },
   "featuresPage": {
     "title": "功能特色",

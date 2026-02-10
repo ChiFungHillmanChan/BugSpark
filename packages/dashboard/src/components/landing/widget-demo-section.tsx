@@ -19,9 +19,9 @@ import type { PhaseConfig } from "@/hooks/use-demo-phase";
 const REPORT_PHASES: PhaseConfig<ReportPhase>[] = [
   { phase: "idle", duration: 1500 },
   { phase: "click", duration: 500 },
+  { phase: "modal", duration: 1500 },
   { phase: "capture", duration: 1200 },
   { phase: "annotate", duration: 2500 },
-  { phase: "modal", duration: 1000 },
   { phase: "fill", duration: 4000 },
   { phase: "submit", duration: 2000 },
   { phase: "toast", duration: 1500 },
@@ -45,7 +45,7 @@ const REPORT_STEPS: StepConfig<ReportPhase>[] = [
   {
     titleKey: "demoStep2Title",
     descKey: "demoStep2Desc",
-    activePhases: ["capture"],
+    activePhases: ["modal", "capture"],
   },
   {
     titleKey: "demoStep3Title",
@@ -55,7 +55,7 @@ const REPORT_STEPS: StepConfig<ReportPhase>[] = [
   {
     titleKey: "demoStep4Title",
     descKey: "demoStep4Desc",
-    activePhases: ["modal", "fill", "submit"],
+    activePhases: ["fill", "submit"],
   },
   {
     titleKey: "demoStep5Title",

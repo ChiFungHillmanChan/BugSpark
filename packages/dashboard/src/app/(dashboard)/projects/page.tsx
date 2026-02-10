@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { Plus, FolderKanban } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/shared/page-header";
 import { ProjectCard } from "@/components/projects/project-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -11,12 +12,19 @@ import { useProjects, useCreateProject } from "@/hooks/use-projects";
 
 export default function ProjectsPage() {
   const t = useTranslations("projects");
+  const searchParams = useSearchParams();
   const { data: projects, isLoading } = useProjects();
   const createProject = useCreateProject();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projectDomain, setProjectDomain] = useState("");
   const [createError, setCreateError] = useState("");
+
+  useEffect(() => {
+    if (searchParams.get("create") === "true") {
+      setIsModalOpen(true);
+    }
+  }, [searchParams]);
 
   const handleEscKey = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") setIsModalOpen(false);

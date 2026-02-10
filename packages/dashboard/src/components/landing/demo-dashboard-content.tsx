@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Bug } from "lucide-react";
+import { DemoScreenshotThumbnail } from "@/components/landing/demo-screenshot-thumbnail";
 
 export type DashboardPhase = "appear" | "triage" | "assign" | "resolve" | "reset";
 
@@ -105,6 +106,9 @@ export function DemoDashboardContent({ phase }: DemoDashboardContentProps) {
           <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-2">
             {t("demoTypedTitle")}
           </h4>
+
+          {/* Screenshot thumbnail */}
+          <DemoScreenshotThumbnail className="mb-2" />
 
           {/* Status badge */}
           <div className="mb-3">

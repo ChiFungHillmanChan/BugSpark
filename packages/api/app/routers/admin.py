@@ -34,6 +34,7 @@ def _admin_user_response(
         role=user.role.value if isinstance(user.role, Role) else user.role,
         plan=user.plan.value if isinstance(user.plan, Plan) else user.plan,
         is_active=user.is_active,
+        plan_expires_at=user.plan_expires_at,
         created_at=user.created_at,
         updated_at=user.updated_at,
         project_count=project_count,
@@ -149,6 +150,9 @@ async def update_user(
     if user is None:
         raise NotFoundException(translate("admin.user_not_found", locale))
 
+    # Determine which fields were explicitly provided in the request body
+    provided_fields = body.model_fields_set
+
     if body.role is not None:
         try:
             user.role = Role(body.role)
@@ -163,6 +167,10 @@ async def update_user(
 
     if body.is_active is not None:
         user.is_active = body.is_active
+
+    # plan_expires_at: update when explicitly provided (including null to clear)
+    if "plan_expires_at" in provided_fields:
+        user.plan_expires_at = body.plan_expires_at
 
     await db.commit()
     await db.refresh(user)

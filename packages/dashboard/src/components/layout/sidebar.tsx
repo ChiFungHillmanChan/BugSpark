@@ -6,24 +6,19 @@ import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Bug,
-  FolderKanban,
   Settings,
   BookOpen,
-  ChevronDown,
   Shield,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
-import { useProjectContext } from "@/providers/project-provider";
-import { useProjects } from "@/hooks/use-projects";
 import { PlanBadge } from "@/components/shared/plan-badge";
-import { useState } from "react";
+import { ProjectSwitcher } from "@/components/layout/project-switcher";
 
 const NAV_ITEMS = [
   { href: "/dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard },
   { href: "/bugs", labelKey: "bugs" as const, icon: Bug },
-  { href: "/projects", labelKey: "projects" as const, icon: FolderKanban },
   { href: "/docs", labelKey: "docs" as const, icon: BookOpen, external: true },
 ];
 
@@ -41,12 +36,7 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, isSuperadmin } = useAuth();
-  const { selectedProjectId, setSelectedProjectId } = useProjectContext();
-  const { data: projects } = useProjects();
-  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const t = useTranslations("nav");
-
-  const selectedProject = projects?.find((p) => p.id === selectedProjectId);
 
   const userInitials = user?.name
     ?.split(" ")
@@ -75,51 +65,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </Link>
         </div>
 
-        {projects && projects.length > 0 && (
-          <div className="px-4 mt-4 mb-4">
-            <button
-              onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-navy-900/80 border border-gray-200 dark:border-white/[0.06] text-sm hover:bg-gray-200 dark:hover:bg-navy-800"
-            >
-              <span className="truncate">
-                {selectedProject?.name ?? t("selectProject")}
-              </span>
-              <ChevronDown className="w-4 h-4 shrink-0" />
-            </button>
-            {isProjectDropdownOpen && (
-              <div className="mt-1 rounded-lg bg-gray-100 dark:bg-navy-900/80 border border-gray-200 dark:border-white/[0.06] py-1">
-                <button
-                  onClick={() => {
-                    setSelectedProjectId(null);
-                    setIsProjectDropdownOpen(false);
-                  }}
-                  className={cn(
-                    "w-full text-left px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-white/[0.04]",
-                    !selectedProjectId && "font-medium text-accent",
-                  )}
-                >
-                  {t("allProjects")}
-                </button>
-                {projects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => {
-                      setSelectedProjectId(project.id);
-                      setIsProjectDropdownOpen(false);
-                    }}
-                    className={cn(
-                      "w-full text-left px-3 py-2 text-sm hover:bg-gray-200 dark:hover:bg-white/[0.04]",
-                      selectedProjectId === project.id &&
-                        "font-medium text-accent",
-                    )}
-                  >
-                    {project.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <ProjectSwitcher onNavigate={onClose} />
 
         <nav className="flex-1 px-4 space-y-1 thin-scrollbar">
           {NAV_ITEMS.map((item) => {

@@ -43,6 +43,7 @@ interface UpdateUserPayload {
   role?: string;
   plan?: string;
   is_active?: boolean;
+  plan_expires_at?: string | null;
 }
 
 interface AdminReportsParams {

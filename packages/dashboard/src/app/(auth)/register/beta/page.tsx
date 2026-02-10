@@ -2,23 +2,21 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2, Clock } from "lucide-react";
+import { Eye, EyeOff, Loader2, Clock, CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useAuth } from "@/providers/auth-provider";
+import apiClient from "@/lib/api-client";
 
-export default function RegisterPage() {
-  const { register } = useAuth();
-  const searchParams = useSearchParams();
-  const t = useTranslations("auth");
-  const tBeta = useTranslations("beta");
+export default function BetaRegisterPage() {
+  const t = useTranslations("beta");
+  const tAuth = useTranslations("auth");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [reason, setReason] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [betaPending, setBetaPending] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -26,38 +24,41 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      const redirectTo = searchParams.get("redirect") ?? undefined;
-      const result = await register(name, email, password, redirectTo);
-      if (result.kind === "beta") {
-        setBetaPending(true);
-      }
-    } catch {
-      setError(t("registrationFailed"));
+      await apiClient.post("/auth/register/beta", {
+        name,
+        email,
+        password,
+        reason,
+      });
+      setIsSuccess(true);
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { detail?: string } } };
+      setError(axiosError.response?.data?.detail ?? tAuth("registrationFailed"));
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (betaPending) {
+  if (isSuccess) {
     return (
       <div className="w-full">
         <div className="bg-white dark:bg-navy-800/60 dark:backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-lg dark:shadow-2xl dark:shadow-accent/5 border border-gray-200 dark:border-white/[0.08] p-6 sm:p-10 md:p-12 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
-              <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 sm:w-10 sm:h-10 text-green-600 dark:text-green-400" />
             </div>
           </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            {tBeta("successTitle")}
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+            {t("successTitle")}
           </h2>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6">
-            {tBeta("successMessage")}
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 max-w-sm mx-auto">
+            {t("successMessage")}
           </p>
           <Link
             href="/login"
-            className="inline-block py-2.5 px-6 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold transition-all"
+            className="inline-flex items-center gap-2 py-3 sm:py-3.5 px-8 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
           >
-            {tBeta("backToLogin")}
+            {t("backToLogin")}
           </Link>
         </div>
       </div>
@@ -67,21 +68,16 @@ export default function RegisterPage() {
   return (
     <div className="w-full">
       <div className="bg-white dark:bg-navy-800/60 dark:backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-lg dark:shadow-2xl dark:shadow-accent/5 border border-gray-200 dark:border-white/[0.08] p-6 sm:p-10 md:p-12">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-          {t("createAccount")}
-        </h2>
+        <div className="flex items-center gap-3 mb-1 sm:mb-2">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+            {t("title")}
+          </h2>
+        </div>
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
-          {t("hasAccount")}{" "}
-          <Link
-            href={
-              searchParams.get("redirect")
-                ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
-                : "/login"
-            }
-            className="text-accent hover:underline font-medium"
-          >
-            {t("signIn")}
-          </Link>
+          {t("subtitle")}
         </p>
 
         {error && (
@@ -93,7 +89,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label htmlFor="name" className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-              {t("name")}
+              {tAuth("name")}
             </label>
             <input
               id="name"
@@ -102,13 +98,13 @@ export default function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               required
               className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 border border-gray-300 dark:border-white/[0.1] rounded-xl text-sm sm:text-base bg-white dark:bg-navy-900/60 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-shadow"
-              placeholder={t("namePlaceholder")}
+              placeholder={tAuth("namePlaceholder")}
             />
           </div>
 
           <div>
             <label htmlFor="email" className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-              {t("email")}
+              {tAuth("email")}
             </label>
             <input
               id="email"
@@ -117,13 +113,13 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 border border-gray-300 dark:border-white/[0.1] rounded-xl text-sm sm:text-base bg-white dark:bg-navy-900/60 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-shadow"
-              placeholder={t("emailPlaceholder")}
+              placeholder={tAuth("emailPlaceholder")}
             />
           </div>
 
           <div>
             <label htmlFor="password" className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-              {t("password")}
+              {tAuth("password")}
             </label>
             <div className="relative">
               <input
@@ -134,7 +130,7 @@ export default function RegisterPage() {
                 required
                 minLength={8}
                 className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 pr-11 sm:pr-12 border border-gray-300 dark:border-white/[0.1] rounded-xl text-sm sm:text-base bg-white dark:bg-navy-900/60 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-shadow"
-                placeholder={t("passwordHint")}
+                placeholder={tAuth("passwordHint")}
               />
               <button
                 type="button"
@@ -147,15 +143,36 @@ export default function RegisterPage() {
             </div>
           </div>
 
+          <div>
+            <label htmlFor="reason" className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+              {t("reasonLabel")}
+            </label>
+            <textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={3}
+              className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 border border-gray-300 dark:border-white/[0.1] rounded-xl text-sm sm:text-base bg-white dark:bg-navy-900/60 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-shadow resize-none"
+              placeholder={t("reasonPlaceholder")}
+            />
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}
             className="w-full py-3 sm:py-3.5 px-6 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-2.5 transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-            {isSubmitting ? t("creatingAccount") : t("createAccount")}
+            {isSubmitting ? t("submitting") : t("submitButton")}
           </button>
         </form>
+
+        <p className="mt-6 text-center text-sm sm:text-base text-gray-500 dark:text-gray-400">
+          {tAuth("hasAccount")}{" "}
+          <Link href="/login" className="text-accent hover:underline font-medium">
+            {tAuth("signIn")}
+          </Link>
+        </p>
       </div>
     </div>
   );

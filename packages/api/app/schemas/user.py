@@ -15,6 +15,7 @@ class UserResponse(CamelModel):
     role: str
     plan: str
     is_active: bool
+    beta_status: str = "none"
     plan_expires_at: datetime | None = None
     created_at: datetime
 

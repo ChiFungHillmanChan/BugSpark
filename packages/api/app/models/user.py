@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
-from app.models.enums import Plan, Role
+from app.models.enums import BetaStatus, Plan, Role
 
 
 class User(Base):
@@ -38,6 +38,16 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(
         Boolean, default=True, server_default="true", nullable=False
     )
+    beta_status: Mapped[BetaStatus] = mapped_column(
+        SAEnum(BetaStatus, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),
+        default=BetaStatus.NONE,
+        server_default="none",
+        nullable=False,
+    )
+    beta_applied_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    beta_reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     refresh_token_jti: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

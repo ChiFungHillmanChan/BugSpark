@@ -11,11 +11,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.dependencies import get_current_user, get_db
-from app.exceptions import BadRequestException, UnauthorizedException
+from app.exceptions import BadRequestException, ForbiddenException, UnauthorizedException
 from app.i18n import get_locale, translate
+from app.models.app_settings import AppSettings
+from app.models.enums import BetaStatus
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
-from app.schemas.auth import CLIAuthResponse, LoginRequest, RegisterRequest
+from app.schemas.auth import BetaRegisterRequest, BetaRegisterResponse, CLIAuthResponse, LoginRequest, RegisterRequest
 from app.schemas.user import PasswordChange, UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
@@ -31,6 +33,35 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 # Stricter rate limit for auth endpoints to mitigate brute-force attacks
 _auth_limiter = Limiter(key_func=get_remote_address)
+
+
+async def _is_beta_mode(db: AsyncSession) -> bool:
+    """Return True if the platform is in beta mode (all registrations require approval)."""
+    result = await db.execute(select(AppSettings).where(AppSettings.id == 1))
+    settings = result.scalar_one_or_none()
+    if settings is None:
+        return True  # Default to beta mode if no settings row exists
+    return settings.beta_mode_enabled
+
+
+@router.get("/beta-mode")
+async def get_beta_mode(db: AsyncSession = Depends(get_db)) -> dict[str, bool]:
+    """Public endpoint: returns whether the platform is in beta mode."""
+    return {"betaModeEnabled": await _is_beta_mode(db)}
+
+
+def _check_beta_status(user: User, locale: str) -> None:
+    """Raise ForbiddenException if user is on the beta waiting list or rejected."""
+    if user.beta_status == BetaStatus.PENDING:
+        raise ForbiddenException(
+            translate("beta.waiting_list", locale),
+            code="beta.waiting_list",
+        )
+    if user.beta_status == BetaStatus.REJECTED:
+        raise ForbiddenException(
+            translate("beta.rejected", locale),
+            code="beta.rejected",
+        )
 
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
@@ -104,24 +135,38 @@ async def _issue_tokens(user: User, response: Response, db: AsyncSession) -> Non
     _set_auth_cookies(response, access_token, refresh_token)
 
 
-@router.post("/register", response_model=UserResponse)
+@router.post("/register")
 @_auth_limiter.limit("5/minute")
 async def register(
     body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
-) -> UserResponse:
+) -> UserResponse | BetaRegisterResponse:
     locale = get_locale(request)
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
         raise BadRequestException(translate("auth.email_registered", locale))
+
+    beta_mode = await _is_beta_mode(db)
 
     user = User(
         email=body.email,
         hashed_password=hash_password(body.password),
         name=body.name,
     )
+
+    if beta_mode:
+        user.beta_status = BetaStatus.PENDING
+        user.beta_applied_at = datetime.now(timezone.utc)
+
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    if beta_mode:
+        response.status_code = 201
+        return BetaRegisterResponse(
+            message=translate("beta.registered", locale),
+            beta_status="pending",
+        )
 
     await _issue_tokens(user, response, db)
 
@@ -142,6 +187,8 @@ async def login(
 
     if not user.is_active:
         raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    _check_beta_status(user, locale)
 
     await _issue_tokens(user, response, db)
 
@@ -246,27 +293,100 @@ async def change_password(
     return {"detail": translate("auth.password_changed", locale)}
 
 
+# ── Beta registration (dashboard) ──────────────────────────────────────────
+
+
+@router.post("/register/beta", response_model=BetaRegisterResponse, status_code=201)
+@_auth_limiter.limit("5/minute")
+async def register_beta(
+    body: BetaRegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
+) -> BetaRegisterResponse:
+    """Register for beta testing. Account will be placed on the waiting list."""
+    locale = get_locale(request)
+    existing = await db.execute(select(User).where(User.email == body.email))
+    if existing.scalar_one_or_none() is not None:
+        raise BadRequestException(translate("beta.already_applied", locale))
+
+    user = User(
+        email=body.email,
+        hashed_password=hash_password(body.password),
+        name=body.name,
+        beta_status=BetaStatus.PENDING,
+        beta_applied_at=datetime.now(timezone.utc),
+        beta_reason=body.reason or None,
+    )
+    db.add(user)
+    await db.commit()
+
+    return BetaRegisterResponse(
+        message=translate("beta.registered", locale),
+        beta_status="pending",
+    )
+
+
 # ── CLI-specific auth (returns PAT in body, no cookies) ────────────────────
 
 
-@router.post("/cli/register", response_model=CLIAuthResponse, status_code=201)
+@router.post("/cli/register/beta", response_model=BetaRegisterResponse, status_code=201)
+@_auth_limiter.limit("5/minute")
+async def cli_register_beta(
+    body: BetaRegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
+) -> BetaRegisterResponse:
+    """Register for beta testing from the CLI. Account will be placed on the waiting list."""
+    locale = get_locale(request)
+    existing = await db.execute(select(User).where(User.email == body.email))
+    if existing.scalar_one_or_none() is not None:
+        raise BadRequestException(translate("beta.already_applied", locale))
+
+    user = User(
+        email=body.email,
+        hashed_password=hash_password(body.password),
+        name=body.name,
+        beta_status=BetaStatus.PENDING,
+        beta_applied_at=datetime.now(timezone.utc),
+        beta_reason=body.reason or None,
+    )
+    db.add(user)
+    await db.commit()
+
+    return BetaRegisterResponse(
+        message=translate("beta.registered", locale),
+        beta_status="pending",
+    )
+
+
+@router.post("/cli/register", status_code=201)
 @_auth_limiter.limit("5/minute")
 async def cli_register(
     body: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
-) -> CLIAuthResponse:
+) -> CLIAuthResponse | BetaRegisterResponse:
     """Register a new account from the CLI. Returns a PAT for subsequent requests."""
     locale = get_locale(request)
     existing = await db.execute(select(User).where(User.email == body.email))
     if existing.scalar_one_or_none() is not None:
         raise BadRequestException(translate("auth.email_registered", locale))
 
+    beta_mode = await _is_beta_mode(db)
+
     user = User(
         email=body.email,
         hashed_password=hash_password(body.password),
         name=body.name,
     )
+
+    if beta_mode:
+        user.beta_status = BetaStatus.PENDING
+        user.beta_applied_at = datetime.now(timezone.utc)
+
     db.add(user)
     await db.flush()
+
+    if beta_mode:
+        await db.commit()
+        return BetaRegisterResponse(
+            message=translate("beta.registered", locale),
+            beta_status="pending",
+        )
 
     raw_token, pat = create_cli_pat(user.id)
     db.add(pat)
@@ -298,6 +418,8 @@ async def cli_login(
 
     if not user.is_active:
         raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    _check_beta_status(user, locale)
 
     # Clean up old CLI PATs for this user
     old_pats = await db.execute(

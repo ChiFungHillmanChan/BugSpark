@@ -13,6 +13,7 @@
     "adminDashboard": "Platform",
     "adminUsers": "Users",
     "adminReports": "Bug Reports",
+    "adminBeta": "Beta Applicants",
     "manageProjects": "Manage Projects",
     "newProject": "New Project"
   },
@@ -32,7 +33,9 @@
     "createOne": "Create one",
     "hasAccount": "Already have an account?",
     "invalidCredentials": "Invalid email or password. Please try again.",
-    "registrationFailed": "Registration failed. Please try again."
+    "registrationFailed": "Registration failed. Please try again.",
+    "joinBeta": "Join the Beta",
+    "orJoinBeta": "Want to test new features?"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -611,6 +614,38 @@
     "planPro": "PRO",
     "planEnterprise": "ENT",
     "planSuperadmin": "SA"
+  },
+  "beta": {
+    "title": "Join Beta Testing",
+    "subtitle": "Apply for early access to test new features and help us improve BugSpark.",
+    "reasonLabel": "Why do you want to join the beta?",
+    "reasonPlaceholder": "Tell us about your use case and why you'd like to test...",
+    "submitButton": "Apply for Beta",
+    "submitting": "Submitting...",
+    "waitingListTitle": "You're on the Waiting List",
+    "waitingListMessage": "Your beta testing application is being reviewed. We'll notify you once your account has been approved.",
+    "waitingListLogin": "Your account is on the beta testing waiting list. Please wait for admin approval before logging in.",
+    "rejectedTitle": "Application Not Approved",
+    "rejectedMessage": "Unfortunately, your beta testing application was not approved at this time.",
+    "successTitle": "Application Submitted!",
+    "successMessage": "You've been added to the beta testing waiting list. We'll review your application and get back to you soon.",
+    "backToLogin": "Back to Login",
+    "adminTitle": "Beta Applicants",
+    "approve": "Approve",
+    "reject": "Reject",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "filterAll": "All",
+    "emptyState": "No beta applicants found.",
+    "searchPlaceholder": "Search applicants...",
+    "appliedAt": "Applied",
+    "reason": "Reason",
+    "totalCount": "{count, plural, one {# applicant} other {# applicants}} total",
+    "pendingCount": "{count, plural, one {# pending} other {# pending}}",
+    "betaModeLabel": "Beta Mode",
+    "betaModeOnDesc": "New registrations require admin approval before users can access the platform.",
+    "betaModeOffDesc": "Registration is open to everyone. New users can access the platform immediately."
   },
   "device": {
     "title": "Authorize CLI",

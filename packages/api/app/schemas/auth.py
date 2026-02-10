@@ -18,6 +18,18 @@ class RegisterRequest(BaseModel):
     name: str = Field(min_length=1, max_length=255)
 
 
+class BetaRegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    name: str = Field(min_length=1, max_length=255)
+    reason: str = Field(default="", max_length=1000)
+
+
+class BetaRegisterResponse(CamelModel):
+    message: str
+    beta_status: str
+
+
 class CLIAuthResponse(CamelModel):
     """Response for CLI login/register — returns user info + a PAT token."""
 

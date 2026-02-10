@@ -10,6 +10,7 @@ import {
   BookOpen,
   Shield,
   Users,
+  FlaskConical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
@@ -26,6 +27,7 @@ const ADMIN_NAV_ITEMS = [
   { href: "/admin", labelKey: "adminDashboard" as const, icon: Shield },
   { href: "/admin/users", labelKey: "adminUsers" as const, icon: Users },
   { href: "/admin/reports", labelKey: "adminReports" as const, icon: Bug },
+  { href: "/admin/beta", labelKey: "adminBeta" as const, icon: FlaskConical },
 ];
 
 interface SidebarProps {

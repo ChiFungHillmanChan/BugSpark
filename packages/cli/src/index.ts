@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
 import { registerCommand } from "./commands/register.js";
+import { registerBetaCommand } from "./commands/register-beta.js";
 import { whoamiCommand } from "./commands/whoami.js";
 import { initCommand } from "./commands/init.js";
 import {
@@ -33,6 +34,11 @@ program
   .command("register")
   .description("Create a new BugSpark account")
   .action(registerCommand);
+
+program
+  .command("register-beta")
+  .description("Apply for beta testing access (requires admin approval)")
+  .action(registerBetaCommand);
 
 program
   .command("login")

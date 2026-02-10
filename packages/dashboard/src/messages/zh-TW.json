@@ -13,6 +13,7 @@
     "adminDashboard": "平台總覽",
     "adminUsers": "使用者管理",
     "adminReports": "錯誤回報",
+    "adminBeta": "Beta 申請者",
     "manageProjects": "管理專案",
     "newProject": "新增專案"
   },
@@ -32,7 +33,9 @@
     "createOne": "建立帳號",
     "hasAccount": "已經有帳號了？",
     "invalidCredentials": "電子郵件或密碼無效，請重試。",
-    "registrationFailed": "註冊失敗，請重試。"
+    "registrationFailed": "註冊失敗，請重試。",
+    "joinBeta": "加入 Beta 測試",
+    "orJoinBeta": "想搶先體驗新功能？"
   },
   "dashboard": {
     "title": "儀表板",
@@ -611,6 +614,38 @@
     "planPro": "專業",
     "planEnterprise": "企業",
     "planSuperadmin": "超管"
+  },
+  "beta": {
+    "title": "加入 Beta 測試",
+    "subtitle": "申請搶先體驗新功能，幫助我們改善 BugSpark。",
+    "reasonLabel": "為什麼您想加入 Beta 測試？",
+    "reasonPlaceholder": "請告訴我們您的使用情境及想要測試的原因...",
+    "submitButton": "申請 Beta 測試",
+    "submitting": "提交中...",
+    "waitingListTitle": "您在等候名單中",
+    "waitingListMessage": "您的 Beta 測試申請正在審核中。帳號核准後我們會通知您。",
+    "waitingListLogin": "您的帳號正在 Beta 測試等候名單中，請等待管理員審核後再登入。",
+    "rejectedTitle": "申請未通過",
+    "rejectedMessage": "很遺憾，您的 Beta 測試申請目前未獲核准。",
+    "successTitle": "申請已提交！",
+    "successMessage": "您已加入 Beta 測試等候名單。我們會審核您的申請並儘快回覆。",
+    "backToLogin": "返回登入",
+    "adminTitle": "Beta 申請者",
+    "approve": "核准",
+    "reject": "拒絕",
+    "pending": "待審核",
+    "approved": "已核准",
+    "rejected": "已拒絕",
+    "filterAll": "全部",
+    "emptyState": "沒有找到 Beta 申請者。",
+    "searchPlaceholder": "搜尋申請者...",
+    "appliedAt": "申請時間",
+    "reason": "原因",
+    "totalCount": "共 {count} 位申請者",
+    "pendingCount": "{count} 位待審核",
+    "betaModeLabel": "Beta 模式",
+    "betaModeOnDesc": "新註冊使用者需經管理員核准後才能使用平台。",
+    "betaModeOffDesc": "開放註冊，新使用者可立即使用平台。"
   },
   "device": {
     "title": "授權 CLI",

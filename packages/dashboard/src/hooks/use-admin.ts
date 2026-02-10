@@ -6,6 +6,7 @@ import type {
   BugReport,
   PaginatedResponse,
   PlatformStats,
+  BetaUser,
 } from "@/types";
 
 interface AdminUsersParams {
@@ -96,6 +97,102 @@ export function useAdminUpdateUser() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
+    },
+  });
+}
+
+// ── App settings ──────────────────────────────────────────────────────────
+
+interface AppSettingsData {
+  betaModeEnabled: boolean;
+}
+
+export function useAdminSettings() {
+  return useQuery({
+    queryKey: queryKeys.admin.settings,
+    queryFn: async () => {
+      const response = await apiClient.get<AppSettingsData>("/admin/settings");
+      return response.data;
+    },
+  });
+}
+
+export function useAdminUpdateSettings() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: { betaModeEnabled: boolean }) => {
+      const response = await apiClient.patch<AppSettingsData>(
+        "/admin/settings",
+        { beta_mode_enabled: data.betaModeEnabled },
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.settings });
+    },
+  });
+}
+
+// ── Beta user management ──────────────────────────────────────────────────
+
+interface AdminBetaUsersParams {
+  search?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useAdminBetaUsers(params: AdminBetaUsersParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.admin.betaUsers(params),
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const queryParams: Record<string, string | number> = {};
+      if (params.search) queryParams.search = params.search;
+      if (params.status) queryParams.status = params.status;
+      if (params.page) queryParams.page = params.page;
+      if (params.pageSize) queryParams.page_size = params.pageSize;
+
+      const response = await apiClient.get<PaginatedResponse<BetaUser>>(
+        "/admin/beta-users",
+        { params: queryParams },
+      );
+      return response.data;
+    },
+  });
+}
+
+export function useAdminApproveBeta() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiClient.post<BetaUser>(
+        `/admin/beta-users/${userId}/approve`,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "beta-users"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
+    },
+  });
+}
+
+export function useAdminRejectBeta() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await apiClient.post<BetaUser>(
+        `/admin/beta-users/${userId}/reject`,
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "beta-users"] });
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.stats });
     },
   });

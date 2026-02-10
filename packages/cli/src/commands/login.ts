@@ -1,14 +1,14 @@
 import chalk from "chalk";
 import open from "open";
 import prompts from "prompts";
-import { createClient, createUnauthClient } from "../lib/api-client.js";
+import { ApiError, createClient, createUnauthClient } from "../lib/api-client.js";
 import {
   DEFAULT_API_URL,
   DEFAULT_DASHBOARD_URL,
   saveConfig,
 } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
-import { error, info, success } from "../lib/output.js";
+import { error, info, success, warn } from "../lib/output.js";
 
 interface CLIAuthResponse {
   id: string;
@@ -218,6 +218,19 @@ async function loginWithEmail(apiUrl: string): Promise<void> {
     console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);
     console.log();
   } catch (err) {
+    if (err instanceof ApiError && err.code === "beta.waiting_list") {
+      console.log();
+      warn("Your account is on the beta testing waiting list.");
+      console.log("  Please wait for admin approval before logging in.");
+      console.log();
+      process.exit(1);
+    }
+    if (err instanceof ApiError && err.code === "beta.rejected") {
+      console.log();
+      error("Your beta testing application has been rejected.");
+      console.log();
+      process.exit(1);
+    }
     error(`Login failed: ${formatError(err)}`);
     process.exit(1);
   }

@@ -15,7 +15,7 @@ from app.config import get_settings
 from app.database import async_session
 from app.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
 from app.i18n import get_locale, translate
-from app.models.enums import Role
+from app.models.enums import BetaStatus, Role
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.project import Project
 from app.models.user import User
@@ -121,9 +121,22 @@ async def get_active_user(
     request: Request,
     current_user: User = Depends(get_current_user),
 ) -> User:
+    locale = get_locale(request)
     if not current_user.is_active:
-        locale = get_locale(request)
         raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    # Safety net: block beta-pending / beta-rejected users
+    if current_user.beta_status == BetaStatus.PENDING:
+        raise ForbiddenException(
+            translate("beta.waiting_list", locale),
+            code="beta.waiting_list",
+        )
+    if current_user.beta_status == BetaStatus.REJECTED:
+        raise ForbiddenException(
+            translate("beta.rejected", locale),
+            code="beta.rejected",
+        )
+
     return current_user
 
 

@@ -35,6 +35,15 @@ MESSAGES: dict[str, str] = {
     # Device auth
     "device.invalid_code": "Invalid or expired device code",
     "device.code_expired": "Device code has expired",
+    # Beta testing
+    "beta.waiting_list": "Your account is on the beta testing waiting list. Please wait for admin approval.",
+    "beta.rejected": "Your beta testing application has been rejected.",
+    "beta.registered": "You have been added to the beta testing waiting list. We will notify you when your account is approved.",
+    "beta.approved": "Beta testing application approved.",
+    "beta.already_applied": "An account with this email already exists or has already applied for beta testing.",
+    "beta.not_found": "Beta user not found.",
+    "beta.not_beta_user": "This user is not a beta applicant.",
+    "beta.mode_updated": "Beta mode setting updated.",
     # Plan limits
     "plan.project_limit": "Plan limit reached: your plan allows up to {limit} project(s). Please upgrade your plan.",
     "plan.report_per_project_limit": "Plan limit reached: your plan allows up to {limit} report(s) per project. Please upgrade your plan.",

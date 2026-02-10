@@ -19,8 +19,9 @@ class UnauthorizedException(Exception):
 
 
 class ForbiddenException(Exception):
-    def __init__(self, detail: str = "Forbidden") -> None:
+    def __init__(self, detail: str = "Forbidden", code: str | None = None) -> None:
         self.detail = detail
+        self.code = code
 
 
 class BadRequestException(Exception):
@@ -39,7 +40,10 @@ def register_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(ForbiddenException)
     async def forbidden_handler(_request: Request, exc: ForbiddenException) -> JSONResponse:
-        return JSONResponse(status_code=403, content={"detail": exc.detail})
+        content: dict[str, str] = {"detail": exc.detail}
+        if exc.code:
+            content["code"] = exc.code
+        return JSONResponse(status_code=403, content=content)
 
     @app.exception_handler(BadRequestException)
     async def bad_request_handler(_request: Request, exc: BadRequestException) -> JSONResponse:

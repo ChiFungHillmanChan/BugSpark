@@ -15,6 +15,7 @@ import {
   registerApi,
   logoutApi,
   getMeApi,
+  type RegisterResult,
 } from "@/lib/auth";
 import type { User } from "@/types";
 
@@ -24,7 +25,7 @@ interface AuthContextValue {
   isLoading: boolean;
   isSuperadmin: boolean;
   login: (email: string, password: string, redirectTo?: string) => Promise<void>;
-  register: (name: string, email: string, password: string, redirectTo?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, redirectTo?: string) => Promise<RegisterResult>;
   logout: () => void;
 }
 
@@ -52,10 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (name: string, email: string, password: string, redirectTo?: string) => {
-      const data = await registerApi(name, email, password);
-      setUser(data);
-      router.push(redirectTo ?? "/dashboard");
+    async (name: string, email: string, password: string, redirectTo?: string): Promise<RegisterResult> => {
+      const result = await registerApi(name, email, password);
+      if (result.kind === "user") {
+        setUser(result.user);
+        router.push(redirectTo ?? "/dashboard");
+      }
+      // When kind === "beta", the caller (register page) handles the UI
+      return result;
     },
     [router],
   );

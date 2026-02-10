@@ -3,33 +3,101 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Clock, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
+
+type BetaState = "none" | "waiting_list" | "rejected";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const searchParams = useSearchParams();
   const t = useTranslations("auth");
+  const tBeta = useTranslations("beta");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [betaState, setBetaState] = useState<BetaState>("none");
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError("");
+    setBetaState("none");
     setIsSubmitting(true);
 
     try {
       const redirectTo = searchParams.get("redirect") ?? undefined;
       await login(email, password, redirectTo);
-    } catch {
-      setError(t("invalidCredentials"));
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { status?: number; data?: { code?: string } } };
+      const code = axiosError.response?.data?.code;
+
+      if (axiosError.response?.status === 403 && code === "beta.waiting_list") {
+        setBetaState("waiting_list");
+      } else if (axiosError.response?.status === 403 && code === "beta.rejected") {
+        setBetaState("rejected");
+      } else {
+        setError(t("invalidCredentials"));
+      }
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  // Waiting list UI
+  if (betaState === "waiting_list") {
+    return (
+      <div className="w-full">
+        <div className="bg-white dark:bg-navy-800/60 dark:backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-lg dark:shadow-2xl dark:shadow-accent/5 border border-gray-200 dark:border-white/[0.08] p-6 sm:p-10 md:p-12 text-center">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <Clock className="w-8 h-8 sm:w-10 sm:h-10 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+            {tBeta("waitingListTitle")}
+          </h2>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 max-w-sm mx-auto">
+            {tBeta("waitingListMessage")}
+          </p>
+          <button
+            onClick={() => setBetaState("none")}
+            className="inline-flex items-center gap-2 py-3 sm:py-3.5 px-8 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
+          >
+            {tBeta("backToLogin")}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Rejected UI
+  if (betaState === "rejected") {
+    return (
+      <div className="w-full">
+        <div className="bg-white dark:bg-navy-800/60 dark:backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-lg dark:shadow-2xl dark:shadow-accent/5 border border-gray-200 dark:border-white/[0.08] p-6 sm:p-10 md:p-12 text-center">
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <XCircle className="w-8 h-8 sm:w-10 sm:h-10 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
+            {tBeta("rejectedTitle")}
+          </h2>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 max-w-sm mx-auto">
+            {tBeta("rejectedMessage")}
+          </p>
+          <button
+            onClick={() => setBetaState("none")}
+            className="inline-flex items-center gap-2 py-3 sm:py-3.5 px-8 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
+          >
+            {tBeta("backToLogin")}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -108,6 +176,15 @@ export default function LoginPage() {
             {isSubmitting ? t("signingIn") : t("signIn")}
           </button>
         </form>
+
+        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-white/[0.08] text-center">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
+            {t("orJoinBeta")}{" "}
+            <Link href="/register/beta" className="text-accent hover:underline font-medium">
+              {t("joinBeta")}
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );

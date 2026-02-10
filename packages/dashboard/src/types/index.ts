@@ -1,5 +1,6 @@
 export type UserRole = "user" | "admin" | "superadmin";
 export type UserPlan = "free" | "pro" | "enterprise";
+export type BetaStatusType = "none" | "pending" | "approved" | "rejected";
 
 export interface User {
   id: string;
@@ -8,6 +9,7 @@ export interface User {
   role: UserRole;
   plan: UserPlan;
   isActive: boolean;
+  betaStatus?: BetaStatusType;
   createdAt: string;
 }
 
@@ -18,11 +20,22 @@ export interface AdminUser {
   role: UserRole;
   plan: UserPlan;
   isActive: boolean;
+  betaStatus: BetaStatusType;
   planExpiresAt: string | null;
   createdAt: string;
   updatedAt: string;
   projectCount: number;
   reportCountMonth: number;
+}
+
+export interface BetaUser {
+  id: string;
+  name: string;
+  email: string;
+  betaStatus: BetaStatusType;
+  betaReason: string | null;
+  betaAppliedAt: string | null;
+  createdAt: string;
 }
 
 export interface PlatformStats {
@@ -31,6 +44,7 @@ export interface PlatformStats {
   totalReports: number;
   usersByPlan: Record<string, number>;
   usersByRole: Record<string, number>;
+  pendingBetaCount: number;
 }
 
 export interface Project {

@@ -167,7 +167,11 @@
     "widgetColor": "Button Color",
     "widgetColorDesc": "Customize the color of the BugSpark floating button on your site.",
     "widgetPreview": "Preview",
-    "colorSaved": "Widget color saved."
+    "colorSaved": "Widget color saved.",
+    "deleteMessage": "Permanently delete this project and all its bug reports, screenshots, and data. This action cannot be undone.",
+    "deleteConfirmMessage": "This will permanently delete the project, all associated bug reports, screenshots, and files. This action is irreversible.",
+    "deleteConfirmInstruction": "To confirm, type {text} below:",
+    "deleting": "Deleting..."
   },
   "settings": {
     "title": "Settings",

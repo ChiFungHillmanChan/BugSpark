@@ -76,7 +76,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </div>
 
         {projects && projects.length > 0 && (
-          <div className="px-4 mb-4">
+          <div className="px-4 mt-4 mb-4">
             <button
               onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gray-100 dark:bg-navy-900/80 border border-gray-200 dark:border-white/[0.06] text-sm hover:bg-gray-200 dark:hover:bg-navy-800"

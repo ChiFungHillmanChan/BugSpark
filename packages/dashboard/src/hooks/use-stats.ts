@@ -30,3 +30,14 @@ export function useBugTrends(projectId: string) {
     placeholderData: keepPreviousData,
   });
 }
+
+export function useAggregatedStats() {
+  return useQuery({
+    queryKey: [...queryKeys.stats.overview, "aggregated"],
+    queryFn: async (): Promise<ProjectStats> => {
+      const response = await apiClient.get<ProjectStats>("/stats/aggregated");
+      return response.data;
+    },
+    placeholderData: keepPreviousData,
+  });
+}

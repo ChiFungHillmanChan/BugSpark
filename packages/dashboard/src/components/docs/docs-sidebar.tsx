@@ -19,8 +19,7 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
   const fullPath = `${basePath}/${item.slug}`;
   const isActive = pathname === fullPath;
   const hasChildren = item.children && item.children.length > 0;
-  const isExpanded = hasChildren && pathname.startsWith(fullPath);
-  const [isOpen, setIsOpen] = useState(isExpanded);
+  const [isOpen, setIsOpen] = useState(true);
 
   if (hasChildren) {
     return (

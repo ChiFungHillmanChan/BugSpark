@@ -1,6 +1,6 @@
 "use client";
 
-import { Bug, AlertCircle, CheckCircle2, Clock } from "lucide-react";
+import { Bug, AlertCircle, CheckCircle2, Clock, FolderKanban } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -8,7 +8,7 @@ import { BugTrendChart } from "@/components/dashboard/bug-trend-chart";
 import { SeverityChart } from "@/components/dashboard/severity-chart";
 import { RecentBugs } from "@/components/dashboard/recent-bugs";
 import { SkeletonCard } from "@/components/shared/skeleton-loader";
-import { useDashboardStats, useBugTrends } from "@/hooks/use-stats";
+import { useDashboardStats, useBugTrends, useAggregatedStats } from "@/hooks/use-stats";
 import { useBugs } from "@/hooks/use-bugs";
 import { useProjects } from "@/hooks/use-projects";
 import { useProjectContext } from "@/providers/project-provider";
@@ -46,6 +46,8 @@ export default function DashboardPage() {
   const { data: projectStats, isLoading: isProjectStatsLoading } = useBugTrends(
     selectedProjectId ?? "",
   );
+  const { data: aggregatedStats, isLoading: isAggregatedStatsLoading } =
+    useAggregatedStats();
   const { data: bugsData, isLoading: isBugsLoading } = useBugs({
     projectId: selectedProjectId,
     pageSize: 5,
@@ -53,25 +55,32 @@ export default function DashboardPage() {
     sortOrder: "desc",
   });
 
-  const chartsLoading = selectedProjectId
-    ? isProjectStatsLoading
-    : false;
-  const trendData = selectedProjectId ? projectStats?.bugsByDay : undefined;
-  const severityData = selectedProjectId
-    ? severityChartData(projectStats?.bugsBySeverity)
-    : undefined;
+  const isAllProjects = !selectedProjectId;
+  const activeStats = isAllProjects ? aggregatedStats : projectStats;
+  const chartsLoading = isAllProjects
+    ? isAggregatedStatsLoading
+    : isProjectStatsLoading;
+  const trendData = activeStats?.bugsByDay;
+  const severityData = severityChartData(activeStats?.bugsBySeverity);
 
   return (
     <div>
       <PageHeader title={t("title")} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${isAllProjects ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4 mb-8`}>
         {isStatsLoading ? (
-          Array.from({ length: 4 }).map((_, index) => (
+          Array.from({ length: isAllProjects ? 5 : 4 }).map((_, index) => (
             <SkeletonCard key={index} />
           ))
         ) : (
           <>
+            {isAllProjects && (
+              <StatCard
+                label={t("totalProjects")}
+                value={projects?.length ?? 0}
+                icon={FolderKanban}
+              />
+            )}
             <StatCard
               label={t("totalBugs")}
               value={stats?.totalBugs ?? 0}
@@ -100,12 +109,10 @@ export default function DashboardPage() {
         <BugTrendChart
           data={trendData}
           isLoading={chartsLoading}
-          noProjectSelected={!selectedProjectId}
         />
         <SeverityChart
           data={severityData}
           isLoading={chartsLoading}
-          noProjectSelected={!selectedProjectId}
         />
       </div>
 

@@ -82,6 +82,39 @@ async def get_project_stats(db: AsyncSession, project_id: str) -> ProjectStats:
     )
 
 
+async def get_aggregated_project_stats(
+    db: AsyncSession, user_id: str | None
+) -> ProjectStats:
+    if user_id is not None:
+        project_filter = Report.project_id.in_(
+            select(Project.id).where(Project.owner_id == user_id)
+        )
+    else:
+        project_filter = True  # type: ignore[assignment]
+
+    severity_result = await db.execute(
+        select(Report.severity, func.count(Report.id))
+        .where(project_filter)
+        .group_by(Report.severity)
+    )
+    bugs_by_severity = {row[0].value: row[1] for row in severity_result.all()}
+
+    status_result = await db.execute(
+        select(Report.status, func.count(Report.id))
+        .where(project_filter)
+        .group_by(Report.status)
+    )
+    bugs_by_status = {row[0].value: row[1] for row in status_result.all()}
+
+    bugs_by_day = await get_bug_trends_all(db, user_id, days=30)
+
+    return ProjectStats(
+        bugs_by_severity=bugs_by_severity,
+        bugs_by_status=bugs_by_status,
+        bugs_by_day=bugs_by_day,
+    )
+
+
 async def get_bug_trends(
     db: AsyncSession, project_id: str, days: int = 30
 ) -> list[BugTrend]:
@@ -91,6 +124,29 @@ async def get_bug_trends(
     result = await db.execute(
         select(date_col, func.count(Report.id))
         .where(Report.project_id == project_id, Report.created_at >= start_date)
+        .group_by(date_col)
+        .order_by(date_col)
+    )
+
+    return [BugTrend(date=str(row[0]), count=row[1]) for row in result.all()]
+
+
+async def get_bug_trends_all(
+    db: AsyncSession, user_id: str | None, days: int = 30
+) -> list[BugTrend]:
+    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+    date_col = cast(Report.created_at, Date)
+
+    if user_id is not None:
+        project_filter = Report.project_id.in_(
+            select(Project.id).where(Project.owner_id == user_id)
+        )
+    else:
+        project_filter = True  # type: ignore[assignment]
+
+    result = await db.execute(
+        select(date_col, func.count(Report.id))
+        .where(project_filter, Report.created_at >= start_date)
         .group_by(date_col)
         .order_by(date_col)
     )

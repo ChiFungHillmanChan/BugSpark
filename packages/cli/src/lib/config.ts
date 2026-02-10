@@ -5,6 +5,7 @@ import os from "node:os";
 
 export interface BugSparkConfig {
   apiUrl: string;
+  dashboardUrl: string;
   token: string;
 }
 
@@ -12,6 +13,7 @@ const CONFIG_DIR = path.join(os.homedir(), ".bugspark");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 const DEFAULT_API_URL = "https://bugspark-api.onrender.com/api/v1";
+const DEFAULT_DASHBOARD_URL = "http://localhost:3000";
 
 function ensureDir(): void {
   if (!fs.existsSync(CONFIG_DIR)) {
@@ -26,6 +28,10 @@ export function loadConfig(): BugSparkConfig | null {
   const parsed = JSON.parse(raw) as Partial<BugSparkConfig>;
 
   if (!parsed.token || !parsed.apiUrl) return null;
+  // Backfill dashboardUrl for configs saved before this field existed
+  if (!parsed.dashboardUrl) {
+    parsed.dashboardUrl = DEFAULT_DASHBOARD_URL;
+  }
   return parsed as BugSparkConfig;
 }
 
@@ -53,4 +59,4 @@ export function getConfigOrExit(): BugSparkConfig {
   return config;
 }
 
-export { DEFAULT_API_URL };
+export { DEFAULT_API_URL, DEFAULT_DASHBOARD_URL };

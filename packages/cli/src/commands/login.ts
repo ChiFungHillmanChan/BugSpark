@@ -2,7 +2,7 @@ import chalk from "chalk";
 import open from "open";
 import prompts from "prompts";
 import { createClient } from "../lib/api-client.js";
-import { DEFAULT_API_URL, saveConfig } from "../lib/config.js";
+import { DEFAULT_API_URL, DEFAULT_DASHBOARD_URL, saveConfig } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
 
@@ -27,30 +27,34 @@ export async function loginCommand(): Promise<void> {
   });
   if (!apiUrl) return;
 
-  // 2. Open the dashboard settings/tokens page
-  const dashboardUrl = apiUrl.replace("/api/v1", "");
-  info(`Opening browser to create a Personal Access Token...`);
+  // 2. Ask for Dashboard URL (separate from API — they're on different hosts)
+  const { dashboardUrl } = await prompts({
+    type: "text",
+    name: "dashboardUrl",
+    message: "BugSpark Dashboard URL",
+    initial: DEFAULT_DASHBOARD_URL,
+  });
+  if (!dashboardUrl) return;
+
+  // 3. Open the dashboard settings/tokens page in browser
+  const tokensUrl = `${dashboardUrl.replace(/\/+$/, "")}/settings/tokens`;
+
   console.log();
-  console.log(
-    `  If the browser doesn't open, go to:`
-  );
-  console.log(
-    chalk.cyan(`  ${dashboardUrl.replace(/\/api\/v1$/, "")}/settings`)
-  );
+  info("Opening browser to create a Personal Access Token...");
+  console.log();
+  console.log(`  ${chalk.cyan(tokensUrl)}`);
   console.log();
   console.log(
     `  Create a token under ${chalk.bold("Settings → Personal Access Tokens")}`
   );
   console.log();
 
-  try {
-    // Try to open the dashboard; ignore errors if browser unavailable
-    await open(dashboardUrl.replace(/\/api\/v1$/, "") + "/settings");
-  } catch {
-    // silent — user will use the URL above
-  }
+  // Auto-open in browser
+  await open(tokensUrl).catch(() => {
+    info("Could not open browser automatically. Please open the URL above manually.");
+  });
 
-  // 3. Prompt for the token
+  // 4. Prompt for the token
   const { token } = await prompts({
     type: "password",
     name: "token",
@@ -60,9 +64,9 @@ export async function loginCommand(): Promise<void> {
   });
   if (!token) return;
 
-  // 4. Validate by calling /auth/me
+  // 5. Validate by calling /auth/me
   info("Verifying token...");
-  const config = { apiUrl, token };
+  const config = { apiUrl, dashboardUrl, token };
 
   try {
     const client = createClient(config);

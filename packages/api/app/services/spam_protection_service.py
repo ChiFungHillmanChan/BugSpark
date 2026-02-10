@@ -86,10 +86,15 @@ def _extract_host_and_port(domain: str) -> tuple[str, int | None]:
     """Extract the hostname and optional port from a domain string.
 
     Handles bare hosts, host:port, and full URLs (http://host:port).
+    Returns (host, None) if the port is non-numeric or otherwise invalid.
     """
     domain = domain.strip().lower()
     if "://" in domain:
         parsed = urlparse(domain)
     else:
         parsed = urlparse(f"https://{domain}")
-    return (parsed.hostname or "").lower(), parsed.port
+    try:
+        port = parsed.port
+    except ValueError:
+        port = None
+    return (parsed.hostname or "").lower(), port

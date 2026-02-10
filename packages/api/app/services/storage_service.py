@@ -17,6 +17,14 @@ logger = logging.getLogger(__name__)
 ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "image/webp"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
+# Map content-type to a safe, deterministic extension used in object keys.
+# This ensures upload_file always produces keys that validate_object_key accepts.
+_CONTENT_TYPE_TO_EXT: dict[str, str] = {
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+}
+
 # Magic-byte signatures for validating actual file content vs declared content-type
 _MAGIC_SIGNATURES: list[tuple[bytes, str]] = [
     (b"\x89PNG", "image/png"),
@@ -85,7 +93,7 @@ async def upload_file(file_content: bytes, filename: str, content_type: str) -> 
         raise BadRequestException(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB")
 
     settings = get_settings()
-    extension = filename.rsplit(".", 1)[-1] if "." in filename else "png"
+    extension = _CONTENT_TYPE_TO_EXT.get(content_type, "png")
     object_key = f"screenshots/{uuid.uuid4()}.{extension}"
 
     client = _get_s3_client()

@@ -5,7 +5,7 @@ import { Skeleton, SkeletonCard, SkeletonTableRow, SkeletonChart } from '@/compo
 describe('Skeleton', () => {
   it('renders with custom className', () => {
     const { container } = render(<Skeleton className="h-4 w-1/2" />);
-    expect(container.firstChild).toHaveClass('animate-pulse');
+    expect(container.firstChild).toHaveClass('animate-shimmer');
     expect(container.firstChild).toHaveClass('h-4');
   });
 });
@@ -13,7 +13,7 @@ describe('Skeleton', () => {
 describe('SkeletonCard', () => {
   it('renders skeleton elements', () => {
     const { container } = render(<SkeletonCard />);
-    const skeletons = container.querySelectorAll('.animate-pulse');
+    const skeletons = container.querySelectorAll('.animate-shimmer');
     expect(skeletons.length).toBeGreaterThanOrEqual(3);
   });
 });
@@ -35,6 +35,6 @@ describe('SkeletonTableRow', () => {
 describe('SkeletonChart', () => {
   it('renders a skeleton element', () => {
     const { container } = render(<SkeletonChart />);
-    expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+    expect(container.querySelector('.animate-shimmer')).toBeInTheDocument();
   });
 });

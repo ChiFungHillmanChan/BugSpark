@@ -132,6 +132,10 @@ export function setLineWidth(width: number): void {
   currentTool = createToolInstance();
 }
 
+export function getLineWidth(): number {
+  return currentLineWidth;
+}
+
 export function undo(): void {
   history.undo();
 }

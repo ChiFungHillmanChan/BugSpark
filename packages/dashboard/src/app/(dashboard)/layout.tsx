@@ -22,9 +22,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-navy-900">
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-navy-950">
         <div className="flex flex-col items-center gap-3">
-          <Bug className="w-10 h-10 text-accent animate-pulse" />
+          <Bug className="w-10 h-10 text-accent animate-pulse dark:drop-shadow-[0_0_12px_var(--color-accent-glow)]" />
           <span className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</span>
         </div>
       </div>
@@ -36,7 +36,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-navy-900">
+    <div className="flex h-screen bg-gray-50 dark:bg-navy-950">
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

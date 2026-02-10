@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { SectionHeader } from "@/components/shared/section-header";
 
 const CODE_EXAMPLES = {
   script: `<script
@@ -45,16 +46,9 @@ export function IntegrationExamples() {
   ];
 
   return (
-    <section className="py-20 sm:py-28 bg-white">
+    <section className="py-20 sm:py-28 bg-white dark:bg-navy-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            {t("integration")}
-          </h2>
-          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            {t("integrationSubtitle")}
-          </p>
-        </div>
+        <SectionHeader title={t("integration")} subtitle={t("integrationSubtitle")} />
 
         <div className="max-w-2xl mx-auto">
           <div className="flex gap-1 mb-1">
@@ -66,14 +60,14 @@ export function IntegrationExamples() {
                   "px-4 py-2 rounded-t-lg text-sm font-medium transition-colors",
                   activeTab === tab.key
                     ? "bg-navy-900 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    : "bg-gray-100 dark:bg-navy-800/50 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-navy-700",
                 )}
               >
                 {tab.label}
               </button>
             ))}
           </div>
-          <div className="bg-navy-900 rounded-b-xl rounded-tr-xl p-6 overflow-x-auto">
+          <div className="bg-navy-900 rounded-b-xl rounded-tr-xl p-6 overflow-x-auto dark:border dark:border-white/[0.08]">
             <pre className="text-sm text-gray-300 font-mono leading-relaxed">
               <code>{CODE_EXAMPLES[activeTab]}</code>
             </pre>

@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useTranslations } from "next-intl";
+import { useTheme } from "@/providers/theme-provider";
 import type { Severity } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -26,6 +27,8 @@ const SEVERITY_COLORS: Record<Severity, string> = {
 
 export function SeverityChart({ data, isLoading }: SeverityChartProps) {
   const t = useTranslations("dashboard");
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   if (isLoading) return <SkeletonChart />;
 
@@ -38,7 +41,7 @@ export function SeverityChart({ data, isLoading }: SeverityChartProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-6 shadow-sm">
+    <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
         {t("severityBreakdown")}
       </h3>
@@ -63,13 +66,16 @@ export function SeverityChart({ data, isLoading }: SeverityChartProps) {
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
-              border: "1px solid #e5e7eb",
+              border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e5e7eb",
+              backgroundColor: isDark ? "rgba(30,41,59,0.9)" : "#fff",
+              color: isDark ? "#fff" : "#000",
             }}
           />
           <Legend
             formatter={(value: string) =>
               value.charAt(0).toUpperCase() + value.slice(1)
             }
+            wrapperStyle={{ color: isDark ? "rgba(255,255,255,0.6)" : undefined }}
           />
         </PieChart>
       </ResponsiveContainer>

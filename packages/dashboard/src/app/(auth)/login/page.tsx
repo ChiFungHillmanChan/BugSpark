@@ -30,12 +30,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="bg-white dark:bg-navy-800 rounded-lg shadow-sm border border-gray-200 dark:border-navy-700 p-8">
+    <div className="w-full max-w-md">
+      <div className="bg-white dark:bg-navy-800/50 dark:backdrop-blur-xl rounded-2xl shadow-sm border border-gray-200 dark:border-white/[0.08] p-8">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">{t("signIn")}</h2>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
+          <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm border-l-4 border-red-500">
             {error}
           </div>
         )}
@@ -51,7 +51,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl text-sm bg-white dark:bg-navy-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-500 dark:placeholder:text-gray-400"
               placeholder={t("emailPlaceholder")}
             />
           </div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-white/[0.08] rounded-xl text-sm bg-white dark:bg-navy-900/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-500 dark:placeholder:text-gray-400"
                 placeholder={t("passwordPlaceholder")}
               />
               <button
@@ -84,7 +84,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 px-4 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-2 px-4 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
             {isSubmitting ? t("signingIn") : t("signIn")}

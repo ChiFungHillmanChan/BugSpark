@@ -103,34 +103,143 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
 
     .bugspark-annotation-overlay {
       position: fixed; inset: 0; z-index: 999999;
-      background: rgba(0,0,0,0.9); display: flex; flex-direction: column;
+      background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
     }
     .bugspark-annotation-toolbar {
-      display: flex; align-items: center; gap: 8px; padding: 12px 16px;
-      background: #1a1a2e; border-bottom: 1px solid #333;
+      display: flex; align-items: center; gap: 12px; padding: 16px;
+      background: ${isDark ? '#0f172a' : '#ffffff'}; 
+      border-bottom: 1px solid ${borderColor};
+      flex-wrap: wrap; overflow-x: auto; overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: ${borderColor} transparent;
+    }
+    .bugspark-annotation-toolbar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .bugspark-annotation-toolbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .bugspark-annotation-toolbar::-webkit-scrollbar-thumb {
+      background: ${borderColor}; border-radius: 2px;
     }
     .bugspark-annotation-toolbar__separator {
-      width: 1px; height: 28px; background: #444; margin: 0 4px;
+      width: 1px; height: 40px; background: ${borderColor}; 
+      margin: 0 4px; flex-shrink: 0;
+    }
+    .bugspark-toolbar-section {
+      display: flex; flex-direction: column; gap: 8px; min-width: 0;
+    }
+    .bugspark-toolbar-section__label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: ${isDark ? '#94a3b8' : '#64748b'};
+      margin-bottom: -4px;
+    }
+    .bugspark-toolbar-group {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .bugspark-toolbar-group--colors {
+      gap: 8px;
     }
     .bugspark-tool-btn {
-      width: 36px; height: 36px; border-radius: 6px; border: 1px solid #444;
-      background: transparent; color: white; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px; transition: background 0.2s;
+      min-width: 44px; min-height: 44px; padding: 8px 12px;
+      border-radius: 8px; border: 1.5px solid ${borderColor};
+      background: ${isDark ? '#1e293b' : '#f8fafc'}; 
+      color: ${textColor}; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; transition: all 0.2s ease; font-size: 12px;
+      font-weight: 500; position: relative;
     }
-    .bugspark-tool-btn:hover { background: #333; }
-    .bugspark-tool-btn--active { background: ${primaryColor}; border-color: ${primaryColor}; }
+    .bugspark-tool-btn:hover {
+      background: ${isDark ? '#334155' : '#e2e8f0'}; 
+      border-color: ${primaryColor};
+      transform: translateY(-1px);
+    }
+    .bugspark-tool-btn--active {
+      background: ${primaryColor}; border-color: ${primaryColor}; 
+      color: white; box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .bugspark-tool-btn--active:hover {
+      background: ${primaryColor}; opacity: 0.9;
+    }
+    .bugspark-tool-btn__icon {
+      font-size: 18px; line-height: 1;
+    }
+    .bugspark-tool-btn__label {
+      font-size: 10px; line-height: 1;
+    }
     .bugspark-color-btn {
-      width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent;
-      cursor: pointer; transition: border-color 0.2s;
+      width: 36px; height: 36px; min-width: 36px; min-height: 36px;
+      border-radius: 50%; border: 3px solid ${isDark ? '#334155' : '#e2e8f0'};
+      cursor: pointer; transition: all 0.2s ease;
+      position: relative; flex-shrink: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
-    .bugspark-color-btn--active { border-color: white; }
+    .bugspark-color-btn:hover {
+      transform: scale(1.1); border-color: ${isDark ? '#475569' : '#cbd5e1'};
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .bugspark-color-btn--active {
+      border-color: white; transform: scale(1.15);
+      box-shadow: 0 0 0 2px ${primaryColor}, 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .bugspark-width-btn {
+      min-width: 44px; min-height: 44px; padding: 8px 12px;
+      border-radius: 8px; border: 1.5px solid ${borderColor};
+      background: ${isDark ? '#1e293b' : '#f8fafc'}; 
+      color: ${textColor}; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; transition: all 0.2s ease; font-size: 12px;
+      font-weight: 500;
+    }
+    .bugspark-width-btn:hover {
+      background: ${isDark ? '#334155' : '#e2e8f0'}; 
+      border-color: ${primaryColor};
+    }
+    .bugspark-width-btn--active {
+      background: ${primaryColor}; border-color: ${primaryColor}; 
+      color: white;
+    }
+    .bugspark-width-btn__indicator {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: currentColor; transition: all 0.2s ease;
+    }
+    .bugspark-width-btn--active .bugspark-width-btn__indicator {
+      background: white;
+    }
+    .bugspark-width-btn__label {
+      font-size: 10px; line-height: 1;
+    }
+    .bugspark-toolbar-section--actions {
+      margin-left: auto; flex-direction: row; gap: 8px;
+    }
+    .bugspark-action-btn {
+      min-width: 44px; min-height: 44px; padding: 10px;
+      border-radius: 8px; border: 1.5px solid ${borderColor};
+      background: ${isDark ? '#1e293b' : '#f8fafc'}; 
+      color: ${textColor}; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s ease; font-size: 18px;
+    }
+    .bugspark-action-btn:hover {
+      background: ${isDark ? '#334155' : '#e2e8f0'}; 
+      border-color: ${primaryColor};
+    }
+    .bugspark-action-btn__icon {
+      line-height: 1;
+    }
+    .bugspark-btn--done, .bugspark-btn--cancel {
+      min-width: 80px; min-height: 44px; padding: 10px 20px;
+      font-weight: 600;
+    }
     .bugspark-annotation-canvas-wrapper {
       flex: 1; display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
+      overflow: hidden; position: relative;
+      min-height: 0;
     }
     .bugspark-annotation-canvas-wrapper canvas {
       max-width: 100%; max-height: 100%; object-fit: contain;
+      touch-action: none;
     }
 
     .bugspark-toast {
@@ -143,12 +252,56 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
     .bugspark-toast--error { background: #e94560; }
     .bugspark-toast--info { background: #3498db; }
 
+    @media (max-width: 768px) {
+      .bugspark-annotation-toolbar {
+        padding: 12px; gap: 8px; flex-wrap: nowrap; overflow-x: auto;
+      }
+      .bugspark-toolbar-section {
+        flex-shrink: 0;
+      }
+      .bugspark-toolbar-section__label {
+        font-size: 10px;
+      }
+      .bugspark-tool-btn {
+        min-width: 48px; min-height: 48px; padding: 6px 8px;
+      }
+      .bugspark-tool-btn__icon {
+        font-size: 20px;
+      }
+      .bugspark-tool-btn__label {
+        font-size: 9px;
+      }
+      .bugspark-color-btn {
+        width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+      }
+      .bugspark-width-btn {
+        min-width: 48px; min-height: 48px; padding: 6px 8px;
+      }
+      .bugspark-action-btn {
+        min-width: 48px; min-height: 48px;
+      }
+      .bugspark-btn--done, .bugspark-btn--cancel {
+        min-width: 70px; padding: 10px 16px; font-size: 13px;
+      }
+      .bugspark-toolbar-section--actions {
+        margin-left: 0; flex-shrink: 0;
+      }
+    }
     @media (max-width: 640px) {
       .bugspark-modal {
         width: 100%; max-width: 100%; height: 100vh; max-height: 100vh;
         border-radius: 0;
       }
       .bugspark-field__row { flex-direction: column; gap: 0; }
+      .bugspark-annotation-toolbar {
+        padding: 10px; gap: 6px;
+      }
+      .bugspark-tool-btn {
+        min-width: 52px; min-height: 52px;
+      }
+      .bugspark-color-btn {
+        width: 44px; height: 44px; min-width: 44px; min-height: 44px;
+      }
     }
   `;
 }

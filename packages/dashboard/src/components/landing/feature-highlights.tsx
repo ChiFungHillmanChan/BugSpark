@@ -10,6 +10,7 @@ import {
   Webhook,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { SectionHeader } from "@/components/shared/section-header";
 
 interface Feature {
   titleKey: string;
@@ -54,30 +55,23 @@ export function FeatureHighlights() {
   const t = useTranslations("landing");
 
   return (
-    <section id="features" className="py-20 sm:py-28 bg-white">
+    <section id="features" className="py-20 sm:py-28 bg-white dark:bg-navy-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900">
-            {t("features")}
-          </h2>
-          <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-            {t("featuresSubtitle")}
-          </p>
-        </div>
+        <SectionHeader pill="Features" title={t("features")} subtitle={t("featuresSubtitle")} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {FEATURES.map((feature) => (
             <div
               key={feature.titleKey}
-              className="group p-6 rounded-xl border border-gray-200 hover:border-accent/30 hover:shadow-lg transition-all"
+              className="group p-6 rounded-2xl border border-gray-200 dark:border-white/[0.08] dark:bg-navy-800/50 dark:backdrop-blur-sm hover:border-accent/30 dark:hover:border-white/[0.15] hover:shadow-lg dark:hover:shadow-accent/5 hover:-translate-y-0.5 transition-all"
             >
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                 <feature.icon className="w-5 h-5 text-accent" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-2">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
                 {t(feature.titleKey)}
               </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                 {t(feature.descKey)}
               </p>
             </div>

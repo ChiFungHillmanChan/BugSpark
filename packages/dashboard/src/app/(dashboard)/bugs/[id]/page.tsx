@@ -2,7 +2,8 @@
 
 import { useState, use } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
@@ -14,7 +15,7 @@ import { MetadataPanel } from "@/components/bug-detail/metadata-panel";
 import { CommentThread } from "@/components/bug-detail/comment-thread";
 import { ExportToTracker } from "@/components/bug-detail/export-to-tracker";
 import { UserFlowDiagram } from "@/components/bug-detail/user-flow-diagram";
-import { useBug, useUpdateBug } from "@/hooks/use-bugs";
+import { useBug, useUpdateBug, useDeleteBug } from "@/hooks/use-bugs";
 import { formatDate } from "@/lib/utils";
 import { Skeleton } from "@/components/shared/skeleton-loader";
 import type { Status, Severity } from "@/types";
@@ -41,9 +42,19 @@ export default function BugDetailPage({
 }) {
   const { id } = use(params);
   const t = useTranslations("bugs");
+  const tCommon = useTranslations("common");
+  const router = useRouter();
   const { data: bug, isLoading } = useBug(id);
   const updateBug = useUpdateBug();
+  const deleteBug = useDeleteBug();
   const [activeTab, setActiveTab] = useState<Tab>("console");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  function handleDelete() {
+    deleteBug.mutate(id, {
+      onSuccess: () => router.push("/bugs"),
+    });
+  }
 
   if (isLoading) {
     return (
@@ -214,8 +225,50 @@ export default function BugDetailPage({
           <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">
             <CommentThread reportId={bug.id} />
           </div>
+
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm p-4">
+            <h3 className="text-sm font-medium text-red-600 dark:text-red-400 mb-3">{t("dangerZone")}</h3>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors w-full justify-center"
+            >
+              <Trash2 className="w-4 h-4" />
+              {t("deleteBug")}
+            </button>
+          </div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-navy-700 p-6 w-full max-w-sm shadow-xl">
+            <h3 className="text-lg font-semibold dark:text-white mb-2">
+              {t("deleteBug")}
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              {t("deleteBugConfirm")}
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-navy-600 rounded-lg hover:bg-gray-50 dark:hover:bg-navy-700"
+              >
+                {tCommon("cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleteBug.isPending}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleteBug.isPending ? tCommon("loading") : tCommon("delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

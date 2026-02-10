@@ -15,6 +15,8 @@ class AdminUserResponse(CamelModel):
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    project_count: int = 0
+    report_count_month: int = 0
 
 
 class AdminUserListResponse(CamelModel):

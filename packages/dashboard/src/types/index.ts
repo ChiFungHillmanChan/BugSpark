@@ -20,6 +20,8 @@ export interface AdminUser {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  projectCount: number;
+  reportCountMonth: number;
 }
 
 export interface PlatformStats {

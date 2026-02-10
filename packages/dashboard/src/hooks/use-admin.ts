@@ -1,8 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
 import type {
   AdminUser,
+  BugReport,
   PaginatedResponse,
   PlatformStats,
 } from "@/types";
@@ -42,6 +43,37 @@ interface UpdateUserPayload {
   role?: string;
   plan?: string;
   is_active?: boolean;
+}
+
+interface AdminReportsParams {
+  search?: string;
+  severity?: string;
+  status?: string;
+  projectId?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export function useAdminReports(params: AdminReportsParams = {}) {
+  return useQuery({
+    queryKey: [...queryKeys.admin.reports, params],
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      const queryParams: Record<string, string | number> = {};
+      if (params.search) queryParams.search = params.search;
+      if (params.severity) queryParams.severity = params.severity;
+      if (params.status) queryParams.status = params.status;
+      if (params.projectId) queryParams.project_id = params.projectId;
+      if (params.page) queryParams.page = params.page;
+      if (params.pageSize) queryParams.page_size = params.pageSize;
+
+      const response = await apiClient.get<PaginatedResponse<BugReport>>(
+        "/admin/reports",
+        { params: queryParams },
+      );
+      return response.data;
+    },
+  });
 }
 
 export function useAdminUpdateUser() {

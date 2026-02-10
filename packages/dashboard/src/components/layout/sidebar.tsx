@@ -30,6 +30,7 @@ const NAV_ITEMS = [
 const ADMIN_NAV_ITEMS = [
   { href: "/admin", labelKey: "adminDashboard" as const, icon: Shield },
   { href: "/admin/users", labelKey: "adminUsers" as const, icon: Users },
+  { href: "/admin/reports", labelKey: "adminReports" as const, icon: Bug },
 ];
 
 interface SidebarProps {

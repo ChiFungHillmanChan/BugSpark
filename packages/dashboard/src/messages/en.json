@@ -11,7 +11,8 @@
     "admin": "Admin",
     "adminPanel": "Admin Panel",
     "adminDashboard": "Platform",
-    "adminUsers": "Users"
+    "adminUsers": "Users",
+    "adminReports": "Bug Reports"
   },
   "auth": {
     "signIn": "Sign in",
@@ -125,7 +126,10 @@
     "viewOnGithub": "View on GitHub",
     "exportFailed": "Export failed. Check integration settings.",
     "exporting": "Exporting...",
-    "exportToGithub": "Export to GitHub"
+    "exportToGithub": "Export to GitHub",
+    "deleteBug": "Delete Bug",
+    "deleteBugConfirm": "Are you sure you want to delete this bug report? This action cannot be undone.",
+    "dangerZone": "Danger Zone"
   },
   "projects": {
     "title": "Projects",
@@ -403,6 +407,14 @@
     "planFree": "Free",
     "planPro": "Pro",
     "planEnterprise": "Enterprise",
+    "usage": "Usage",
+    "usageProjects": "{count, plural, one {# project} other {# projects}}",
+    "usageReportsMonth": "{count, plural, one {# report} other {# reports}} / month",
+    "bugReports": "Bug Reports",
+    "searchReports": "Search reports...",
+    "noReportsFound": "No reports found",
+    "totalReportsCount": "{count, plural, one {# report} other {# reports}} total",
+    "project": "Project",
     "save": "Save",
     "cancel": "Cancel"
   },

@@ -80,6 +80,12 @@ function UserRow({ user, currentUserId }: { user: AdminUser; currentUserId: stri
         </div>
       </td>
       <td className="py-3 px-4">
+        <div className="text-xs text-gray-600 dark:text-gray-300 space-y-0.5">
+          <p>{t("usageProjects", { count: user.projectCount })}</p>
+          <p>{t("usageReportsMonth", { count: user.reportCountMonth })}</p>
+        </div>
+      </td>
+      <td className="py-3 px-4">
         <span
           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
             user.isActive
@@ -153,6 +159,9 @@ export default function AdminUsersPage() {
                 {t("plan")}
               </th>
               <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
+                {t("usage")}
+              </th>
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("status")}
               </th>
               <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
@@ -163,13 +172,13 @@ export default function AdminUsersPage() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
                   {t("loading")}
                 </td>
               </tr>
             ) : data?.items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
+                <td colSpan={6} className="py-8 text-center text-gray-500 dark:text-gray-400">
                   {t("noUsersFound")}
                 </td>
               </tr>

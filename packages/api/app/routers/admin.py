@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import func, select
@@ -21,7 +22,11 @@ from app.schemas.user import AdminUserUpdate
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 
-def _admin_user_response(user: User) -> AdminUserResponse:
+def _admin_user_response(
+    user: User,
+    project_count: int = 0,
+    report_count_month: int = 0,
+) -> AdminUserResponse:
     return AdminUserResponse(
         id=user.id,
         email=user.email,
@@ -31,6 +36,8 @@ def _admin_user_response(user: User) -> AdminUserResponse:
         is_active=user.is_active,
         created_at=user.created_at,
         updated_at=user.updated_at,
+        project_count=project_count,
+        report_count_month=report_count_month,
     )
 
 
@@ -66,8 +73,40 @@ async def list_users(
     result = await db.execute(query)
     users = result.scalars().all()
 
+    user_ids = [u.id for u in users]
+
+    # Per-user project counts
+    proj_counts: dict[uuid.UUID, int] = {}
+    if user_ids:
+        pc_result = await db.execute(
+            select(Project.owner_id, func.count(Project.id))
+            .where(Project.owner_id.in_(user_ids), Project.is_active.is_(True))
+            .group_by(Project.owner_id)
+        )
+        proj_counts = {row[0]: row[1] for row in pc_result.all()}
+
+    # Per-user report counts (current month)
+    report_counts: dict[uuid.UUID, int] = {}
+    if user_ids:
+        now = datetime.now(timezone.utc)
+        month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        rc_result = await db.execute(
+            select(Project.owner_id, func.count(Report.id))
+            .join(Project, Report.project_id == Project.id)
+            .where(Project.owner_id.in_(user_ids), Report.created_at >= month_start)
+            .group_by(Project.owner_id)
+        )
+        report_counts = {row[0]: row[1] for row in rc_result.all()}
+
     return AdminUserListResponse(
-        items=[_admin_user_response(u) for u in users],
+        items=[
+            _admin_user_response(
+                u,
+                project_count=proj_counts.get(u.id, 0),
+                report_count_month=report_counts.get(u.id, 0),
+            )
+            for u in users
+        ],
         total=total,
         page=page,
         page_size=page_size,
@@ -207,12 +246,28 @@ async def list_all_projects(
 async def list_all_reports(
     current_user: User = Depends(require_superadmin),
     db: AsyncSession = Depends(get_db),
+    search: str | None = Query(None),
+    severity: str | None = Query(None),
+    status: str | None = Query(None),
+    project_id: uuid.UUID | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> ReportListResponse:
     from app.routers.reports import _report_to_response
 
     query = select(Report)
+
+    if search:
+        search_filter = f"%{search}%"
+        query = query.where(
+            Report.title.ilike(search_filter) | Report.tracking_id.ilike(search_filter)
+        )
+    if severity:
+        query = query.where(Report.severity.in_(severity.split(",")))
+    if status:
+        query = query.where(Report.status.in_(status.split(",")))
+    if project_id:
+        query = query.where(Report.project_id == project_id)
 
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)

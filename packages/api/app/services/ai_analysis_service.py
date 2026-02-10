@@ -123,6 +123,9 @@ async def analyze_bug_report(
         messages=[{"role": "user", "content": user_prompt}],
     )
 
+    if not message.content or not hasattr(message.content[0], "text"):
+        raise ValueError("AI returned an empty or non-text response")
+
     raw_text = message.content[0].text
     try:
         parsed = json.loads(raw_text)

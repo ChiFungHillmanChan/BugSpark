@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from typing import Protocol
 from urllib.parse import urlparse
 
 from sqlalchemy import select
@@ -8,6 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from app.models.report import Report
+
+
+class _HasDomain(Protocol):
+    domain: str | None
 
 
 def check_honeypot(hp_value: str | None) -> bool:
@@ -19,7 +24,6 @@ async def is_duplicate_report(
     db: AsyncSession,
     project_id: str,
     title: str,
-    description: str,
 ) -> bool:
     """Returns True if a report with the same title exists for this project in the last 5 minutes."""
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
@@ -35,9 +39,9 @@ async def is_duplicate_report(
     return result.scalar_one_or_none() is not None
 
 
-def validate_origin(request: Request, project: object) -> bool:
+def validate_origin(request: Request, project: _HasDomain) -> bool:
     """Returns True if origin is valid. Skips check if no domain is configured."""
-    project_domain = getattr(project, "domain", None)
+    project_domain = project.domain
     if not project_domain:
         return True
 

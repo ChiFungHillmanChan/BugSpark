@@ -7,7 +7,6 @@ import { useExportToTracker } from "@/hooks/use-integrations";
 
 interface ExportToTrackerProps {
   reportId: string;
-  projectId: string;
 }
 
 type ExportState = {

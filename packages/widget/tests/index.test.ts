@@ -58,9 +58,7 @@ describe('BugSpark SDK', () => {
 
   it('init() with minimal config works', () => {
     BugSpark.init({ projectKey: 'my-key', endpoint: 'https://api.example.com' });
-    expect(
-      (window as unknown as Record<string, unknown>).BugSpark,
-    ).toBeDefined();
+    expect(window.BugSpark).toBeDefined();
   });
 
   it('destroy() cleans up', () => {
@@ -89,18 +87,12 @@ describe('BugSpark SDK', () => {
   });
 
   it('window.BugSpark is assigned', async () => {
-    const winBugSpark = (window as unknown as Record<string, unknown>)
-      .BugSpark;
-    expect(winBugSpark).toBeDefined();
-    expect(typeof (winBugSpark as Record<string, unknown>).init).toBe(
-      'function',
-    );
+    expect(window.BugSpark).toBeDefined();
+    expect(typeof window.BugSpark?.init).toBe('function');
   });
 
   it('window.BugSpark exposes setReporter', async () => {
-    const winBugSpark = (window as unknown as Record<string, unknown>)
-      .BugSpark as Record<string, unknown>;
-    expect(typeof winBugSpark.setReporter).toBe('function');
+    expect(typeof window.BugSpark?.setReporter).toBe('function');
   });
 
   it('open() does not auto-capture screenshot', async () => {

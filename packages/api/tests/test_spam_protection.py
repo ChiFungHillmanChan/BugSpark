@@ -51,7 +51,7 @@ class TestIsDuplicateReport:
         await db_session.commit()
 
         result = await is_duplicate_report(
-            db_session, str(test_project.id), "Crash on login", "Different description"
+            db_session, str(test_project.id), "Crash on login"
         )
         assert result is True
 
@@ -75,7 +75,7 @@ class TestIsDuplicateReport:
         await db_session.commit()
 
         result = await is_duplicate_report(
-            db_session, str(test_project.id), "Completely different bug", "Some description"
+            db_session, str(test_project.id), "Completely different bug"
         )
         assert result is False
 
@@ -100,7 +100,7 @@ class TestIsDuplicateReport:
         await db_session.commit()
 
         result = await is_duplicate_report(
-            db_session, str(other_project_id), "Crash on login", "Same title different project"
+            db_session, str(other_project_id), "Crash on login"
         )
         assert result is False
 

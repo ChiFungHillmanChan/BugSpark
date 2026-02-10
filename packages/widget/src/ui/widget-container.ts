@@ -43,7 +43,7 @@ export function unmount(): void {
   }
 }
 
-function resolveTheme(theme: 'light' | 'dark' | 'auto'): 'light' | 'dark' | 'auto' {
+function resolveTheme(theme: 'light' | 'dark' | 'auto'): 'light' | 'dark' {
   if (theme === 'auto') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }

@@ -75,7 +75,7 @@ async def create_report(
     if not validate_origin(request, project):
         raise BadRequestException("Invalid origin")
 
-    if await is_duplicate_report(db, str(project.id), body.title, body.description):
+    if await is_duplicate_report(db, str(project.id), body.title):
         raise BadRequestException("Duplicate report detected")
 
     await check_report_limit(db, project)

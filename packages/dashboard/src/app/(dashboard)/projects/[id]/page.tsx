@@ -51,11 +51,13 @@ export default function ProjectDetailPage({
   const [buttonText, setButtonText] = useState("");
   const [colorSaved, setColorSaved] = useState(false);
 
-  const hasNameLoaded = project && name === "";
-  if (hasNameLoaded) {
-    setName(project.name);
-    setDomain(project.domain);
-  }
+  useEffect(() => {
+    if (project && name === "") {
+      setName(project.name);
+      setDomain(project.domain);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync once when project first loads
+  }, [project]);
 
   useEffect(() => {
     if (project?.settings && typeof project.settings === "object") {

@@ -219,7 +219,7 @@ export default function BugDetailPage({
 
             <div className="pt-2 border-t border-gray-100 dark:border-navy-700">
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">{t("export")}</label>
-              <ExportToTracker reportId={bug.id} projectId={bug.projectId} />
+              <ExportToTracker reportId={bug.id} />
             </div>
           </div>
 

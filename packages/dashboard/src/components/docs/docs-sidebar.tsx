@@ -39,7 +39,7 @@ function NavItem({ item, basePath, pathname, t, onNavigate }: NavItemProps) {
         </button>
         {isOpen && (
           <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-700 pl-3">
-            {item.children!.map((child) => (
+            {item.children?.map((child) => (
               <NavItem
                 key={child.slug}
                 item={child}

@@ -207,16 +207,13 @@ async def export_report_to_tracker(
         config = integration.config
         formatted = format_report_as_linear_issue(report)
 
-        try:
-            issue_data = await create_linear_issue(
-                api_key=config["apiKey"],
-                team_id=config["teamId"],
-                title=formatted.title,
-                description=formatted.description,
-                priority=formatted.priority,
-            )
-        except BadRequestException:
-            raise
+        issue_data = await create_linear_issue(
+            api_key=config["apiKey"],
+            team_id=config["teamId"],
+            title=formatted.title,
+            description=formatted.description,
+            priority=formatted.priority,
+        )
 
         return ExportResponse(
             issue_url=issue_data["issue_url"],

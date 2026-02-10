@@ -20,7 +20,7 @@ let buttonElement: HTMLButtonElement | null = null;
 
 export function mount(
   root: ShadowRoot,
-  position: string,
+  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left',
   onClick: () => void,
   buttonText?: string,
 ): void {

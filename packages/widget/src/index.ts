@@ -229,8 +229,14 @@ function autoInit(): void {
   BugSpark.init(autoConfig);
 }
 
+declare global {
+  interface Window {
+    BugSpark?: typeof BugSpark;
+  }
+}
+
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, typeof BugSpark>).BugSpark = BugSpark;
+  window.BugSpark = BugSpark;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', autoInit, { once: true });

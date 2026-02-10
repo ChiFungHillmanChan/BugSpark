@@ -1,3 +1,11 @@
+export interface BugSparkBranding {
+  showWatermark?: boolean;
+  customColors?: { background?: string; text?: string; border?: string };
+  buttonText?: string;
+  modalTitle?: string;
+  logo?: string;
+}
+
 export interface BugSparkConfig {
   projectKey: string;
   /** @deprecated Use `projectKey` instead */
@@ -23,6 +31,7 @@ export interface BugSparkConfig {
   onOpen?: () => void;
   onClose?: () => void;
   onError?: (error: Error) => void;
+  branding?: BugSparkBranding;
 }
 
 export interface BugSparkUser {
@@ -43,6 +52,7 @@ export interface BugReport {
   userActions: SessionEvent[];
   metadata: DeviceMetadata;
   reporterIdentifier?: string;
+  hpField?: string;
 }
 
 export interface ConsoleLogEntry {

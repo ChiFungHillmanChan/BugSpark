@@ -22,6 +22,7 @@ export function mount(
   root: ShadowRoot,
   position: string,
   onClick: () => void,
+  buttonText?: string,
 ): void {
   if (buttonElement) return;
 
@@ -30,6 +31,16 @@ export function mount(
   buttonElement.appendChild(createBugIcon());
   buttonElement.setAttribute('aria-label', 'Report a bug');
   buttonElement.addEventListener('click', onClick);
+
+  if (buttonText) {
+    const textSpan = document.createElement('span');
+    textSpan.textContent = buttonText;
+    textSpan.style.cssText = 'color: white; font-size: 14px; font-weight: 500; margin-left: 8px;';
+    buttonElement.appendChild(textSpan);
+    buttonElement.style.borderRadius = '28px';
+    buttonElement.style.padding = '0 16px';
+    buttonElement.style.width = 'auto';
+  }
 
   root.appendChild(buttonElement);
 }

@@ -82,6 +82,41 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
           </ol>
         </div>
       )}
+
+      {data.rootCause && (
+        <div>
+          <h4 className="text-xs text-gray-400 font-medium mb-1">
+            {t("aiRootCause")}
+          </h4>
+          <p className="text-sm text-gray-900">{data.rootCause}</p>
+        </div>
+      )}
+
+      {data.affectedArea && (
+        <div>
+          <h4 className="text-xs text-gray-400 font-medium mb-1">
+            {t("aiAffectedArea")}
+          </h4>
+          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+            {data.affectedArea}
+          </span>
+        </div>
+      )}
+
+      {data.fixSuggestions?.length > 0 && (
+        <div>
+          <h4 className="text-xs text-gray-400 font-medium mb-1">
+            {t("aiFixSuggestions")}
+          </h4>
+          <ol className="list-decimal list-inside space-y-1">
+            {data.fixSuggestions.map((suggestion, index) => (
+              <li key={index} className="text-sm text-gray-900">
+                {suggestion}
+              </li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   );
 }

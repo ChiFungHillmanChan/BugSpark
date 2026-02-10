@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { PRICING_TIERS } from "./pricing-data";
-import type { PricingTier } from "./pricing-data";
+import type { PricingTier, HighlightItem } from "./pricing-data";
 
 function PricingCard({ tier }: { tier: PricingTier }) {
   const t = useTranslations("landing");
@@ -57,12 +57,23 @@ function PricingCard({ tier }: { tier: PricingTier }) {
       </Link>
 
       <ul className="mt-6 space-y-3 flex-1">
-        {tier.highlightKeys.map((key) => (
-          <li key={key} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-            <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
-            <span>{t(key)}</span>
-          </li>
-        ))}
+        {tier.highlightKeys.map((item: HighlightItem) => {
+          const key = typeof item === "string" ? item : item.key;
+          const isComingSoon = typeof item === "string" ? false : item.comingSoon;
+          return (
+            <li key={key} className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
+              <Check className="w-4 h-4 text-accent mt-0.5 shrink-0" />
+              <span>
+                {t(key)}
+                {isComingSoon && (
+                  <span className="ml-1.5 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                    {t("comingSoon")}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

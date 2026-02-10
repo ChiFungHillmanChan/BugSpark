@@ -3,7 +3,7 @@
 import { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash2, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
@@ -14,6 +14,7 @@ import { SessionTimeline } from "@/components/bug-detail/session-timeline";
 import { MetadataPanel } from "@/components/bug-detail/metadata-panel";
 import { CommentThread } from "@/components/bug-detail/comment-thread";
 import { ExportToTracker } from "@/components/bug-detail/export-to-tracker";
+import { AiAnalysisPanel } from "@/components/bug-detail/ai-analysis-panel";
 import { UserFlowDiagram } from "@/components/bug-detail/user-flow-diagram";
 import { useBug, useUpdateBug, useDeleteBug } from "@/hooks/use-bugs";
 import { formatDate } from "@/lib/utils";
@@ -220,6 +221,14 @@ export default function BugDetailPage({
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">{t("export")}</label>
               <ExportToTracker reportId={bug.id} projectId={bug.projectId} />
             </div>
+          </div>
+
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-indigo-500" />
+              {t("aiAnalysis")}
+            </h3>
+            <AiAnalysisPanel reportId={bug.id} />
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">

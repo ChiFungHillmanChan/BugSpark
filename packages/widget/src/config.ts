@@ -14,6 +14,7 @@ const DEFAULT_CONFIG: Omit<BugSparkConfig, 'projectKey' | 'apiKey' | 'endpoint' 
   enableSessionRecording: false,
   maxConsoleLogs: 50,
   maxNetworkLogs: 30,
+  branding: { showWatermark: true },
 };
 
 export function mergeConfig(

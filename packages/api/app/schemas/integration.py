@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
 
-SUPPORTED_PROVIDERS = {"github"}
+SUPPORTED_PROVIDERS = {"github", "linear"}
 
 
 class IntegrationCreate(BaseModel):
@@ -30,6 +30,11 @@ class IntegrationCreate(BaseModel):
             missing = required_keys - set(value.keys())
             if missing:
                 raise ValueError(f"GitHub config missing keys: {', '.join(missing)}")
+        elif provider == "linear":
+            required_keys = {"apiKey", "teamId"}
+            missing = required_keys - set(value.keys())
+            if missing:
+                raise ValueError(f"Linear config missing keys: {', '.join(missing)}")
         return value
 
 
@@ -62,3 +67,4 @@ class IntegrationResponse(CamelModel):
 class ExportResponse(CamelModel):
     issue_url: str
     issue_number: int
+    issue_identifier: str | None = None

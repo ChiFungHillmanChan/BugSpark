@@ -168,6 +168,9 @@ export interface AnalysisResponse {
   suggestedCategory: string;
   suggestedSeverity: string;
   reproductionSteps: string[];
+  rootCause: string;
+  fixSuggestions: string[];
+  affectedArea: string;
 }
 
 export interface SimilarBug {
@@ -196,6 +199,7 @@ export interface Integration {
 export interface ExportResult {
   issueUrl: string;
   issueNumber: number;
+  issueIdentifier: string | null;
 }
 
 export type Severity = "critical" | "high" | "medium" | "low";

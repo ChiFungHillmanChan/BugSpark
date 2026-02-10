@@ -1,4 +1,4 @@
-import type { BugSparkConfig, BugReport, BugSparkUser } from './types';
+import type { BugSparkConfig, BugReport, BugSparkUser, BugSparkBranding } from './types';
 import { mergeConfig } from './config';
 import * as consoleInterceptor from './core/console-interceptor';
 import * as networkInterceptor from './core/network-interceptor';
@@ -19,6 +19,8 @@ let screenshotCanvas: HTMLCanvasElement | null = null;
 let screenshotBlob: Blob | null = null;
 let annotatedBlob: Blob | null = null;
 let isInitialized = false;
+let lastSubmitTime = 0;
+const SUBMIT_COOLDOWN_MS = 30000;
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
@@ -44,9 +46,9 @@ function init(userConfig: Partial<BugSparkConfig>): void {
   performanceCollector.initPerformanceObservers();
   if (config.enableSessionRecording) sessionRecorder.start();
 
-  widgetContainer.mount(config.primaryColor, config.theme);
+  widgetContainer.mount(config.primaryColor, config.theme, config.branding);
   const root = widgetContainer.getRoot();
-  floatingButton.mount(root, config.position, () => open());
+  floatingButton.mount(root, config.position, () => open(), config.branding?.buttonText);
 }
 
 async function open(): Promise<void> {
@@ -61,7 +63,7 @@ async function open(): Promise<void> {
     onAnnotate: handleAnnotate,
     onClose: close,
     onCapture: handleCapture,
-  }, undefined);
+  }, undefined, config.branding);
 
   config.onOpen?.();
 }
@@ -80,7 +82,7 @@ async function handleCapture(): Promise<void> {
     onAnnotate: handleAnnotate,
     onClose: close,
     onCapture: handleCapture,
-  }, screenshotDataUrl);
+  }, screenshotDataUrl, config.branding);
 }
 
 function close(): void {
@@ -109,7 +111,7 @@ function handleAnnotate(): void {
         onAnnotate: handleAnnotate,
         onClose: close,
         onCapture: handleCapture,
-      }, annotatedDataUrl);
+      }, annotatedDataUrl, config?.branding);
     },
     onCancel: () => {
       annotationOverlay.unmount();
@@ -119,7 +121,7 @@ function handleAnnotate(): void {
         onAnnotate: handleAnnotate,
         onClose: close,
         onCapture: handleCapture,
-      }, dataUrl);
+      }, dataUrl, config?.branding);
     },
   });
 }
@@ -127,6 +129,11 @@ function handleAnnotate(): void {
 async function handleSubmit(formData: import('./ui/report-modal').ReportFormData): Promise<void> {
   if (!config) return;
   const root = widgetContainer.getRoot();
+
+  if (Date.now() - lastSubmitTime < SUBMIT_COOLDOWN_MS) {
+    showToast(root, 'Please wait before submitting another report.', 'error');
+    return;
+  }
 
   reportModal.setSubmitting(true);
 
@@ -142,10 +149,12 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
     userActions: sessionRecorder.getEvents(),
     metadata: collectMetadata(),
     reporterIdentifier: formData.email || config.reporterIdentifier || config.user?.email || config.user?.id,
+    hpField: formData.hpField,
   };
 
   try {
     await submitReport(config, report);
+    lastSubmitTime = Date.now();
     close();
     showToast(root, 'Bug report submitted successfully!', 'success');
   } catch (error) {
@@ -212,6 +221,11 @@ function autoInit(): void {
   const theme = currentScript.getAttribute('data-theme');
   if (theme) autoConfig.theme = theme as BugSparkConfig['theme'];
 
+  const watermarkAttr = currentScript.getAttribute('data-watermark');
+  if (watermarkAttr === 'false') {
+    autoConfig.branding = { ...autoConfig.branding, showWatermark: false };
+  }
+
   BugSpark.init(autoConfig);
 }
 
@@ -227,4 +241,4 @@ if (typeof window !== 'undefined') {
 
 export default BugSpark;
 export { init, open, close, destroy, identify, setReporter };
-export type { BugSparkConfig, BugReport, BugSparkUser };
+export type { BugSparkConfig, BugReport, BugSparkUser, BugSparkBranding };

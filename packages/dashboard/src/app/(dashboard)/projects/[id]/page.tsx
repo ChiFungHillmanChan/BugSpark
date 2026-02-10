@@ -46,6 +46,9 @@ export default function ProjectDetailPage({
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [hasCopiedSnippet, setHasCopiedSnippet] = useState(false);
   const [widgetColor, setWidgetColor] = useState("#e94560");
+  const [showWatermark, setShowWatermark] = useState(true);
+  const [modalTitle, setModalTitle] = useState("");
+  const [buttonText, setButtonText] = useState("");
   const [colorSaved, setColorSaved] = useState(false);
 
   const hasNameLoaded = project && name === "";
@@ -56,8 +59,12 @@ export default function ProjectDetailPage({
 
   useEffect(() => {
     if (project?.settings && typeof project.settings === "object") {
-      const saved = (project.settings as Record<string, unknown>).widgetColor;
-      if (typeof saved === "string") setWidgetColor(saved);
+      const settings = project.settings as Record<string, unknown>;
+      const savedColor = settings.widgetColor;
+      if (typeof savedColor === "string") setWidgetColor(savedColor);
+      if (typeof settings.showWatermark === "boolean") setShowWatermark(settings.showWatermark);
+      if (typeof settings.modalTitle === "string") setModalTitle(settings.modalTitle);
+      if (typeof settings.buttonText === "string") setButtonText(settings.buttonText);
     }
   }, [project]);
 
@@ -228,11 +235,59 @@ export default function ProjectDetailPage({
             </div>
           )}
 
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <input
+                type="checkbox"
+                checked={showWatermark}
+                onChange={(e) => setShowWatermark(e.target.checked)}
+                className="rounded border-gray-300 dark:border-navy-600"
+              />
+              {t("showWatermark")}
+            </label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 ml-6">{t("showWatermarkDesc")}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("modalTitle")}</label>
+            <input
+              type="text"
+              value={modalTitle}
+              onChange={(e) => setModalTitle(e.target.value)}
+              placeholder="Report a Bug"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t("modalTitleDesc")}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("buttonText")}</label>
+            <input
+              type="text"
+              value={buttonText}
+              onChange={(e) => setButtonText(e.target.value)}
+              placeholder=""
+              className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t("buttonTextDesc")}</p>
+          </div>
+
           <button
             type="button"
             onClick={() => {
               updateProject.mutate(
-                { id, data: { settings: { ...((project?.settings as Record<string, unknown>) ?? {}), widgetColor } } },
+                {
+                  id,
+                  data: {
+                    settings: {
+                      ...((project?.settings as Record<string, unknown>) ?? {}),
+                      widgetColor,
+                      showWatermark,
+                      modalTitle: modalTitle || null,
+                      buttonText: buttonText || null,
+                    },
+                  },
+                },
                 {
                   onSuccess: () => {
                     setColorSaved(true);

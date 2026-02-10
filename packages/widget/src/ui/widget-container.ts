@@ -1,10 +1,11 @@
+import type { BugSparkBranding } from '../types';
 import { getStyles } from './styles';
 
 let hostElement: HTMLDivElement | null = null;
 let shadowRoot: ShadowRoot | null = null;
 let styleElement: HTMLStyleElement | null = null;
 
-export function mount(primaryColor: string, theme: 'light' | 'dark' | 'auto'): void {
+export function mount(primaryColor: string, theme: 'light' | 'dark' | 'auto', branding?: BugSparkBranding): void {
   if (hostElement) return;
 
   hostElement = document.createElement('div');
@@ -13,7 +14,7 @@ export function mount(primaryColor: string, theme: 'light' | 'dark' | 'auto'): v
 
   styleElement = document.createElement('style');
   const resolvedTheme = resolveTheme(theme);
-  styleElement.textContent = getStyles(primaryColor, resolvedTheme);
+  styleElement.textContent = getStyles(primaryColor, resolvedTheme, branding);
   shadowRoot.appendChild(styleElement);
 
   document.body.appendChild(hostElement);
@@ -26,10 +27,10 @@ export function getRoot(): ShadowRoot {
   return shadowRoot;
 }
 
-export function updateTheme(primaryColor: string, theme: 'light' | 'dark' | 'auto'): void {
+export function updateTheme(primaryColor: string, theme: 'light' | 'dark' | 'auto', branding?: BugSparkBranding): void {
   if (styleElement) {
     const resolvedTheme = resolveTheme(theme);
-    styleElement.textContent = getStyles(primaryColor, resolvedTheme);
+    styleElement.textContent = getStyles(primaryColor, resolvedTheme, branding);
   }
 }
 

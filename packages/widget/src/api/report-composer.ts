@@ -75,7 +75,7 @@ export async function submitReport(
     );
   }
 
-  const payload = {
+  const payload: Record<string, unknown> = {
     title: processedReport.title,
     description: processedReport.description,
     severity: processedReport.severity,
@@ -88,6 +88,10 @@ export async function submitReport(
     metadata: processedReport.metadata,
     reporter_identifier: processedReport.reporterIdentifier,
   };
+
+  if (processedReport.hpField) {
+    payload.hpField = processedReport.hpField;
+  }
 
   const response = await fetchWithRetry(`${config.endpoint}/reports`, {
     method: 'POST',

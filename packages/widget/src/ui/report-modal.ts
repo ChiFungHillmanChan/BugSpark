@@ -1,9 +1,12 @@
+import type { BugSparkBranding } from '../types';
+
 export interface ReportFormData {
   title: string;
   description: string;
   severity: 'critical' | 'high' | 'medium' | 'low';
   category: 'bug' | 'ui' | 'performance' | 'crash' | 'other';
   email: string;
+  hpField: string;
 }
 
 export interface ReportModalCallbacks {
@@ -21,6 +24,7 @@ export function mount(
   root: ShadowRoot,
   callbacks: ReportModalCallbacks,
   screenshotUrl?: string,
+  branding?: BugSparkBranding,
 ): void {
   if (modalOverlay) return;
   screenshotDataUrl = screenshotUrl ?? null;
@@ -33,21 +37,21 @@ export function mount(
 
   const modal = document.createElement('div');
   modal.className = 'bugspark-modal';
-  modal.appendChild(createHeader(callbacks.onClose));
-  modal.appendChild(createBody(callbacks));
-  modal.appendChild(createFooter(callbacks));
+  modal.appendChild(createHeader(callbacks.onClose, branding));
+  modal.appendChild(createBody(callbacks, branding));
+  modal.appendChild(createFooter(callbacks, branding));
 
   modalOverlay.appendChild(modal);
   root.appendChild(modalOverlay);
 }
 
-function createHeader(onClose: () => void): HTMLDivElement {
+function createHeader(onClose: () => void, branding?: BugSparkBranding): HTMLDivElement {
   const header = document.createElement('div');
   header.className = 'bugspark-modal__header';
 
   const title = document.createElement('h2');
   title.className = 'bugspark-modal__title';
-  title.textContent = 'Report a Bug';
+  title.textContent = branding?.modalTitle ?? 'Report a Bug';
 
   const closeBtn = document.createElement('button');
   closeBtn.className = 'bugspark-modal__close';
@@ -138,9 +142,17 @@ function createCameraButton(onCapture: () => void): HTMLDivElement {
   return container;
 }
 
-function createBody(callbacks: ReportModalCallbacks): HTMLDivElement {
+function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding): HTMLDivElement {
   const body = document.createElement('div');
   body.className = 'bugspark-modal__body';
+
+  if (branding?.logo) {
+    const logo = document.createElement('img');
+    logo.src = branding.logo;
+    logo.alt = 'Logo';
+    logo.style.cssText = 'max-height: 32px; margin-bottom: 12px;';
+    body.appendChild(logo);
+  }
 
   if (screenshotDataUrl) {
     const preview = document.createElement('div');
@@ -192,10 +204,20 @@ function createBody(callbacks: ReportModalCallbacks): HTMLDivElement {
 
   body.appendChild(createField('Email', 'input', 'email'));
 
+  const hpGroup = document.createElement('div');
+  hpGroup.setAttribute('aria-hidden', 'true');
+  hpGroup.style.cssText = 'position:absolute;left:-9999px;top:-9999px;height:0;width:0;overflow:hidden;';
+  const hpInput = document.createElement('input');
+  hpInput.setAttribute('data-name', 'hp-field');
+  hpInput.tabIndex = -1;
+  hpInput.autocomplete = 'off';
+  hpGroup.appendChild(hpInput);
+  body.appendChild(hpGroup);
+
   return body;
 }
 
-function createFooter(callbacks: ReportModalCallbacks): HTMLDivElement {
+function createFooter(callbacks: ReportModalCallbacks, branding?: BugSparkBranding): HTMLDivElement {
   const footer = document.createElement('div');
   footer.className = 'bugspark-modal__footer';
 
@@ -212,6 +234,19 @@ function createFooter(callbacks: ReportModalCallbacks): HTMLDivElement {
 
   footer.appendChild(cancelBtn);
   footer.appendChild(submitBtn);
+
+  if (branding?.showWatermark !== false) {
+    const watermark = document.createElement('div');
+    watermark.className = 'bugspark-watermark';
+    const link = document.createElement('a');
+    link.href = 'https://bugspark.io';
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Powered by BugSpark';
+    watermark.appendChild(link);
+    footer.appendChild(watermark);
+  }
+
   return footer;
 }
 
@@ -241,6 +276,7 @@ function handleSubmit(onSubmit: (data: ReportFormData) => void): void {
     severity: (root.querySelector<HTMLSelectElement>('[data-name="severity"]')?.value ?? 'medium') as ReportFormData['severity'],
     category: (root.querySelector<HTMLSelectElement>('[data-name="category"]')?.value ?? 'bug') as ReportFormData['category'],
     email: root.querySelector<HTMLInputElement>('[data-name="email"]')?.value ?? '',
+    hpField: (root.querySelector<HTMLInputElement>('[data-name="hp-field"]'))?.value ?? '',
   };
 
   onSubmit(formData);

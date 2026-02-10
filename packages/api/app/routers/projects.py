@@ -9,14 +9,14 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, validate_api_key
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.enums import Role
 from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate, WidgetConfigResponse
 from app.services.plan_limits_service import check_project_limit
 from app.services.storage_service import delete_files
 
@@ -79,6 +79,20 @@ async def _get_owned_project(
         raise ForbiddenException(translate("project.not_owner", locale))
 
     return project
+
+
+@router.get("/widget-config", response_model=WidgetConfigResponse)
+async def get_widget_config(
+    project: Project = Depends(validate_api_key),
+) -> WidgetConfigResponse:
+    settings = project.settings or {}
+    return WidgetConfigResponse(
+        primary_color=settings.get("widgetColor", "#e94560"),
+        show_watermark=settings.get("showWatermark", True),
+        modal_title=settings.get("modalTitle"),
+        button_text=settings.get("buttonText"),
+        logo_url=settings.get("logoUrl"),
+    )
 
 
 @router.post("", response_model=ProjectResponse, status_code=201)

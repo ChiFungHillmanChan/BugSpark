@@ -1,8 +1,10 @@
-export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'): string {
+import type { BugSparkBranding } from '../types';
+
+export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto', branding?: BugSparkBranding): string {
   const isDark = theme === 'dark';
-  const bgColor = isDark ? '#1a1a2e' : '#ffffff';
-  const textColor = isDark ? '#e0e0e0' : '#333333';
-  const borderColor = isDark ? '#333355' : '#e0e0e0';
+  const bgColor = branding?.customColors?.background ?? (isDark ? '#1a1a2e' : '#ffffff');
+  const textColor = branding?.customColors?.text ?? (isDark ? '#e0e0e0' : '#333333');
+  const borderColor = branding?.customColors?.border ?? (isDark ? '#333355' : '#e0e0e0');
   const inputBg = isDark ? '#16213e' : '#f8f8f8';
   const overlayBg = isDark ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.5)';
   const surfaceBg = isDark ? '#16213e' : '#f5f5f5';
@@ -372,6 +374,20 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       .bugspark-annotation-toolbar__separator {
         height: 28px; margin: 0 2px;
       }
+    }
+
+    .bugspark-watermark {
+      text-align: center;
+      padding: 8px 0 4px;
+      font-size: 11px;
+    }
+    .bugspark-watermark a {
+      color: #999;
+      text-decoration: none;
+    }
+    .bugspark-watermark a:hover {
+      color: #666;
+      text-decoration: underline;
     }
   `;
 }

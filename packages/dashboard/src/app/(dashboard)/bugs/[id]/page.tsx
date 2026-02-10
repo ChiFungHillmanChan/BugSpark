@@ -66,7 +66,7 @@ export default function BugDetailPage({
   if (!bug) {
     return (
       <div className="text-center py-16">
-        <p className="text-gray-500">{t("notFound")}</p>
+        <p className="text-gray-500 dark:text-gray-400">{t("notFound")}</p>
         <Link href="/bugs" className="text-accent hover:underline text-sm mt-2 inline-block">
           {t("backToBugs")}
         </Link>
@@ -80,10 +80,10 @@ export default function BugDetailPage({
         title={bug.title}
         description={
           <span className="flex items-center gap-3">
-            <Link href="/bugs" className="text-gray-400 hover:text-gray-600">
+            <Link href="/bugs" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
               <ArrowLeft className="w-4 h-4" />
             </Link>
-            <span className="font-mono text-xs text-gray-400">{bug.trackingId}</span>
+            <span className="font-mono text-xs text-gray-400 dark:text-gray-500">{bug.trackingId}</span>
             <SeverityBadge severity={bug.severity} />
           </span>
         }
@@ -98,8 +98,8 @@ export default function BugDetailPage({
 
           <UserFlowDiagram userActions={bug.userActions} />
 
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-            <div className="flex border-b border-gray-200">
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm">
+            <div className="flex border-b border-gray-200 dark:border-navy-700">
               {TAB_KEYS.map((tab) => (
                 <button
                   key={tab.key}
@@ -107,7 +107,7 @@ export default function BugDetailPage({
                   className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.key
                       ? "text-accent border-accent"
-                      : "text-gray-500 border-transparent hover:text-gray-700"
+                      : "text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300"
                   }`}
                 >
                   {t(tab.labelKey)}
@@ -132,9 +132,9 @@ export default function BugDetailPage({
         </div>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4">
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4 space-y-4">
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">{t("status")}</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("status")}</label>
               <select
                 value={bug.status}
                 onChange={(e) =>
@@ -143,7 +143,7 @@ export default function BugDetailPage({
                     data: { status: e.target.value as Status },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm dark:bg-navy-800 dark:text-white"
               >
                 {STATUS_OPTIONS.map((status) => {
                   const statusKeyMap: Record<Status, string> = {
@@ -163,7 +163,7 @@ export default function BugDetailPage({
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">{t("severity")}</label>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("severity")}</label>
               <select
                 value={bug.severity}
                 onChange={(e) =>
@@ -172,7 +172,7 @@ export default function BugDetailPage({
                     data: { severity: e.target.value as Severity },
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm dark:bg-navy-800 dark:text-white"
               >
                 {SEVERITY_OPTIONS.map((severity) => {
                   const severityKeyMap: Record<Severity, string> = {
@@ -191,27 +191,27 @@ export default function BugDetailPage({
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">{t("assignee")}</label>
-              <p className="text-sm text-gray-900">{bug.assigneeId ? t("assigned") : t("unassigned")}</p>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("assignee")}</label>
+              <p className="text-sm text-gray-900 dark:text-white">{bug.assigneeId ? t("assigned") : t("unassigned")}</p>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">{t("created")}</label>
-              <p className="text-sm text-gray-900">{formatDate(bug.createdAt)}</p>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("created")}</label>
+              <p className="text-sm text-gray-900 dark:text-white">{formatDate(bug.createdAt)}</p>
             </div>
 
             <div>
-              <label className="text-xs font-medium text-gray-500 block mb-1">{t("reporter")}</label>
-              <p className="text-sm text-gray-900">{bug.reporterIdentifier ?? t("anonymous")}</p>
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("reporter")}</label>
+              <p className="text-sm text-gray-900 dark:text-white">{bug.reporterIdentifier ?? t("anonymous")}</p>
             </div>
 
-            <div className="pt-2 border-t border-gray-100">
-              <label className="text-xs font-medium text-gray-500 block mb-2">{t("export")}</label>
+            <div className="pt-2 border-t border-gray-100 dark:border-navy-700">
+              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-2">{t("export")}</label>
               <ExportToTracker reportId={bug.id} projectId={bug.projectId} />
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">
             <CommentThread reportId={bug.id} />
           </div>
         </div>

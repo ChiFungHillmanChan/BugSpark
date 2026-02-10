@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { Plus, FolderKanban } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
@@ -16,10 +16,23 @@ export default function ProjectsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [projectDomain, setProjectDomain] = useState("");
+  const [createError, setCreateError] = useState("");
+
+  const handleEscKey = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") setIsModalOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.addEventListener("keydown", handleEscKey);
+      return () => document.removeEventListener("keydown", handleEscKey);
+    }
+  }, [isModalOpen, handleEscKey]);
 
   function handleCreate(event: FormEvent) {
     event.preventDefault();
     if (!projectName.trim() || !projectDomain.trim()) return;
+    setCreateError("");
     createProject.mutate(
       { name: projectName, domain: projectDomain },
       {
@@ -27,6 +40,9 @@ export default function ProjectsPage() {
           setIsModalOpen(false);
           setProjectName("");
           setProjectDomain("");
+        },
+        onError: () => {
+          setCreateError(t("createFailed"));
         },
       },
     );
@@ -76,39 +92,46 @@ export default function ProjectsPage() {
       )}
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" role="dialog" aria-modal="true">
           <div
             className="absolute inset-0 bg-black/50"
             onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="relative bg-white dark:bg-navy-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
               {t("createProject")}
             </h3>
+            {createError && (
+              <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
+                {createError}
+              </div>
+            )}
             <form onSubmit={handleCreate} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="project-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t("projectName")}
                 </label>
                 <input
+                  id="project-name"
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
                   placeholder={t("projectNamePlaceholder")}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="project-domain" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   {t("domain")}
                 </label>
                 <input
+                  id="project-domain"
                   type="text"
                   value={projectDomain}
                   onChange={(e) => setProjectDomain(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
                   placeholder={t("domainPlaceholder")}
                 />
               </div>
@@ -116,7 +139,7 @@ export default function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-navy-700 rounded-lg hover:bg-gray-200 dark:hover:bg-navy-600"
                 >
                   {t("cancel")}
                 </button>

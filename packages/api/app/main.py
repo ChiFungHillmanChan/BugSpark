@@ -11,9 +11,16 @@ from slowapi.util import get_remote_address
 from app.config import get_settings
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
-from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, upload, webhooks
+from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, tokens, upload, webhooks
 
 settings = get_settings()
+
+# Fail fast: reject weak JWT secret in production
+if settings.COOKIE_SECURE and settings.JWT_SECRET == "change-me-in-production":
+    raise RuntimeError(
+        "FATAL: JWT_SECRET must be changed from the default value in production. "
+        "Set a strong random secret via the JWT_SECRET environment variable."
+    )
 
 
 def _get_rate_limit_key(request: Request) -> str:
@@ -39,14 +46,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-CSRF-Token", "Accept-Language"],
 )
 app.add_middleware(CSRFMiddleware)
 
 register_exception_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(tokens.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
 app.include_router(projects.router, prefix="/api/v1")
 app.include_router(reports.router, prefix="/api/v1")

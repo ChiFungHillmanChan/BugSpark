@@ -1,9 +1,10 @@
 # Authentication
 
-BugSpark uses two authentication methods depending on the context:
+BugSpark uses three authentication methods depending on the context:
 
 - **Cookie-based auth** for the dashboard (browser sessions)
 - **API key auth** for the widget and external integrations
+- **Personal Access Token (PAT)** for the CLI and automation
 
 ## API Base URL
 
@@ -70,6 +71,38 @@ curl -X POST https://api.bugspark.dev/api/v1/reports \
 ```
 
 API keys are scoped to a single project. You can find your key in the project settings or rotate it via the API.
+
+## Personal Access Token (PAT) Authentication
+
+The CLI and CI/CD scripts authenticate using a PAT passed in the `Authorization: Bearer` header:
+
+```bash
+curl -X GET https://api.bugspark.dev/api/v1/projects \
+  -H "Authorization: Bearer bsk_pat_your_token_here"
+```
+
+PATs are user-scoped and have the same permissions as the user who created them. They bypass CSRF validation automatically.
+
+### Create a Token
+
+<ApiEndpoint method="POST" path="/api/v1/tokens" description="Create a new Personal Access Token" />
+
+```json
+{
+  "name": "CI Pipeline",
+  "expires_in_days": 90
+}
+```
+
+### List Tokens
+
+<ApiEndpoint method="GET" path="/api/v1/tokens" description="List all your tokens (values are not returned)" />
+
+### Revoke a Token
+
+<ApiEndpoint method="DELETE" path="/api/v1/tokens/{id}" description="Revoke a token immediately" />
+
+See [CLI Authentication](/docs/cli/authentication) for the full security model and best practices.
 
 ## Error Responses
 

@@ -3,6 +3,8 @@ from __future__ import annotations
 import secrets
 
 from fastapi import APIRouter, Depends, Request, Response
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -23,6 +25,9 @@ from app.services.auth_service import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+# Stricter rate limit for auth endpoints to mitigate brute-force attacks
+_auth_limiter = Limiter(key_func=get_remote_address)
 
 
 def _set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
@@ -93,6 +98,7 @@ async def _issue_tokens(user: User, response: Response, db: AsyncSession) -> Non
 
 
 @router.post("/register", response_model=UserResponse)
+@_auth_limiter.limit("5/minute")
 async def register(
     body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
@@ -116,6 +122,7 @@ async def register(
 
 
 @router.post("/login", response_model=UserResponse)
+@_auth_limiter.limit("5/minute")
 async def login(
     body: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
@@ -135,6 +142,7 @@ async def login(
 
 
 @router.post("/refresh", response_model=UserResponse)
+@_auth_limiter.limit("10/minute")
 async def refresh(
     request: Request, response: Response, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:

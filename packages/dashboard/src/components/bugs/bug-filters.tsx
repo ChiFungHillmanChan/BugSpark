@@ -33,6 +33,11 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
   filtersRef.current = filters;
   onChangeRef.current = onFiltersChange;
 
+  // Sync local search input when parent filters change (e.g. on clear)
+  useEffect(() => {
+    setSearchInput(filters.search ?? "");
+  }, [filters.search]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
       onChangeRef.current({ ...filtersRef.current, search: searchInput || undefined });
@@ -56,13 +61,13 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
   return (
     <div className="flex flex-wrap items-center gap-3 mb-6">
       <div className="relative flex-1 min-w-[200px] max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           placeholder={t("searchPlaceholder")}
-          className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          className="w-full pl-9 pr-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:bg-navy-800 dark:text-white"
         />
       </div>
 
@@ -87,7 +92,7 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
               className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                 filters.status?.includes(status)
                   ? "bg-accent text-white border-accent"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 dark:bg-navy-800 dark:text-gray-300 dark:border-navy-700 dark:hover:border-navy-700"
               }`}
             >
               {t(statusKeyMap[status])}
@@ -116,7 +121,7 @@ export function BugFiltersBar({ filters, onFiltersChange }: BugFiltersBarProps) 
               className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
                 filters.severity?.includes(severity)
                   ? "bg-accent text-white border-accent"
-                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400"
+                  : "bg-white text-gray-600 border-gray-300 hover:border-gray-400 dark:bg-navy-800 dark:text-gray-300 dark:border-navy-700 dark:hover:border-navy-700"
               }`}
             >
               {t(severityKeyMap[severity])}

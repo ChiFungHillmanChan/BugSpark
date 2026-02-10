@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import { mergeConfig } from '../src/config';
 
 describe('mergeConfig', () => {
-  it('returns config with defaults when given only apiKey', () => {
-    const result = mergeConfig({ apiKey: 'test-key' });
+  it('returns config with defaults when given apiKey and endpoint', () => {
+    const result = mergeConfig({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
     expect(result.apiKey).toBe('test-key');
-    expect(result.endpoint).toBe('http://localhost:8000/api/v1');
+    expect(result.endpoint).toBe('https://api.example.com');
     expect(result.position).toBe('bottom-right');
     expect(result.theme).toBe('light');
     expect(result.primaryColor).toBe('#e94560');
@@ -44,5 +44,13 @@ describe('mergeConfig', () => {
 
   it('throws when apiKey is empty string', () => {
     expect(() => mergeConfig({ apiKey: '' })).toThrow('[BugSpark] apiKey is required');
+  });
+
+  it('throws when endpoint is missing', () => {
+    expect(() => mergeConfig({ apiKey: 'test-key' })).toThrow('[BugSpark] endpoint is required');
+  });
+
+  it('throws when endpoint is empty string', () => {
+    expect(() => mergeConfig({ apiKey: 'test-key', endpoint: '' })).toThrow('[BugSpark] endpoint is required');
   });
 });

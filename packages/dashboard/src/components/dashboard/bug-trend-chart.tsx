@@ -9,7 +9,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import type { BugTrend } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -20,20 +20,21 @@ interface BugTrendChartProps {
 
 export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
 
   if (isLoading) return <SkeletonChart />;
 
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400">
+      <div className="h-64 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">
         {t("noDataYet")}
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
-      <h3 className="text-sm font-medium text-gray-500 mb-4">{t("bugTrend")}</h3>
+    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-6 shadow-sm">
+      <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t("bugTrend")}</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -41,7 +42,7 @@ export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
             dataKey="date"
             tick={{ fontSize: 12, fill: "#9ca3af" }}
             tickFormatter={(value: string) =>
-              new Date(value).toLocaleDateString("en-US", {
+              new Date(value).toLocaleDateString(locale, {
                 month: "short",
                 day: "numeric",
               })

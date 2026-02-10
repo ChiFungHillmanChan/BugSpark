@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 
 class NotFoundException(Exception):
@@ -40,3 +44,13 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(BadRequestException)
     async def bad_request_handler(_request: Request, exc: BadRequestException) -> JSONResponse:
         return JSONResponse(status_code=400, content={"detail": exc.detail})
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+        logger.exception(
+            "Unhandled exception on %s %s", request.method, request.url.path
+        )
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "An unexpected error occurred"},
+        )

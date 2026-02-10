@@ -11,6 +11,36 @@ from app.exceptions import BadRequestException
 ALLOWED_CONTENT_TYPES = {"image/png", "image/jpeg", "image/webp"}
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
+# Magic-byte signatures for validating actual file content vs declared content-type
+_MAGIC_SIGNATURES: list[tuple[bytes, str]] = [
+    (b"\x89PNG", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+]
+# WebP: starts with "RIFF" and bytes 8-12 are "WEBP"
+_WEBP_RIFF = b"RIFF"
+_WEBP_MARKER = b"WEBP"
+
+
+def _validate_magic_bytes(file_content: bytes, declared_content_type: str) -> None:
+    """Verify file content matches the declared content-type via magic-byte checks."""
+    if len(file_content) < 12:
+        raise BadRequestException("File is too small to be a valid image")
+
+    # Check WebP separately (RIFF....WEBP structure)
+    if declared_content_type == "image/webp":
+        if file_content[:4] == _WEBP_RIFF and file_content[8:12] == _WEBP_MARKER:
+            return
+        raise BadRequestException("File content does not match declared type image/webp")
+
+    # Check PNG and JPEG magic bytes
+    for magic, expected_type in _MAGIC_SIGNATURES:
+        if declared_content_type == expected_type:
+            if file_content[: len(magic)] == magic:
+                return
+            raise BadRequestException(
+                f"File content does not match declared type {declared_content_type}"
+            )
+
 
 def _get_s3_client():
     settings = get_settings()
@@ -29,6 +59,8 @@ def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
         raise BadRequestException(
             f"Invalid file type '{content_type}'. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}"
         )
+
+    _validate_magic_bytes(file_content, content_type)
 
     if len(file_content) > MAX_FILE_SIZE_BYTES:
         raise BadRequestException(f"File exceeds maximum size of {MAX_FILE_SIZE_BYTES // (1024 * 1024)}MB")

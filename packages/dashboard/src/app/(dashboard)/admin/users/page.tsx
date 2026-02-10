@@ -32,8 +32,8 @@ function UserRow({ user, currentUserId }: { user: AdminUser; currentUserId: stri
     <tr className="border-b border-gray-100 dark:border-navy-700">
       <td className="py-3 px-4">
         <div>
-          <p className="font-medium text-sm">{user.name}</p>
-          <p className="text-xs text-gray-500">{user.email}</p>
+          <p className="font-medium text-sm dark:text-white">{user.name}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
         </div>
       </td>
       <td className="py-3 px-4">
@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">{t("userManagement")}</h1>
+      <h1 className="text-2xl font-bold mb-6 dark:text-white">{t("userManagement")}</h1>
 
       <div className="mb-4">
         <input
@@ -119,7 +119,7 @@ export default function AdminUsersPage() {
           placeholder={t("searchUsers")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md px-4 py-2 border border-gray-200 dark:border-navy-600 rounded-lg bg-white dark:bg-navy-800 text-sm"
+          className="w-full max-w-md px-4 py-2 border border-gray-200 dark:border-navy-700 rounded-lg bg-white dark:bg-navy-800 dark:text-white text-sm"
         />
       </div>
 
@@ -127,19 +127,19 @@ export default function AdminUsersPage() {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-200 dark:border-navy-700 bg-gray-50 dark:bg-navy-900">
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("name")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("role")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("plan")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("status")}
               </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500">
+              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">
                 {t("actions")}
               </th>
             </tr>
@@ -147,13 +147,13 @@ export default function AdminUsersPage() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-500">
+                <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
                   Loading...
                 </td>
               </tr>
             ) : data?.items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="py-8 text-center text-gray-500">
+                <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
                   {t("noUsersFound")}
                 </td>
               </tr>
@@ -171,7 +171,7 @@ export default function AdminUsersPage() {
       </div>
 
       {data && (
-        <p className="mt-4 text-sm text-gray-500">
+        <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
           {data.total} user{data.total !== 1 ? "s" : ""} total
         </p>
       )}

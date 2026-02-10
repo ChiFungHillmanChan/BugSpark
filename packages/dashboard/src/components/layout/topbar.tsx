@@ -2,6 +2,8 @@
 
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { LocaleSwitcher } from "@/components/shared/locale-switcher";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -20,22 +22,22 @@ export function Topbar({ onMenuClick }: TopbarProps) {
   const breadcrumbs = getBreadcrumbs(pathname);
 
   return (
-    <header className="h-16 border-b border-gray-200 bg-white flex items-center px-6 gap-4">
+    <header className="h-16 border-b border-gray-200 dark:border-navy-700 bg-white dark:bg-navy-900 flex items-center px-6 gap-4">
       <button
         onClick={onMenuClick}
-        className="lg:hidden text-gray-500 hover:text-gray-700"
+        className="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
       >
         <Menu className="w-6 h-6" />
       </button>
 
-      <nav className="flex items-center text-sm text-gray-500">
+      <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400">
         {breadcrumbs.map((crumb, index) => (
           <span key={index} className="flex items-center">
             {index > 0 && <span className="mx-2">/</span>}
             <span
               className={
                 index === breadcrumbs.length - 1
-                  ? "text-gray-900 font-medium"
+                  ? "text-gray-900 dark:text-white font-medium"
                   : ""
               }
             >
@@ -44,6 +46,11 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           </span>
         ))}
       </nav>
+
+      <div className="ml-auto flex items-center gap-1">
+        <LocaleSwitcher />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

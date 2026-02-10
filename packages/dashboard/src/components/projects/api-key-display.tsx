@@ -26,16 +26,16 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
 
   return (
     <div>
-      <label className="text-sm font-medium text-gray-700 block mb-2">
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300 block mb-2">
         {t("apiKey")}
       </label>
       <div className="flex items-center gap-2">
-        <code className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm font-mono">
+        <code className="flex-1 px-3 py-2 bg-gray-50 dark:bg-navy-900 border border-gray-200 dark:border-navy-700 rounded-lg text-sm font-mono dark:text-white">
           {isRevealed ? apiKey : maskedKey}
         </code>
         <button
           onClick={() => setIsRevealed(!isRevealed)}
-          className="p-2 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg"
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-navy-700 rounded-lg"
           title={isRevealed ? "Hide" : "Reveal"}
         >
           {isRevealed ? (
@@ -46,7 +46,7 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
         </button>
         <button
           onClick={handleCopy}
-          className="p-2 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg"
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-navy-700 rounded-lg"
           title="Copy to clipboard"
         >
           {hasCopied ? (
@@ -57,7 +57,7 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
         </button>
         <button
           onClick={() => setIsConfirmOpen(true)}
-          className="p-2 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg"
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-navy-700 rounded-lg"
           title="Rotate key"
         >
           <RefreshCw className="w-4 h-4" />

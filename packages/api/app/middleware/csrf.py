@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hmac
+
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
@@ -29,6 +31,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         if request.headers.get("X-API-Key"):
             return await call_next(request)
 
+        # Bearer token auth (CLI / PAT) doesn't use cookies, exempt from CSRF
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            return await call_next(request)
+
         if request.url.path in CSRF_EXEMPT_PATHS:
             return await call_next(request)
 
@@ -45,7 +52,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 content={"detail": "Missing CSRF token"},
             )
 
-        if cookie_token != header_token:
+        if not hmac.compare_digest(cookie_token, header_token):
             return JSONResponse(
                 status_code=403,
                 content={"detail": "CSRF token mismatch"},

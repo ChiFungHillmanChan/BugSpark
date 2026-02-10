@@ -12,6 +12,10 @@ MESSAGES: dict[str, str] = {
     "auth.invalid_api_key": "API 金鑰無效",
     "auth.logged_out": "已登出",
     "auth.account_deactivated": "帳號已被停用",
+    "auth.token_expired": "個人存取權杖已過期",
+    # Tokens
+    "token.not_found": "找不到權杖",
+    "token.not_owner": "非權杖擁有者",
     # Reports
     "report.not_found": "找不到回報",
     "report.not_authorized_view": "無權檢視此回報",

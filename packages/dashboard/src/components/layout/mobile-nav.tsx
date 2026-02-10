@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Bug,
@@ -12,10 +13,10 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, external: false },
-  { href: "/bugs", label: "Bugs", icon: Bug, external: false },
-  { href: "/projects", label: "Projects", icon: FolderKanban, external: false },
-  { href: "/docs", label: "Docs", icon: BookOpen, external: true },
+  { href: "/dashboard", labelKey: "dashboard" as const, icon: LayoutDashboard, external: false },
+  { href: "/bugs", labelKey: "bugs" as const, icon: Bug, external: false },
+  { href: "/projects", labelKey: "projects" as const, icon: FolderKanban, external: false },
+  { href: "/docs", labelKey: "docs" as const, icon: BookOpen, external: true },
 ];
 
 interface MobileNavProps {
@@ -25,6 +26,7 @@ interface MobileNavProps {
 
 export function MobileNav({ isOpen, onClose }: MobileNavProps) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
 
   if (!isOpen) return null;
 
@@ -55,7 +57,7 @@ export function MobileNav({ isOpen, onClose }: MobileNavProps) {
                 )}
               >
                 <item.icon className="w-5 h-5" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             );
           })}

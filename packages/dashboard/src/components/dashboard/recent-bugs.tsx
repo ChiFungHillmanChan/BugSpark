@@ -18,9 +18,9 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
   const tBugs = useTranslations("bugs");
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        <h3 className="text-sm font-medium text-gray-900">{t("recentBugs")}</h3>
+    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-navy-700">
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t("recentBugs")}</h3>
         <Link
           href="/bugs"
           className="text-xs text-accent hover:underline font-medium"
@@ -30,7 +30,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
       </div>
       <table className="w-full">
         <thead>
-          <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
+          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-navy-700">
             <th className="px-4 py-3 font-medium">{tBugs("id")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("bugTitle")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("severity")}</th>
@@ -46,7 +46,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
           {bugs?.slice(0, 5).map((bug) => (
             <tr
               key={bug.id}
-              className="border-b border-gray-50 hover:bg-gray-50"
+              className="border-b border-gray-50 dark:border-navy-700 hover:bg-gray-50 dark:hover:bg-navy-700"
             >
               <td className="px-4 py-3">
                 <Link
@@ -56,7 +56,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
                   {bug.trackingId}
                 </Link>
               </td>
-              <td className="px-4 py-3 text-sm text-gray-900 truncate max-w-[200px]">
+              <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-200 truncate max-w-[200px]">
                 {bug.title}
               </td>
               <td className="px-4 py-3">
@@ -65,7 +65,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
               <td className="px-4 py-3">
                 <StatusBadge status={bug.status} />
               </td>
-              <td className="px-4 py-3 text-xs text-gray-500">
+              <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                 {formatDate(bug.createdAt)}
               </td>
             </tr>

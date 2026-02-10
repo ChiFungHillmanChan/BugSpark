@@ -27,29 +27,29 @@ export function CommentThread({ reportId }: CommentThreadProps) {
 
   return (
     <div>
-      <h3 className="text-sm font-medium text-gray-900 mb-4">{t("comments")}</h3>
+      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("comments")}</h3>
 
       <div className="space-y-4 mb-4 max-h-64 overflow-y-auto">
         {isLoading && (
           <div className="space-y-3">
             {Array.from({ length: 2 }).map((_, index) => (
               <div key={index} className="animate-pulse">
-                <div className="h-3 bg-gray-200 rounded w-1/3 mb-2" />
-                <div className="h-4 bg-gray-200 rounded w-full" />
+                <div className="h-3 bg-gray-200 dark:bg-navy-700 rounded w-1/3 mb-2" />
+                <div className="h-4 bg-gray-200 dark:bg-navy-700 rounded w-full" />
               </div>
             ))}
           </div>
         )}
 
         {!isLoading && comments?.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-4">
+          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
             {t("noCommentsYet")}
           </p>
         )}
 
         {comments?.map((comment) => (
           <div key={comment.id} className="flex gap-3">
-            <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-navy-700 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">
               {comment.authorName
                 .split(" ")
                 .map((n) => n[0])
@@ -58,14 +58,14 @@ export function CommentThread({ reportId }: CommentThreadProps) {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-gray-900 dark:text-white">
                   {comment.authorName}
                 </span>
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
                   {formatDate(comment.createdAt)}
                 </span>
               </div>
-              <p className="text-sm text-gray-600 mt-0.5">{comment.body}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{comment.body}</p>
             </div>
           </div>
         ))}
@@ -77,7 +77,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
           onChange={(e) => setCommentBody(e.target.value)}
           placeholder={t("addComment")}
           rows={2}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+          className="flex-1 px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm resize-none dark:bg-navy-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
         />
         <button
           type="submit"

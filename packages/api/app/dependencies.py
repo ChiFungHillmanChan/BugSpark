@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import Depends, Header, Request
@@ -14,8 +15,12 @@ from app.database import async_session
 from app.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.enums import Role
+from app.models.personal_access_token import PersonalAccessToken
 from app.models.project import Project
 from app.models.user import User
+
+PAT_PREFIX = "bsk_pat_"
+PAT_PREFIX_LEN = 16
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -26,11 +31,56 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             await session.close()
 
 
+async def _authenticate_via_pat(
+    token: str,
+    db: AsyncSession,
+    locale: str,
+) -> User:
+    """Authenticate a request using a Personal Access Token (bsk_pat_...)."""
+    prefix = token[:PAT_PREFIX_LEN] if len(token) >= PAT_PREFIX_LEN else token
+    incoming_hash = hashlib.sha256(token.encode()).hexdigest()
+
+    result = await db.execute(
+        select(PersonalAccessToken).where(
+            PersonalAccessToken.token_prefix == prefix,
+        )
+    )
+    candidates = result.scalars().all()
+
+    for pat in candidates:
+        if hmac.compare_digest(pat.token_hash, incoming_hash):
+            # Check expiry
+            if pat.expires_at is not None and pat.expires_at < datetime.now(timezone.utc):
+                raise UnauthorizedException(translate("auth.token_expired", locale))
+
+            # Persist last_used_at — flush alone would roll back on read-only routes
+            pat.last_used_at = datetime.now(timezone.utc)
+            await db.commit()
+
+            # Load the user
+            user_result = await db.execute(select(User).where(User.id == pat.user_id))
+            user = user_result.scalar_one_or_none()
+            if user is None:
+                raise UnauthorizedException(translate("auth.user_not_found", locale))
+            return user
+
+    raise UnauthorizedException(translate("auth.invalid_token", locale))
+
+
 async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
     locale = get_locale(request)
+
+    # 1. Check Authorization: Bearer header first (for CLI / PAT auth)
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        bearer_token = auth_header[7:]
+        if bearer_token.startswith(PAT_PREFIX):
+            return await _authenticate_via_pat(bearer_token, db, locale)
+
+    # 2. Fall back to cookie-based JWT auth (for dashboard)
     token = request.cookies.get("bugspark_access_token")
     if not token:
         raise UnauthorizedException(translate("auth.missing_token", locale))

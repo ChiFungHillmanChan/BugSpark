@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
@@ -14,24 +14,29 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
   const t = useTranslations("common");
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
+      <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-navy-900">
         <div className="flex flex-col items-center gap-3">
           <Bug className="w-10 h-10 text-accent animate-pulse" />
-          <span className="text-sm text-gray-500">{t("loading")}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</span>
         </div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    router.replace("/login");
     return null;
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-navy-900">
       <Sidebar
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}

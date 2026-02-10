@@ -1,9 +1,10 @@
 # 身份驗證
 
-BugSpark 根據使用情境使用兩種身份驗證方式：
+BugSpark 根據使用情境使用三種身份驗證方式：
 
 - **Cookie 驗證** 用於儀表板（瀏覽器會話）
 - **API 金鑰驗證** 用於小工具和外部整合
+- **個人存取權杖（PAT）** 用於 CLI 和自動化
 
 ## API 基礎 URL
 
@@ -70,6 +71,38 @@ curl -X POST https://api.bugspark.dev/api/v1/reports \
 ```
 
 API 金鑰的作用範圍限於單一專案。您可以在專案設定中找到您的金鑰，或透過 API 輪換金鑰。
+
+## 個人存取權杖（PAT）驗證
+
+CLI 和 CI/CD 腳本使用 PAT 透過 `Authorization: Bearer` 標頭進行驗證：
+
+```bash
+curl -X GET https://api.bugspark.dev/api/v1/projects \
+  -H "Authorization: Bearer bsk_pat_your_token_here"
+```
+
+PAT 的作用範圍為使用者層級，擁有與建立者相同的權限。它們會自動略過 CSRF 驗證。
+
+### 建立權杖
+
+<ApiEndpoint method="POST" path="/api/v1/tokens" description="建立新的個人存取權杖" />
+
+```json
+{
+  "name": "CI Pipeline",
+  "expires_in_days": 90
+}
+```
+
+### 列出權杖
+
+<ApiEndpoint method="GET" path="/api/v1/tokens" description="列出所有權杖（不會回傳權杖值）" />
+
+### 撤銷權杖
+
+<ApiEndpoint method="DELETE" path="/api/v1/tokens/{id}" description="立即撤銷權杖" />
+
+查看 [CLI 身份驗證](/docs/cli/authentication) 了解完整的安全模型和最佳實踐。
 
 ## 錯誤回應
 

@@ -67,7 +67,7 @@ export default function ProjectDetailPage({
   }
 
   if (!project) {
-    return <p className="text-gray-500 text-center py-16">{t("notFound")}</p>;
+    return <p className="text-gray-500 dark:text-gray-400 text-center py-16">{t("notFound")}</p>;
   }
 
   return (
@@ -76,21 +76,21 @@ export default function ProjectDetailPage({
 
       <form onSubmit={handleSave} className="space-y-6 mb-8">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("projectName")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("projectName")}</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">{t("domain")}</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("domain")}</label>
           <input
             type="text"
             value={domain}
             onChange={(e) => setDomain(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent dark:bg-navy-800 dark:text-white"
           />
         </div>
         <button
@@ -102,19 +102,19 @@ export default function ProjectDetailPage({
         </button>
       </form>
 
-      <div className="border-t border-gray-200 pt-8 mb-8">
+      <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
         <ApiKeyDisplay apiKey={project.apiKey} onRotate={handleRotateKey} />
       </div>
 
-      <div className="border-t border-gray-200 pt-8 mb-8">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">{t("integrationSnippet")}</h3>
+      <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("integrationSnippet")}</h3>
         <div className="relative">
-          <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-xs font-mono overflow-x-auto">
+          <pre className="bg-gray-50 dark:bg-navy-900 border border-gray-200 dark:border-navy-700 rounded-lg p-4 text-xs font-mono overflow-x-auto dark:text-white">
             {snippetCode}
           </pre>
           <button
             onClick={handleCopySnippet}
-            className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 bg-white border border-gray-200 rounded"
+            className="absolute top-2 right-2 p-1.5 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded"
           >
             {hasCopiedSnippet ? (
               <Check className="w-3.5 h-3.5 text-green-500" />
@@ -127,7 +127,7 @@ export default function ProjectDetailPage({
 
       <div className="border-t border-red-200 pt-8">
         <h3 className="text-sm font-medium text-red-600 mb-2">{t("dangerZone")}</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {t("deactivateMessage")}
         </p>
         <button

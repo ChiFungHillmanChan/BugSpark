@@ -30,14 +30,14 @@ export default function BugsPage() {
       <PageHeader
         title={t("title")}
         actions={
-          <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden">
+          <div className="flex items-center border border-gray-300 dark:border-navy-700 rounded-lg overflow-hidden">
             <button
               onClick={() => setViewMode("table")}
               className={cn(
                 "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium",
                 viewMode === "table"
                   ? "bg-accent text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50",
+                  : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-navy-800 dark:text-gray-300 dark:hover:bg-navy-700",
               )}
             >
               <LayoutList className="w-4 h-4" />
@@ -49,7 +49,7 @@ export default function BugsPage() {
                 "flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium",
                 viewMode === "kanban"
                   ? "bg-accent text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50",
+                  : "bg-white text-gray-600 hover:bg-gray-50 dark:bg-navy-800 dark:text-gray-300 dark:hover:bg-navy-700",
               )}
             >
               <Columns3 className="w-4 h-4" />
@@ -76,11 +76,11 @@ export default function BugsPage() {
                 setFilters({ ...filters, page: (filters.page ?? 1) - 1 })
               }
               disabled={(filters.page ?? 1) <= 1}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-navy-700 rounded-lg disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-navy-700"
             >
               {t("previous")}
             </button>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {t("pageOf", { page: filters.page ?? 1, total: totalPages })}
             </span>
             <button
@@ -88,7 +88,7 @@ export default function BugsPage() {
                 setFilters({ ...filters, page: (filters.page ?? 1) + 1 })
               }
               disabled={(filters.page ?? 1) >= totalPages}
-              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg disabled:opacity-50 hover:bg-gray-50"
+              className="px-3 py-1.5 text-sm border border-gray-300 dark:border-navy-700 rounded-lg disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-navy-700"
             >
               {t("next")}
             </button>

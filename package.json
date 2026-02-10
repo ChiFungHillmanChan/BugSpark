@@ -13,10 +13,14 @@
     "db:migrate": "cd packages/api && alembic upgrade head",
     "db:seed": "cd packages/api && python scripts/seed.py",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "cli:link": "cd packages/cli && pnpm build && npm link"
   },
   "packageManager": "pnpm@9.15.0",
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "turbo": "^2.8.3"
   }
 }

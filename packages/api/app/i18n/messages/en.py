@@ -12,6 +12,10 @@ MESSAGES: dict[str, str] = {
     "auth.invalid_api_key": "Invalid API key",
     "auth.logged_out": "Logged out",
     "auth.account_deactivated": "Account has been deactivated",
+    "auth.token_expired": "Personal access token has expired",
+    # Tokens
+    "token.not_found": "Token not found",
+    "token.not_owner": "Not the token owner",
     # Reports
     "report.not_found": "Report not found",
     "report.not_authorized_view": "Not authorized to view this report",

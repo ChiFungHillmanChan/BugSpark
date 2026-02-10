@@ -1,11 +1,37 @@
 from __future__ import annotations
 
+import ipaddress
 import uuid
 from datetime import datetime
+from urllib.parse import urlparse
 
 from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
+
+_BLOCKED_HOSTS = {"localhost", "127.0.0.1", "0.0.0.0", "169.254.169.254", "[::1]"}
+
+
+def _validate_webhook_url(value: str) -> str:
+    """Validate webhook URL: require http(s) and block private/metadata addresses."""
+    if not value.startswith(("https://", "http://")):
+        raise ValueError("URL must start with http:// or https://")
+
+    parsed = urlparse(value)
+    hostname = (parsed.hostname or "").lower()
+
+    if hostname in _BLOCKED_HOSTS:
+        raise ValueError("Webhook URLs must not point to private or loopback addresses")
+
+    # Block private, loopback, and link-local IPs
+    try:
+        ip = ipaddress.ip_address(hostname)
+        if ip.is_private or ip.is_loopback or ip.is_link_local:
+            raise ValueError("Webhook URLs must not point to private or loopback addresses")
+    except ValueError:
+        pass  # hostname is a domain name, not an IP — allowed
+
+    return value
 
 
 class WebhookCreate(BaseModel):
@@ -15,9 +41,7 @@ class WebhookCreate(BaseModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, value: str) -> str:
-        if not value.startswith(("https://", "http://")):
-            raise ValueError("URL must start with http:// or https://")
-        return value
+        return _validate_webhook_url(value)
 
     @field_validator("events")
     @classmethod
@@ -36,8 +60,8 @@ class WebhookUpdate(CamelModel):
     @field_validator("url")
     @classmethod
     def validate_url(cls, value: str | None) -> str | None:
-        if value is not None and not value.startswith(("https://", "http://")):
-            raise ValueError("URL must start with http:// or https://")
+        if value is not None:
+            return _validate_webhook_url(value)
         return value
 
 

@@ -11,7 +11,7 @@ import * as widgetContainer from './ui/widget-container';
 import * as floatingButton from './ui/floating-button';
 import * as reportModal from './ui/report-modal';
 import * as annotationOverlay from './ui/annotation-overlay';
-import { showToast } from './ui/toast';
+import { showToast, dismiss as dismissToast } from './ui/toast';
 import { submitReport } from './api/report-composer';
 
 let config: BugSparkConfig | null = null;
@@ -142,6 +142,7 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
 function destroy(): void {
   if (!isInitialized) return;
 
+  dismissToast();
   consoleInterceptor.stop();
   networkInterceptor.stop();
   errorTracker.stop();
@@ -193,7 +194,7 @@ if (typeof window !== 'undefined') {
   (window as unknown as Record<string, typeof BugSpark>).BugSpark = BugSpark;
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', autoInit);
+    document.addEventListener('DOMContentLoaded', autoInit, { once: true });
   } else {
     autoInit();
   }

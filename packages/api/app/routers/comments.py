@@ -5,8 +5,10 @@ import uuid
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.dependencies import get_current_user, get_db
+from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.comment import Comment
@@ -69,6 +71,7 @@ async def list_comments(
     result = await db.execute(
         select(Comment)
         .where(Comment.report_id == report_id)
+        .options(selectinload(Comment.author))
         .order_by(Comment.created_at.asc())
     )
     comments = result.scalars().all()
@@ -76,6 +79,7 @@ async def list_comments(
 
 
 @router.post("/reports/{report_id}/comments", response_model=CommentResponse, status_code=201)
+@limiter.limit("10/minute")
 async def create_comment(
     report_id: uuid.UUID,
     body: CommentCreate,

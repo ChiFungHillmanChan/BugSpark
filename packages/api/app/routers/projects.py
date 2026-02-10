@@ -12,7 +12,8 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db, validate_api_key
+from app.dependencies import get_current_user, get_db, get_owned_project, validate_api_key
+from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.enums import Role
@@ -74,20 +75,6 @@ def _project_response(
         created_at=project.created_at,
         settings=project.settings,
     )
-
-
-async def _get_owned_project(
-    project_id: uuid.UUID, user: User, db: AsyncSession, locale: str = "en"
-) -> Project:
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-
-    if project is None:
-        raise NotFoundException(translate("project.not_found", locale))
-    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
-        raise ForbiddenException(translate("project.not_owner", locale))
-
-    return project
 
 
 @router.get("/widget-config", response_model=WidgetConfigResponse)
@@ -179,7 +166,7 @@ async def get_project(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
     locale = get_locale(request)
-    project = await _get_owned_project(project_id, current_user, db, locale)
+    project = await get_owned_project(project_id, current_user, db, locale)
     return _project_response(project)
 
 
@@ -192,7 +179,7 @@ async def update_project(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
     locale = get_locale(request)
-    project = await _get_owned_project(project_id, current_user, db, locale)
+    project = await get_owned_project(project_id, current_user, db, locale)
 
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -213,7 +200,7 @@ async def delete_project(
     permanent: bool = Query(False, description="Permanently delete project and all associated data including R2 files"),
 ) -> None:
     locale = get_locale(request)
-    project = await _get_owned_project(project_id, current_user, db, locale)
+    project = await get_owned_project(project_id, current_user, db, locale)
 
     # Collect all screenshot keys from reports for R2 cleanup
     result = await db.execute(
@@ -244,6 +231,7 @@ async def delete_project(
 
 
 @router.post("/{project_id}/rotate-key", response_model=ProjectResponse)
+@limiter.limit("5/minute")
 async def rotate_api_key(
     project_id: uuid.UUID,
     request: Request,
@@ -251,7 +239,7 @@ async def rotate_api_key(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
     locale = get_locale(request)
-    project = await _get_owned_project(project_id, current_user, db, locale)
+    project = await get_owned_project(project_id, current_user, db, locale)
     raw_key = _generate_api_key()
     project.api_key_hash = _hash_api_key(raw_key)
     project.api_key_prefix = _api_key_prefix(raw_key)

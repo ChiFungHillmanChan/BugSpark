@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 
@@ -10,6 +11,10 @@ interface ErrorPageProps {
 
 export default function DashboardError({ error, reset }: ErrorPageProps) {
   const t = useTranslations("common");
+
+  useEffect(() => {
+    console.error("Dashboard error:", error);
+  }, [error]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 px-4">

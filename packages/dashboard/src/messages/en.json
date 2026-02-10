@@ -607,6 +607,7 @@
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
+    "errorDescription": "An unexpected error occurred. Please try again.",
     "retry": "Retry",
     "confirm": "Confirm",
     "cancel": "Cancel",

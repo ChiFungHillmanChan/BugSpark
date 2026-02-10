@@ -4,6 +4,7 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Depends, Request
+from fastapi.responses import StreamingResponse
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy import select
@@ -16,7 +17,7 @@ from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
 from app.schemas.analysis import AnalysisResponse
-from app.services.ai_analysis_service import analyze_bug_report
+from app.services.ai_analysis_service import analyze_bug_report, analyze_bug_report_stream
 
 logger = logging.getLogger(__name__)
 
@@ -25,14 +26,11 @@ router = APIRouter(prefix="/reports", tags=["analysis"])
 _analysis_limiter = Limiter(key_func=get_remote_address)
 
 
-@router.post("/{report_id}/analyze", response_model=AnalysisResponse)
-@_analysis_limiter.limit("5/minute")
-async def analyze_report(
+async def _get_authorized_report(
     report_id: uuid.UUID,
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-) -> AnalysisResponse:
+    current_user: User,
+    db: AsyncSession,
+) -> Report:
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 
@@ -50,6 +48,19 @@ async def analyze_report(
         if project_check.scalar_one_or_none() is None:
             raise ForbiddenException("Not authorized to analyze this report")
 
+    return report
+
+
+@router.post("/{report_id}/analyze", response_model=AnalysisResponse)
+@_analysis_limiter.limit("5/minute")
+async def analyze_report(
+    report_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AnalysisResponse:
+    report = await _get_authorized_report(report_id, current_user, db)
+
     try:
         analysis = await analyze_bug_report(
             title=report.title,
@@ -63,3 +74,40 @@ async def analyze_report(
         raise BadRequestException(str(exc))
 
     return AnalysisResponse(**analysis)
+
+
+@router.post("/{report_id}/analyze/stream")
+@_analysis_limiter.limit("5/minute")
+async def analyze_report_stream(
+    report_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> StreamingResponse:
+    """Stream AI analysis as Server-Sent Events for real-time display."""
+    report = await _get_authorized_report(report_id, current_user, db)
+
+    async def event_generator():
+        try:
+            async for chunk in analyze_bug_report_stream(
+                title=report.title,
+                description=report.description,
+                console_logs=report.console_logs,
+                network_logs=report.network_logs,
+                user_actions=report.user_actions,
+                metadata=report.metadata_,
+            ):
+                yield f"data: {chunk}\n\n"
+            yield "data: [DONE]\n\n"
+        except ValueError as exc:
+            yield f"data: [ERROR] {exc}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )

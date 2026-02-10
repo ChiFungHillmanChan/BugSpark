@@ -4,13 +4,12 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request, Response
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.dependencies import get_current_user, get_db
+from app.rate_limiter import limiter
 from app.exceptions import BadRequestException, ForbiddenException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.app_settings import AppSettings
@@ -30,9 +29,6 @@ from app.services.auth_service import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
-
-# Stricter rate limit for auth endpoints to mitigate brute-force attacks
-_auth_limiter = Limiter(key_func=get_remote_address)
 
 
 async def _is_beta_mode(db: AsyncSession) -> bool:
@@ -136,7 +132,7 @@ async def _issue_tokens(user: User, response: Response, db: AsyncSession) -> Non
 
 
 @router.post("/register")
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def register(
     body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
 ) -> UserResponse | BetaRegisterResponse:
@@ -174,7 +170,7 @@ async def register(
 
 
 @router.post("/login", response_model=UserResponse)
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def login(
     body: LoginRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
@@ -196,7 +192,7 @@ async def login(
 
 
 @router.post("/refresh", response_model=UserResponse)
-@_auth_limiter.limit("10/minute")
+@limiter.limit("10/minute")
 async def refresh(
     request: Request, response: Response, db: AsyncSession = Depends(get_db)
 ) -> UserResponse:
@@ -297,7 +293,7 @@ async def change_password(
 
 
 @router.post("/register/beta", response_model=BetaRegisterResponse, status_code=201)
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def register_beta(
     body: BetaRegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> BetaRegisterResponse:
@@ -328,7 +324,7 @@ async def register_beta(
 
 
 @router.post("/cli/register/beta", response_model=BetaRegisterResponse, status_code=201)
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def cli_register_beta(
     body: BetaRegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> BetaRegisterResponse:
@@ -356,7 +352,7 @@ async def cli_register_beta(
 
 
 @router.post("/cli/register", status_code=201)
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def cli_register(
     body: RegisterRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> CLIAuthResponse | BetaRegisterResponse:
@@ -404,7 +400,7 @@ async def cli_register(
 
 
 @router.post("/cli/login", response_model=CLIAuthResponse)
-@_auth_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def cli_login(
     body: LoginRequest, request: Request, db: AsyncSession = Depends(get_db)
 ) -> CLIAuthResponse:

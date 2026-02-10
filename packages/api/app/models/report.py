@@ -85,6 +85,6 @@ class Report(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False
     )
 
-    project = relationship("Project", lazy="selectin")
-    assignee = relationship("User", lazy="selectin")
+    project = relationship("Project", lazy="raise")
+    assignee = relationship("User", lazy="raise")
     comments = relationship("Comment", back_populates="report", lazy="raise")

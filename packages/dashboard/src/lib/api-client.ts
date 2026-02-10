@@ -44,6 +44,8 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+let refreshPromise: Promise<void> | null = null;
+
 apiClient.interceptors.response.use(
   (response) => {
     // Capture CSRF token from response headers (set by login/refresh endpoints)
@@ -60,16 +62,22 @@ apiClient.interceptors.response.use(
       originalRequest._isRetry = true;
 
       try {
-        const refreshResponse = await axios.post(
-          `${getApiBaseUrl()}/auth/refresh`,
-          null,
-          { withCredentials: true },
-        );
-        // Capture CSRF token from refresh response
-        const newCsrfToken = refreshResponse.headers["x-csrf-token"];
-        if (newCsrfToken) {
-          csrfTokenStore = newCsrfToken;
+        if (!refreshPromise) {
+          refreshPromise = axios
+            .post(`${getApiBaseUrl()}/auth/refresh`, null, {
+              withCredentials: true,
+            })
+            .then((refreshResponse) => {
+              const newCsrfToken = refreshResponse.headers["x-csrf-token"];
+              if (newCsrfToken) {
+                csrfTokenStore = newCsrfToken;
+              }
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
         }
+        await refreshPromise;
         return apiClient(originalRequest);
       } catch {
         // AuthProvider and dashboard layout guard handle redirect to /

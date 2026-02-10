@@ -12,6 +12,7 @@ from app.config import get_settings
 from app.rate_limiter import limiter
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
+from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
 from app.routers import admin, analysis, auth, comments, device_auth, integrations, plans, projects, reports, stats, tokens, upload, webhooks
 
@@ -49,6 +50,7 @@ if settings.CORS_ORIGIN_REGEX:
     _cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
 app.add_middleware(CORSMiddleware, **_cors_kwargs)
 app.add_middleware(CSRFMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 # Widget endpoints are called from any customer site — must run before CORSMiddleware
 # (Starlette executes middlewares in reverse add-order, so adding last = runs first)
 app.add_middleware(WidgetCORSMiddleware)

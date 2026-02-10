@@ -34,12 +34,13 @@ async def _read_with_size_limit(file: UploadFile) -> bytes:
 @router.post("/screenshot")
 async def upload_screenshot(
     file: UploadFile,
-    _project: Project = Depends(validate_api_key),
+    project: Project = Depends(validate_api_key),
 ) -> dict[str, str]:
     file_content = await _read_with_size_limit(file)
     object_key = await upload_file(
         file_content=file_content,
-        filename=file.filename or "screenshot.png",
         content_type=file.content_type or "image/png",
+        owner_id=str(project.owner_id),
+        project_id=str(project.id),
     )
     return {"key": object_key}

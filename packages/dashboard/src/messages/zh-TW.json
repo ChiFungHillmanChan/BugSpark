@@ -607,6 +607,7 @@
   "common": {
     "loading": "載入中...",
     "error": "發生錯誤",
+    "errorDescription": "發生了未預期的錯誤，請重試。",
     "retry": "重試",
     "confirm": "確認",
     "cancel": "取消",

@@ -32,9 +32,11 @@ async def test_upload_file_valid_png(mock_get_client: MagicMock):
     mock_get_client.return_value = mock_client
 
     file_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
-    result = await upload_file(file_content, "screenshot.png", "image/png")
+    owner_id = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+    project_id = "11111111-2222-3333-4444-555555555555"
+    result = await upload_file(file_content, "image/png", owner_id, project_id)
 
-    assert result.startswith("screenshots/")
+    assert result.startswith(f"{owner_id}/{project_id}/")
     assert result.endswith(".png")
     mock_client.put_object.assert_called_once()
     call_kwargs = mock_client.put_object.call_args.kwargs
@@ -45,7 +47,7 @@ async def test_upload_file_valid_png(mock_get_client: MagicMock):
 @pytest.mark.asyncio
 async def test_upload_file_rejects_invalid_content_type():
     with pytest.raises(BadRequestException, match="Invalid file type"):
-        await upload_file(b"data", "file.txt", "text/plain")
+        await upload_file(b"data", "text/plain", "owner-id", "project-id")
 
 
 @pytest.mark.asyncio
@@ -54,7 +56,7 @@ async def test_upload_file_rejects_oversized_file():
     # but fails size validation
     oversized_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * (MAX_FILE_SIZE_BYTES + 1)
     with pytest.raises(BadRequestException, match="exceeds maximum size"):
-        await upload_file(oversized_content, "big.png", "image/png")
+        await upload_file(oversized_content, "image/png", "owner-id", "project-id")
 
 
 @patch("app.services.storage_service._get_s3_client")

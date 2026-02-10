@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
+import threading
 import uuid
 
 import boto3
@@ -35,6 +36,7 @@ _WEBP_RIFF = b"RIFF"
 _WEBP_MARKER = b"WEBP"
 
 _s3_client = None
+_s3_client_lock = threading.Lock()
 
 
 def _validate_magic_bytes(file_content: bytes, declared_content_type: str) -> None:
@@ -60,7 +62,11 @@ def _validate_magic_bytes(file_content: bytes, declared_content_type: str) -> No
 
 def _get_s3_client():
     global _s3_client
-    if _s3_client is None:
+    if _s3_client is not None:
+        return _s3_client
+    with _s3_client_lock:
+        if _s3_client is not None:
+            return _s3_client
         settings = get_settings()
         # Cloudflare R2 is S3-compatible but doesn't use regions
         # Set region_name to 'auto' or 'us-east-1' for R2 compatibility
@@ -80,8 +86,16 @@ def _get_s3_client():
     return _s3_client
 
 
-async def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
-    """Upload a file to S3 and return the object key (not the full URL)."""
+async def upload_file(
+    file_content: bytes,
+    content_type: str,
+    owner_id: str,
+    project_id: str,
+) -> str:
+    """Upload a file to S3 and return the object key (not the full URL).
+
+    Storage path follows: {owner_id}/{project_id}/{uuid}.{ext}
+    """
     if content_type not in ALLOWED_CONTENT_TYPES:
         raise BadRequestException(
             f"Invalid file type '{content_type}'. Allowed: {', '.join(ALLOWED_CONTENT_TYPES)}"
@@ -94,7 +108,7 @@ async def upload_file(file_content: bytes, filename: str, content_type: str) -> 
 
     settings = get_settings()
     extension = _CONTENT_TYPE_TO_EXT.get(content_type, "png")
-    object_key = f"screenshots/{uuid.uuid4()}.{extension}"
+    object_key = f"{owner_id}/{project_id}/{uuid.uuid4()}.{extension}"
 
     client = _get_s3_client()
     try:
@@ -113,15 +127,18 @@ async def upload_file(file_content: bytes, filename: str, content_type: str) -> 
             f"Failed to upload file to S3/R2: {error_code} - {error_message}. "
             f"Bucket: {settings.S3_BUCKET_NAME}, Endpoint: {settings.S3_ENDPOINT_URL}"
         )
-        raise BadRequestException(f"Failed to upload file: {error_message}")
+        raise BadRequestException("Failed to upload file to storage")
     except Exception as e:
         logger.exception(f"Unexpected error uploading file to S3/R2: {e}")
-        raise BadRequestException(f"Failed to upload file: {str(e)}")
+        raise BadRequestException("Failed to upload file to storage")
 
     return object_key
 
 
-_VALID_KEY_PATTERN = re.compile(r"^screenshots/[0-9a-f-]{36}\.\w{1,5}$")
+# Matches both new ({owner}/{project}/{uuid}.ext) and legacy (screenshots/{uuid}.ext) paths
+_VALID_KEY_PATTERN = re.compile(
+    r"^(?:[0-9a-f-]{36}/[0-9a-f-]{36}/|screenshots/)[0-9a-f-]{36}\.\w{1,5}$"
+)
 
 
 def validate_object_key(key: str) -> bool:
@@ -206,7 +223,7 @@ async def generate_presigned_url(key: str, expires_in: int = 900) -> str:
             f"Failed to generate presigned URL: {error_code} - {error_message}. "
             f"Bucket: {settings.S3_BUCKET_NAME}, Key: {key}"
         )
-        raise BadRequestException(f"Failed to generate file URL: {error_message}")
+        raise BadRequestException("Failed to generate file URL")
     except Exception as e:
         logger.exception(f"Unexpected error generating presigned URL: {e}")
-        raise BadRequestException(f"Failed to generate file URL: {str(e)}")
+        raise BadRequestException("Failed to generate file URL")

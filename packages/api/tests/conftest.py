@@ -105,14 +105,9 @@ def _clear_settings_cache():
 def _reset_rate_limiter():
     """Reset rate-limiter storage before each test to avoid 429 errors."""
     from app.rate_limiter import limiter
-    from app.routers.auth import _auth_limiter
 
     try:
         limiter.reset()
-    except Exception:
-        pass
-    try:
-        _auth_limiter.reset()
     except Exception:
         pass
     yield

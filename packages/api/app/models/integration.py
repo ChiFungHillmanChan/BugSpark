@@ -26,4 +26,4 @@ class Integration(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
 
-    project = relationship("Project", lazy="selectin")
+    project = relationship("Project", lazy="raise")

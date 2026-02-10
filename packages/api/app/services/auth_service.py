@@ -11,6 +11,7 @@ from app.config import get_settings
 
 PAT_PREFIX = "bsk_pat_"
 PAT_PREFIX_LEN = 16
+_JWT_ALGORITHM = "HS256"
 
 
 def hash_password(password: str) -> str:
@@ -48,7 +49,7 @@ def create_access_token(user_id: str, email: str) -> str:
         "exp": expire,
         "type": "access",
     }
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=_JWT_ALGORITHM)
 
 
 def generate_jti() -> str:
@@ -65,13 +66,13 @@ def create_refresh_token(user_id: str, jti: str) -> str:
         "type": "refresh",
         "jti": jti,
     }
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
+    return jwt.encode(payload, settings.JWT_SECRET, algorithm=_JWT_ALGORITHM)
 
 
 def verify_token(token: str) -> dict:
     settings = get_settings()
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[_JWT_ALGORITHM])
         return payload
     except jwt.InvalidTokenError as exc:
         raise ValueError(f"Invalid token: {exc}") from exc

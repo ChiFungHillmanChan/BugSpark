@@ -97,7 +97,7 @@ async def get_current_user(
     settings = get_settings()
 
     try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=["HS256"])
     except jwt.InvalidTokenError:
         raise UnauthorizedException(translate("auth.invalid_token", locale))
 

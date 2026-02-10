@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     S3_PUBLIC_URL: str = "http://localhost:9000/bugspark-uploads"
 
     ANTHROPIC_API_KEY: str = ""
+    AI_MODEL: str = "claude-haiku-4-5-20251001"
 
     SUPERADMIN_EMAIL: str = ""
     SUPERADMIN_PASSWORD: str = ""

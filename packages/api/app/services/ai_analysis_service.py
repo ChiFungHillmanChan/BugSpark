@@ -1,14 +1,31 @@
 from __future__ import annotations
 
+import base64
 import json
 import logging
+from collections.abc import AsyncGenerator
 from typing import Any
 
 import anthropic
 
 from app.config import get_settings
+from app.utils.sanitize import sanitize_text
 
 logger = logging.getLogger(__name__)
+
+_anthropic_client: anthropic.AsyncAnthropic | None = None
+
+
+def _get_anthropic_client() -> anthropic.AsyncAnthropic:
+    global _anthropic_client
+    if _anthropic_client is None:
+        settings = get_settings()
+        if not settings.ANTHROPIC_API_KEY:
+            raise ValueError("ANTHROPIC_API_KEY not configured")
+        _anthropic_client = anthropic.AsyncAnthropic(
+            api_key=settings.ANTHROPIC_API_KEY, timeout=30
+        )
+    return _anthropic_client
 
 _SYSTEM_PROMPT = (
     "You are a bug-triage assistant. Analyze the provided bug report data and "
@@ -22,6 +39,14 @@ _SYSTEM_PROMPT = (
     '- "affectedArea": a string identifying the component/area affected '
     '(e.g. "Authentication", "UI/Forms", "API/Network")\n'
     "Respond ONLY with valid JSON. No markdown fences, no extra text."
+)
+
+_SYSTEM_PROMPT_STREAMING = (
+    "You are a bug-triage assistant. Analyze the provided bug report data. "
+    "Provide a clear, structured analysis in plain text with these sections:\n"
+    "## Summary\n## Category\n## Severity\n## Reproduction Steps\n"
+    "## Root Cause\n## Fix Suggestions\n## Affected Area\n"
+    "Be concise but thorough."
 )
 
 
@@ -93,21 +118,17 @@ def _format_metadata(metadata: dict[str, Any] | None) -> str:
     return ", ".join(parts) or "None"
 
 
-async def analyze_bug_report(
+def _build_user_prompt(
     title: str,
     description: str,
     console_logs: list[Any] | dict[str, Any] | None,
     network_logs: list[Any] | dict[str, Any] | None,
     user_actions: list[Any] | dict[str, Any] | None,
     metadata: dict[str, Any] | None,
-) -> dict[str, Any]:
-    settings = get_settings()
-    if not settings.ANTHROPIC_API_KEY:
-        raise ValueError("ANTHROPIC_API_KEY not configured")
-
-    client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=30)
-
-    user_prompt = (
+) -> str:
+    title = sanitize_text(title)
+    description = sanitize_text(description)
+    return (
         f"Title: {title}\n"
         f"Description: {description}\n\n"
         f"Console Logs:\n{_format_logs(console_logs)}\n\n"
@@ -116,17 +137,33 @@ async def analyze_bug_report(
         f"Device Info: {_format_metadata(metadata)}"
     )
 
-    message = await client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=1024,
-        system=_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": user_prompt}],
-    )
 
-    if not message.content or not hasattr(message.content[0], "text"):
-        raise ValueError("AI returned an empty or non-text response")
+def _build_message_content(
+    user_prompt: str,
+    screenshot_data: bytes | None = None,
+    screenshot_media_type: str = "image/png",
+) -> list[dict[str, Any]]:
+    """Build message content with optional multi-modal screenshot."""
+    content: list[dict[str, Any]] = []
+    if screenshot_data:
+        content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": screenshot_media_type,
+                "data": base64.b64encode(screenshot_data).decode("ascii"),
+            },
+        })
+        content.append({
+            "type": "text",
+            "text": "Above is a screenshot of the bug. Analyze it alongside the report data below.\n\n" + user_prompt,
+        })
+    else:
+        content.append({"type": "text", "text": user_prompt})
+    return content
 
-    raw_text = message.content[0].text
+
+def _parse_analysis_response(raw_text: str) -> dict[str, Any]:
     try:
         parsed = json.loads(raw_text)
     except json.JSONDecodeError:
@@ -150,3 +187,63 @@ async def analyze_bug_report(
         "fix_suggestions": list(parsed.get("fixSuggestions", [])),
         "affected_area": str(parsed.get("affectedArea", "")),
     }
+
+
+async def analyze_bug_report(
+    title: str,
+    description: str,
+    console_logs: list[Any] | dict[str, Any] | None,
+    network_logs: list[Any] | dict[str, Any] | None,
+    user_actions: list[Any] | dict[str, Any] | None,
+    metadata: dict[str, Any] | None,
+    screenshot_data: bytes | None = None,
+    screenshot_media_type: str = "image/png",
+) -> dict[str, Any]:
+    settings = get_settings()
+    client = _get_anthropic_client()
+
+    user_prompt = _build_user_prompt(
+        title, description, console_logs, network_logs, user_actions, metadata
+    )
+    content = _build_message_content(user_prompt, screenshot_data, screenshot_media_type)
+
+    message = await client.messages.create(
+        model=settings.AI_MODEL,
+        max_tokens=1024,
+        system=_SYSTEM_PROMPT,
+        messages=[{"role": "user", "content": content}],
+    )
+
+    if not message.content or not hasattr(message.content[0], "text"):
+        raise ValueError("AI returned an empty or non-text response")
+
+    return _parse_analysis_response(message.content[0].text)
+
+
+async def analyze_bug_report_stream(
+    title: str,
+    description: str,
+    console_logs: list[Any] | dict[str, Any] | None,
+    network_logs: list[Any] | dict[str, Any] | None,
+    user_actions: list[Any] | dict[str, Any] | None,
+    metadata: dict[str, Any] | None,
+    screenshot_data: bytes | None = None,
+    screenshot_media_type: str = "image/png",
+) -> AsyncGenerator[str, None]:
+    """Stream AI analysis as Server-Sent Events text chunks."""
+    settings = get_settings()
+    client = _get_anthropic_client()
+
+    user_prompt = _build_user_prompt(
+        title, description, console_logs, network_logs, user_actions, metadata
+    )
+    content = _build_message_content(user_prompt, screenshot_data, screenshot_media_type)
+
+    async with client.messages.stream(
+        model=settings.AI_MODEL,
+        max_tokens=1024,
+        system=_SYSTEM_PROMPT_STREAMING,
+        messages=[{"role": "user", "content": content}],
+    ) as stream:
+        async for text in stream.text_stream:
+            yield text

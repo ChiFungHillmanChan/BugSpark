@@ -25,7 +25,8 @@ get_settings.cache_clear()
 
 from app.database import Base  # noqa: E402
 from app.dependencies import get_db  # noqa: E402
-from app.models.enums import Plan, Role  # noqa: E402
+from app.models.app_settings import AppSettings  # noqa: E402
+from app.models.enums import BetaStatus, Plan, Role  # noqa: E402
 from app.models.project import Project  # noqa: E402
 from app.models.user import User  # noqa: E402
 from app.routers.projects import _api_key_prefix, _generate_api_key, _hash_api_key  # noqa: E402
@@ -98,6 +99,23 @@ def _clear_settings_cache():
     get_settings.cache_clear()
     yield
     get_settings.cache_clear()
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """Reset rate-limiter storage before each test to avoid 429 errors."""
+    from app.rate_limiter import limiter
+    from app.routers.auth import _auth_limiter
+
+    try:
+        limiter.reset()
+    except Exception:
+        pass
+    try:
+        _auth_limiter.reset()
+    except Exception:
+        pass
+    yield
 
 
 @pytest.fixture()
@@ -234,3 +252,89 @@ async def test_project(db_session: AsyncSession, test_user: User) -> Project:
     # Re-attach after refresh since SQLAlchemy may clear transient attrs
     project._raw_api_key = raw_key  # type: ignore[attr-defined]
     return project
+
+
+@pytest.fixture()
+async def beta_mode_off(db_session: AsyncSession) -> AppSettings:
+    """Seed AppSettings with beta_mode_enabled=False (open registration)."""
+    settings = AppSettings(id=1, beta_mode_enabled=False)
+    db_session.add(settings)
+    await db_session.commit()
+    await db_session.refresh(settings)
+    return settings
+
+
+@pytest.fixture()
+async def beta_mode_on(db_session: AsyncSession) -> AppSettings:
+    """Seed AppSettings with beta_mode_enabled=True (beta gated registration)."""
+    settings = AppSettings(id=1, beta_mode_enabled=True)
+    db_session.add(settings)
+    await db_session.commit()
+    await db_session.refresh(settings)
+    return settings
+
+
+@pytest.fixture()
+async def pending_beta_user(db_session: AsyncSession) -> User:
+    """A user with beta_status=PENDING (on waiting list)."""
+    user = User(
+        id=uuid.uuid4(),
+        email="betapending@example.com",
+        hashed_password=hash_password("BetaPass123!"),
+        name="Beta Pending User",
+        role=Role.USER,
+        plan=Plan.FREE,
+        is_active=True,
+        beta_status=BetaStatus.PENDING,
+        beta_applied_at=datetime.now(timezone.utc),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+async def rejected_beta_user(db_session: AsyncSession) -> User:
+    """A user with beta_status=REJECTED."""
+    user = User(
+        id=uuid.uuid4(),
+        email="betarejected@example.com",
+        hashed_password=hash_password("BetaPass123!"),
+        name="Beta Rejected User",
+        role=Role.USER,
+        plan=Plan.FREE,
+        is_active=True,
+        beta_status=BetaStatus.REJECTED,
+        beta_applied_at=datetime.now(timezone.utc),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+async def approved_beta_user(db_session: AsyncSession) -> User:
+    """A user with beta_status=APPROVED (allowed to login)."""
+    user = User(
+        id=uuid.uuid4(),
+        email="betaapproved@example.com",
+        hashed_password=hash_password("BetaPass123!"),
+        name="Beta Approved User",
+        role=Role.USER,
+        plan=Plan.FREE,
+        is_active=True,
+        beta_status=BetaStatus.APPROVED,
+        beta_applied_at=datetime.now(timezone.utc),
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user

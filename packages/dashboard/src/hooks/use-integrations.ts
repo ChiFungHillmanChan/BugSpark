@@ -47,7 +47,6 @@ export function useUpdateIntegration() {
   return useMutation({
     mutationFn: async ({
       integrationId,
-      projectId,
       data,
     }: {
       integrationId: string;
@@ -60,9 +59,9 @@ export function useUpdateIntegration() {
       );
       return response.data;
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data, { projectId }) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.integrations.list(variables.projectId),
+        queryKey: queryKeys.integrations.list(projectId),
       });
     },
   });
@@ -80,9 +79,9 @@ export function useDeleteIntegration() {
     }): Promise<void> => {
       await apiClient.delete(`/integrations/${integrationId}`);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data, { projectId }) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.integrations.list(variables.projectId),
+        queryKey: queryKeys.integrations.list(projectId),
       });
     },
   });

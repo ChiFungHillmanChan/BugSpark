@@ -129,15 +129,19 @@ describe('submitReport', () => {
   });
 
   it('retries on network failure', async () => {
+    vi.useFakeTimers();
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
       .mockRejectedValueOnce(new Error('Network error'))
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ ok: true }), { status: 200 }),
       );
 
-    await submitReport(createConfig(), createReport());
+    const promise = submitReport(createConfig(), createReport());
+    await vi.advanceTimersByTimeAsync(1000);
+    await promise;
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
   });
 
   it('throws on HTTP error response after retries', async () => {

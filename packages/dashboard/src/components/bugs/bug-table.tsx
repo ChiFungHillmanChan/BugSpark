@@ -29,10 +29,10 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] shadow-sm overflow-hidden">
       <table className="w-full">
         <thead>
-          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-navy-700 bg-gray-50 dark:bg-navy-700">
+          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-white/[0.04] bg-gray-50 dark:bg-white/[0.02]">
             <th className="px-4 py-3 font-medium">{t("trackingId")}</th>
             <th className="px-4 py-3 font-medium">{t("bugTitle")}</th>
             <th className="px-4 py-3 font-medium">{t("severity")}</th>
@@ -49,7 +49,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
             : bugs?.map((bug) => (
                 <tr
                   key={bug.id}
-                  className="border-b border-gray-50 dark:border-navy-700 hover:bg-gray-50 dark:hover:bg-navy-700 transition-colors"
+                  className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors"
                 >
                   <td className="px-4 py-3">
                     <Link

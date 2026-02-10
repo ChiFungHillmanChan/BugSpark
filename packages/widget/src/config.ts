@@ -1,5 +1,9 @@
 import type { BugSparkConfig } from './types';
 
+function isValidUrl(url: string): boolean {
+  return url.startsWith('https://') || url.startsWith('http://');
+}
+
 const DEFAULT_CONFIG: Omit<BugSparkConfig, 'apiKey' | 'endpoint'> = {
   position: 'bottom-right',
   theme: 'light',
@@ -7,7 +11,7 @@ const DEFAULT_CONFIG: Omit<BugSparkConfig, 'apiKey' | 'endpoint'> = {
   enableScreenshot: true,
   enableConsoleLogs: true,
   enableNetworkLogs: true,
-  enableSessionRecording: true,
+  enableSessionRecording: false,
 };
 
 export function mergeConfig(
@@ -19,6 +23,10 @@ export function mergeConfig(
 
   if (!userConfig.endpoint) {
     throw new Error('[BugSpark] endpoint is required in configuration');
+  }
+
+  if (!isValidUrl(userConfig.endpoint)) {
+    throw new Error('[BugSpark] endpoint must start with https:// or http://');
   }
 
   return {

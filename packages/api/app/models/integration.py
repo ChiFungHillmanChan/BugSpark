@@ -17,7 +17,7 @@ class Integration(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
     provider: Mapped[str] = mapped_column(String(50), nullable=False)
     config: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)

@@ -83,6 +83,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem("bugspark_theme");var r=t==="dark"?true:t==="light"?false:window.matchMedia("(prefers-color-scheme:dark)").matches;document.documentElement.classList.toggle("dark",r)}catch(e){}})()`,
+        }}
+      />
       {children}
     </ThemeContext.Provider>
   );

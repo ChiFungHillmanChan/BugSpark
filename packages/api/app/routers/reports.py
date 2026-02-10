@@ -5,6 +5,7 @@ import uuid
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.dependencies import get_current_user, get_db, validate_api_key
 from app.exceptions import ForbiddenException, NotFoundException
@@ -16,23 +17,23 @@ from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.similarity_service import find_similar_reports
-from app.services.storage_service import generate_presigned_url
+from app.services.storage_service import delete_file, generate_presigned_url
 from app.services.tracking_id_service import generate_tracking_id
 from app.services.webhook_service import dispatch_webhooks
 
 router = APIRouter(prefix="/reports", tags=["reports"])
 
 
-def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
+async def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
     """Generate a presigned URL from an S3 object key. Handles legacy full URLs gracefully."""
     if not key_or_url:
         return None
     if key_or_url.startswith("http://") or key_or_url.startswith("https://"):
         return key_or_url
-    return generate_presigned_url(key_or_url)
+    return await generate_presigned_url(key_or_url)
 
 
-def _report_to_response(report: Report) -> ReportResponse:
+async def _report_to_response(report: Report) -> ReportResponse:
     """Build ReportResponse avoiding the metadata/metadata_ naming conflict."""
     return ReportResponse(
         id=report.id,
@@ -44,8 +45,8 @@ def _report_to_response(report: Report) -> ReportResponse:
         category=report.category.value if isinstance(report.category, Category) else report.category,
         status=report.status.value if isinstance(report.status, Status) else report.status,
         assignee_id=report.assignee_id,
-        screenshot_url=_resolve_screenshot_url(report.screenshot_url),
-        annotated_screenshot_url=_resolve_screenshot_url(report.annotated_screenshot_url),
+        screenshot_url=await _resolve_screenshot_url(report.screenshot_url),
+        annotated_screenshot_url=await _resolve_screenshot_url(report.annotated_screenshot_url),
         console_logs=report.console_logs,
         network_logs=report.network_logs,
         user_actions=report.user_actions,
@@ -84,7 +85,7 @@ async def create_report(
     await db.commit()
     await db.refresh(report)
 
-    response = _report_to_response(report)
+    response = await _report_to_response(report)
     await dispatch_webhooks(
         db, background_tasks, str(project.id), "report.created", response.model_dump(mode="json")
     )
@@ -123,7 +124,8 @@ async def list_reports(
         elif severity_values:
             query = query.where(Report.severity.in_(severity_values))
     if search is not None:
-        search_filter = f"%{search}%"
+        escaped_search = search.replace("%", "\\%").replace("_", "\\_")
+        search_filter = f"%{escaped_search}%"
         query = query.where(
             Report.title.ilike(search_filter) | Report.description.ilike(search_filter)
         )
@@ -138,7 +140,7 @@ async def list_reports(
     result = await db.execute(query)
     reports = result.scalars().all()
 
-    items = [_report_to_response(report) for report in reports]
+    items = [await _report_to_response(report) for report in reports]
 
     return ReportListResponse(items=items, total=total, page=page, page_size=page_size)
 
@@ -151,7 +153,9 @@ async def get_report(
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
     locale = get_locale(request)
-    result = await db.execute(select(Report).where(Report.id == report_id))
+    result = await db.execute(
+        select(Report).where(Report.id == report_id).options(selectinload(Report.comments))
+    )
     report = result.scalar_one_or_none()
 
     if report is None:
@@ -165,7 +169,7 @@ async def get_report(
         if project_check.scalar_one_or_none() is None:
             raise ForbiddenException(translate("report.not_authorized_view", locale))
 
-    return _report_to_response(report)
+    return await _report_to_response(report)
 
 
 @router.patch("/{report_id}", response_model=ReportResponse)
@@ -206,7 +210,7 @@ async def update_report(
     await db.commit()
     await db.refresh(report)
 
-    response = _report_to_response(report)
+    response = await _report_to_response(report)
     await dispatch_webhooks(
         db, background_tasks, str(report.project_id), "report.updated", response.model_dump(mode="json")
     )
@@ -236,6 +240,12 @@ async def delete_report(
         if project_check.scalar_one_or_none() is None:
             raise ForbiddenException(translate("report.not_authorized_delete", locale))
 
+    # Clean up screenshots from R2/S3 before deleting the DB record
+    if report.screenshot_url:
+        await delete_file(report.screenshot_url)
+    if report.annotated_screenshot_url:
+        await delete_file(report.annotated_screenshot_url)
+
     await db.delete(report)
     await db.commit()
 
@@ -256,12 +266,13 @@ async def get_similar_reports(
     if report is None:
         raise NotFoundException(translate("report.not_found", locale))
 
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    project_check = await db.execute(
-        select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException(translate("report.not_authorized_view", locale))
+    if current_user.role != Role.SUPERADMIN:
+        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+        project_check = await db.execute(
+            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
+        )
+        if project_check.scalar_one_or_none() is None:
+            raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     similar = await find_similar_reports(
         db, report.id, report.project_id, threshold=threshold, limit=limit

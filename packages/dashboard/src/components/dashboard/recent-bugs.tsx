@@ -18,8 +18,8 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
   const tBugs = useTranslations("bugs");
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm">
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-navy-700">
+    <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] shadow-sm">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-white/[0.04]">
         <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t("recentBugs")}</h3>
         <Link
           href="/bugs"
@@ -30,7 +30,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
       </div>
       <table className="w-full">
         <thead>
-          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-navy-700">
+          <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-white/[0.04]">
             <th className="px-4 py-3 font-medium">{tBugs("id")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("bugTitle")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("severity")}</th>
@@ -46,7 +46,7 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
           {bugs?.slice(0, 5).map((bug) => (
             <tr
               key={bug.id}
-              className="border-b border-gray-50 dark:border-navy-700 hover:bg-gray-50 dark:hover:bg-navy-700"
+              className="border-b border-gray-50 dark:border-white/[0.04] hover:bg-gray-50 dark:hover:bg-white/[0.02]"
             >
               <td className="px-4 py-3">
                 <Link

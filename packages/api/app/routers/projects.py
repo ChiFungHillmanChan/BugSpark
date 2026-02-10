@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import hashlib
+import logging
 import secrets
 import uuid
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,8 +14,12 @@ from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.enums import Role
 from app.models.project import Project
+from app.models.report import Report
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.services.storage_service import delete_files
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -149,10 +154,36 @@ async def delete_project(
     request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    permanent: bool = Query(False, description="Permanently delete project and all associated data including R2 files"),
 ) -> None:
     locale = get_locale(request)
     project = await _get_owned_project(project_id, current_user, db, locale)
-    project.is_active = False
+
+    # Collect all screenshot keys from reports for R2 cleanup
+    result = await db.execute(
+        select(Report.screenshot_url, Report.annotated_screenshot_url)
+        .where(Report.project_id == project_id)
+    )
+    screenshot_rows = result.all()
+    file_keys = []
+    for row in screenshot_rows:
+        if row.screenshot_url:
+            file_keys.append(row.screenshot_url)
+        if row.annotated_screenshot_url:
+            file_keys.append(row.annotated_screenshot_url)
+
+    # Delete files from R2/S3
+    if file_keys:
+        logger.info(f"Deleting {len(file_keys)} screenshot(s) from R2 for project {project_id}")
+        await delete_files(file_keys)
+
+    if permanent:
+        # Hard delete: removes project and cascades to reports (via DB FK)
+        await db.delete(project)
+    else:
+        # Soft delete: mark inactive, but still clean up R2 files
+        project.is_active = False
+
     await db.commit()
 
 

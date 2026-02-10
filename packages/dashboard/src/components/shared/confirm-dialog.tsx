@@ -77,7 +77,7 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onCancel} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onCancel} />
       <div
         ref={dialogRef}
         role="dialog"
@@ -85,7 +85,7 @@ export function ConfirmDialog({
         aria-labelledby="confirm-dialog-title"
         aria-describedby="confirm-dialog-message"
         onKeyDown={handleKeyDown}
-        className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md mx-4"
+        className="relative bg-white dark:bg-navy-800 dark:border dark:border-white/[0.08] rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
       >
         <h3
           id="confirm-dialog-title"
@@ -103,7 +103,7 @@ export function ConfirmDialog({
           <button
             ref={cancelButtonRef}
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600"
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-navy-700 rounded-lg hover:bg-gray-200 dark:hover:bg-navy-600"
           >
             {t("cancel")}
           </button>

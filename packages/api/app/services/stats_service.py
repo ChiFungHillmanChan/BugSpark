@@ -18,47 +18,35 @@ async def get_overview_stats(db: AsyncSession, user_id: str | None) -> OverviewS
     else:
         project_filter = True
 
-    total_result = await db.execute(
-        select(func.count(Report.id)).where(project_filter)
-    )
-    total_bugs = total_result.scalar() or 0
-
-    open_result = await db.execute(
-        select(func.count(Report.id)).where(
-            project_filter,
-            Report.status.in_([Status.NEW, Status.TRIAGING, Status.IN_PROGRESS]),
-        )
-    )
-    open_bugs = open_result.scalar() or 0
-
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-    resolved_result = await db.execute(
-        select(func.count(Report.id)).where(
-            project_filter,
-            Report.status == Status.RESOLVED,
-            Report.updated_at >= today_start,
-        )
-    )
-    resolved_today = resolved_result.scalar() or 0
 
-    avg_result = await db.execute(
+    result = await db.execute(
         select(
+            func.count(Report.id),
+            func.count(Report.id).filter(
+                Report.status.in_([Status.NEW, Status.TRIAGING, Status.IN_PROGRESS])
+            ),
+            func.count(Report.id).filter(
+                Report.status == Status.RESOLVED,
+                Report.updated_at >= today_start,
+            ),
             func.avg(
-                func.extract("epoch", Report.updated_at) - func.extract("epoch", Report.created_at)
-            )
-            / 3600
-        ).where(
-            project_filter,
-            Report.status.in_([Status.RESOLVED, Status.CLOSED]),
-        )
+                case(
+                    (
+                        Report.status.in_([Status.RESOLVED, Status.CLOSED]),
+                        (func.extract("epoch", Report.updated_at) - func.extract("epoch", Report.created_at)) / 3600,
+                    ),
+                )
+            ),
+        ).where(project_filter)
     )
-    avg_resolution_hours = round(avg_result.scalar() or 0, 1)
+    row = result.one()
 
     return OverviewStats(
-        total_bugs=total_bugs,
-        open_bugs=open_bugs,
-        resolved_today=resolved_today,
-        avg_resolution_hours=avg_resolution_hours,
+        total_bugs=row[0] or 0,
+        open_bugs=row[1] or 0,
+        resolved_today=row[2] or 0,
+        avg_resolution_hours=round(row[3] or 0, 1),
     )
 
 

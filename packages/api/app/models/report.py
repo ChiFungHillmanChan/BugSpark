@@ -44,7 +44,7 @@ class Report(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False, index=True
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
     tracking_id: Mapped[str] = mapped_column(String(20), nullable=False)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -66,7 +66,7 @@ class Report(Base):
         index=True,
     )
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )
     screenshot_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     annotated_screenshot_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
@@ -84,4 +84,4 @@ class Report(Base):
 
     project = relationship("Project", lazy="selectin")
     assignee = relationship("User", lazy="selectin")
-    comments = relationship("Comment", back_populates="report", lazy="selectin")
+    comments = relationship("Comment", back_populates="report", lazy="raise")

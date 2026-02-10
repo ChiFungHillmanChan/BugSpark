@@ -10,6 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 import { useTranslations, useLocale } from "next-intl";
+import { useTheme } from "@/providers/theme-provider";
 import type { BugTrend } from "@/types";
 import { SkeletonChart } from "@/components/shared/skeleton-loader";
 
@@ -21,6 +22,8 @@ interface BugTrendChartProps {
 export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   if (isLoading) return <SkeletonChart />;
 
@@ -33,14 +36,14 @@ export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
   }
 
   return (
-    <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-6 shadow-sm">
+    <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t("bugTrend")}</h3>
       <ResponsiveContainer width="100%" height={250}>
         <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <CartesianGrid strokeDasharray="3 3" stroke={isDark ? "rgba(255,255,255,0.04)" : "#f0f0f0"} />
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 12, fill: "#9ca3af" }}
+            tick={{ fontSize: 12, fill: isDark ? "rgba(255,255,255,0.4)" : "#9ca3af" }}
             tickFormatter={(value: string) =>
               new Date(value).toLocaleDateString(locale, {
                 month: "short",
@@ -48,12 +51,14 @@ export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
               })
             }
           />
-          <YAxis tick={{ fontSize: 12, fill: "#9ca3af" }} />
+          <YAxis tick={{ fontSize: 12, fill: isDark ? "rgba(255,255,255,0.4)" : "#9ca3af" }} />
           <Tooltip
             contentStyle={{
               borderRadius: "8px",
-              border: "1px solid #e5e7eb",
+              border: isDark ? "1px solid rgba(255,255,255,0.08)" : "1px solid #e5e7eb",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+              backgroundColor: isDark ? "rgba(30,41,59,0.9)" : "#fff",
+              color: isDark ? "#fff" : "#000",
             }}
           />
           <defs>

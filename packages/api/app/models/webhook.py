@@ -17,7 +17,7 @@ class Webhook(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     project_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("projects.id"), nullable=False
+        UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
     url: Mapped[str] = mapped_column(String(1000), nullable=False)
     events: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
+from app.models.enums import Role
 from app.models.integration import Integration
 from app.models.project import Project
 from app.models.report import Report
@@ -37,7 +38,7 @@ async def _get_owned_project(
     project = result.scalar_one_or_none()
     if project is None:
         raise NotFoundException("Project not found")
-    if project.owner_id != user.id:
+    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
         raise ForbiddenException("Not the project owner")
     return project
 

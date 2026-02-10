@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import hmac
+import logging
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
@@ -49,12 +52,14 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         header_token = request.headers.get("X-CSRF-Token")
 
         if not cookie_token or not header_token:
+            logger.warning("CSRF token missing: path=%s", request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"detail": "Missing CSRF token"},
             )
 
         if not hmac.compare_digest(cookie_token, header_token):
+            logger.warning("CSRF token mismatch: path=%s", request.url.path)
             return JSONResponse(
                 status_code=403,
                 content={"detail": "CSRF token mismatch"},

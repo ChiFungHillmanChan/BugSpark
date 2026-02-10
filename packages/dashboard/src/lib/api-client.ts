@@ -50,7 +50,7 @@ apiClient.interceptors.response.use(
         });
         return apiClient(originalRequest);
       } catch {
-        // AuthProvider and dashboard layout guard handle redirect to /login
+        // AuthProvider and dashboard layout guard handle redirect to /
       }
     }
 

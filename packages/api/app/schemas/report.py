@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -12,8 +13,8 @@ from app.utils.sanitize import sanitize_text
 class ReportCreate(BaseModel):
     title: str = Field(min_length=1, max_length=500)
     description: str = Field(min_length=1, max_length=10000)
-    severity: str
-    category: str
+    severity: Literal["low", "medium", "high", "critical"]
+    category: Literal["bug", "ui", "performance", "crash", "other"]
     reporter_identifier: str | None = Field(default=None, max_length=255)
     screenshot_url: str | None = None
     annotated_screenshot_url: str | None = None
@@ -31,9 +32,9 @@ class ReportCreate(BaseModel):
 class ReportUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
-    severity: str | None = None
-    category: str | None = None
-    status: str | None = None
+    severity: Literal["low", "medium", "high", "critical"] | None = None
+    category: Literal["bug", "ui", "performance", "crash", "other"] | None = None
+    status: Literal["new", "triaging", "in_progress", "resolved", "closed"] | None = None
     assignee_id: uuid.UUID | None = None
 
     @field_validator("title", "description")

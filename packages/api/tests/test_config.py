@@ -21,8 +21,8 @@ def test_cors_origins_list_parsing():
 def test_default_settings():
     settings = Settings()
     assert settings.JWT_ALGORITHM == "HS256"
-    assert settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES == 15
-    assert settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS == 7
+    assert settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES == 60
+    assert settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS == 30
     assert settings.S3_BUCKET_NAME == "bugspark-uploads"
     assert isinstance(settings.cors_origins_list, list)
     assert len(settings.cors_origins_list) >= 1

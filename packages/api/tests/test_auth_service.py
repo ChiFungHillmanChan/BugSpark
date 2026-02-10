@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 from unittest.mock import patch
 
 import pytest
-from jose import jwt
+import jwt
 
 from app.services.auth_service import (
     create_access_token,
@@ -42,7 +42,7 @@ def test_verify_password_incorrect():
 
 def test_create_access_token_contains_claims():
     token = create_access_token("user-id-123", "user@example.com")
-    payload = jwt.decode(token, "change-me-in-production", algorithms=["HS256"])
+    payload = jwt.decode(token, "test-secret-key-that-is-at-least-32-bytes-long", algorithms=["HS256"])
     assert payload["sub"] == "user-id-123"
     assert payload["email"] == "user@example.com"
     assert payload["type"] == "access"
@@ -52,7 +52,7 @@ def test_create_access_token_contains_claims():
 def test_create_refresh_token_has_refresh_type():
     jti = generate_jti()
     token = create_refresh_token("user-id-123", jti)
-    payload = jwt.decode(token, "change-me-in-production", algorithms=["HS256"])
+    payload = jwt.decode(token, "test-secret-key-that-is-at-least-32-bytes-long", algorithms=["HS256"])
     assert payload["sub"] == "user-id-123"
     assert payload["type"] == "refresh"
     assert payload["jti"] == jti
@@ -78,7 +78,7 @@ def test_verify_token_expired():
             "exp": expired_time + timedelta(minutes=1),
             "type": "access",
         }
-        token = jwt.encode(payload, "change-me-in-production", algorithm="HS256")
+        token = jwt.encode(payload, "test-secret-key-that-is-at-least-32-bytes-long", algorithm="HS256")
 
     with pytest.raises(ValueError, match="Invalid token"):
         verify_token(token)

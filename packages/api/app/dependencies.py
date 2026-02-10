@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import Depends, Header, Request
-from jose import JWTError, jwt
+import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,7 @@ from app.config import get_settings
 from app.database import async_session
 from app.exceptions import ForbiddenException, NotFoundException, UnauthorizedException
 from app.i18n import get_locale, translate
-from app.models.enums import Role
+from app.models.enums import BetaStatus, Role
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.project import Project
 from app.models.user import User
@@ -52,8 +52,12 @@ async def _authenticate_via_pat(
 
     for pat in candidates:
         if hmac.compare_digest(pat.token_hash, incoming_hash):
-            # Check expiry
-            if pat.expires_at is not None and pat.expires_at < datetime.now(timezone.utc):
+            # Check expiry (normalise tz: SQLite returns naive datetimes)
+            pat_expires = pat.expires_at
+            if pat_expires is not None:
+                if pat_expires.tzinfo is None:
+                    pat_expires = pat_expires.replace(tzinfo=timezone.utc)
+            if pat_expires is not None and pat_expires < datetime.now(timezone.utc):
                 raise UnauthorizedException(translate("auth.token_expired", locale))
 
             # Persist last_used_at — flush alone would roll back on read-only routes
@@ -94,7 +98,7 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-    except JWTError:
+    except jwt.InvalidTokenError:
         raise UnauthorizedException(translate("auth.invalid_token", locale))
 
     if payload.get("type") != "access":
@@ -117,9 +121,22 @@ async def get_active_user(
     request: Request,
     current_user: User = Depends(get_current_user),
 ) -> User:
+    locale = get_locale(request)
     if not current_user.is_active:
-        locale = get_locale(request)
         raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    # Safety net: block beta-pending / beta-rejected users
+    if current_user.beta_status == BetaStatus.PENDING:
+        raise ForbiddenException(
+            translate("beta.waiting_list", locale),
+            code="beta.waiting_list",
+        )
+    if current_user.beta_status == BetaStatus.REJECTED:
+        raise ForbiddenException(
+            translate("beta.rejected", locale),
+            code="beta.rejected",
+        )
+
     return current_user
 
 

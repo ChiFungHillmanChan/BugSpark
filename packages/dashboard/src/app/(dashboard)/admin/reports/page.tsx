@@ -1,24 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 import { useAdminReports } from "@/hooks/use-admin";
 import { useProjects } from "@/hooks/use-projects";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo } from "react";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { StatusBadge } from "@/components/bugs/status-badge";
 import { formatDate } from "@/lib/utils";
 import { SkeletonTableRow } from "@/components/shared/skeleton-loader";
+import { useDebouncedValue } from "@/hooks/use-debounce";
 
 export default function AdminReportsPage() {
   const t = useTranslations("admin");
   const tBugs = useTranslations("bugs");
+  const locale = useLocale();
   const { isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
 
   const { data: projects } = useProjects();
@@ -31,7 +33,7 @@ export default function AdminReportsPage() {
   }, [projects]);
 
   const { data, isLoading } = useAdminReports({
-    search: search || undefined,
+    search: debouncedSearch || undefined,
     page,
     pageSize: 20,
   });
@@ -138,7 +140,7 @@ export default function AdminReportsPage() {
                     <StatusBadge status={report.status} />
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                    {formatDate(report.createdAt)}
+                    {formatDate(report.createdAt, locale)}
                   </td>
                 </tr>
               ))

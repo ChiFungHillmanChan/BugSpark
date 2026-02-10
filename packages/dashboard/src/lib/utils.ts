@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string): string {
+export function formatDate(date: string, locale = "en"): string {
   const now = new Date();
   const then = new Date(date);
   const diffMs = now.getTime() - then.getTime();
@@ -15,11 +15,13 @@ export function formatDate(date: string): string {
   const diffHours = Math.floor(diffMinutes / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffSeconds < 60) return "just now";
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return then.toLocaleDateString();
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+
+  if (diffSeconds < 60) return rtf.format(0, "second"); // "now" / "剛才"
+  if (diffMinutes < 60) return rtf.format(-diffMinutes, "minute");
+  if (diffHours < 24) return rtf.format(-diffHours, "hour");
+  if (diffDays < 30) return rtf.format(-diffDays, "day");
+  return then.toLocaleDateString(locale);
 }
 
 export function formatDuration(ms: number): string {

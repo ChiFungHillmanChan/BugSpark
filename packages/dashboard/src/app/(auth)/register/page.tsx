@@ -2,19 +2,23 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { Eye, EyeOff, Loader2, Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function RegisterPage() {
   const { register } = useAuth();
+  const searchParams = useSearchParams();
   const t = useTranslations("auth");
+  const tBeta = useTranslations("beta");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [betaPending, setBetaPending] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -22,12 +26,42 @@ export default function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      await register(name, email, password);
+      const redirectTo = searchParams.get("redirect") ?? undefined;
+      const result = await register(name, email, password, redirectTo);
+      if (result.kind === "beta") {
+        setBetaPending(true);
+      }
     } catch {
       setError(t("registrationFailed"));
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  if (betaPending) {
+    return (
+      <div className="w-full">
+        <div className="bg-white dark:bg-navy-800/60 dark:backdrop-blur-2xl rounded-2xl sm:rounded-3xl shadow-lg dark:shadow-2xl dark:shadow-accent/5 border border-gray-200 dark:border-white/[0.08] p-6 sm:p-10 md:p-12 text-center">
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+              <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+            </div>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            {tBeta("successTitle")}
+          </h2>
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6">
+            {tBeta("successMessage")}
+          </p>
+          <Link
+            href="/login"
+            className="inline-block py-2.5 px-6 bg-accent hover:bg-accent-hover text-white rounded-xl text-sm font-semibold transition-all"
+          >
+            {tBeta("backToLogin")}
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -38,7 +72,14 @@ export default function RegisterPage() {
         </h2>
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
           {t("hasAccount")}{" "}
-          <Link href="/login" className="text-accent hover:underline font-medium">
+          <Link
+            href={
+              searchParams.get("redirect")
+                ? `/login?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
+                : "/login"
+            }
+            className="text-accent hover:underline font-medium"
+          >
             {t("signIn")}
           </Link>
         </p>

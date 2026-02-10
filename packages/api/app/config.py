@@ -30,6 +30,8 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     COOKIE_SAMESITE: str = "lax"
 
+    ENCRYPTION_KEY: str = ""  # Fernet key for encrypting secrets at rest. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
     ENVIRONMENT: str = "development"
 
     @property

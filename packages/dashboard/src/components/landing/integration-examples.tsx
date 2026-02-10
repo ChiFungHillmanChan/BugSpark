@@ -8,14 +8,14 @@ import { SectionHeader } from "@/components/shared/section-header";
 const CODE_EXAMPLES = {
   script: `<script
   src="https://cdn.bugspark.dev/widget.js"
-  data-project="YOUR_PROJECT_KEY"
+  data-project-key="\${BUGSPARK_PROJECT_KEY}"
   data-position="bottom-right"
   async
 ></script>`,
   npm: `import { BugSpark } from '@bugspark/widget';
 
 BugSpark.init({
-  projectKey: 'YOUR_PROJECT_KEY',
+  projectKey: process.env.BUGSPARK_PROJECT_KEY,
   position: 'bottom-right',
   // Optional: customize theme
   theme: { accent: '#e94560' },
@@ -26,7 +26,7 @@ import { BugSpark } from '@bugspark/widget';
 
 onMounted(() => {
   BugSpark.init({
-    projectKey: 'YOUR_PROJECT_KEY',
+    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
     position: 'bottom-right',
   });
 });

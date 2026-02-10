@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { StatusBadge } from "@/components/bugs/status-badge";
@@ -23,6 +23,7 @@ export function RecentBugs({
 }: RecentBugsProps) {
   const t = useTranslations("dashboard");
   const tBugs = useTranslations("bugs");
+  const locale = useLocale();
 
   return (
     <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] shadow-sm">
@@ -81,7 +82,7 @@ export function RecentBugs({
                 <StatusBadge status={bug.status} />
               </td>
               <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                {formatDate(bug.createdAt)}
+                {formatDate(bug.createdAt, locale)}
               </td>
             </tr>
           ))}

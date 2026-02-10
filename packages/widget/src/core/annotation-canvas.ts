@@ -18,6 +18,7 @@ let currentColor = '#e94560';
 let currentLineWidth = 3;
 let animationFrameId: number | null = null;
 let isPointerDown = false;
+let isDirty = true;
 let onRequestTextInput: ((x: number, y: number, cb: (text: string) => void) => void) | null = null;
 
 function getCanvasCoords(event: PointerEvent): { x: number; y: number } {
@@ -42,14 +43,30 @@ function createToolInstance(): AnnotationTool | null {
         onRequestTextInput?.(x, y, cb);
       }, (shape) => {
         history.push(shape);
+        markDirty();
       });
     case 'blur': return createBlurTool();
     default: return null;
   }
 }
 
+function markDirty(): void {
+  isDirty = true;
+}
+
 function renderLoop(): void {
-  if (!ctx || !canvas) return;
+  if (!ctx || !canvas) {
+    // Canvas has been destroyed – stop the loop to avoid a persistent CPU leak.
+    animationFrameId = null;
+    return;
+  }
+
+  if (!isDirty) {
+    animationFrameId = requestAnimationFrame(renderLoop);
+    return;
+  }
+  isDirty = false;
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (screenshotImage) {
@@ -73,12 +90,14 @@ function handlePointerDown(event: PointerEvent): void {
   isPointerDown = true;
   const coords = getCanvasCoords(event);
   currentTool.onPointerDown(coords);
+  markDirty();
 }
 
 function handlePointerMove(event: PointerEvent): void {
   if (!isPointerDown || !currentTool) return;
   const coords = getCanvasCoords(event);
   currentTool.onPointerMove(coords);
+  markDirty();
 }
 
 function handlePointerUp(event: PointerEvent): void {
@@ -90,6 +109,7 @@ function handlePointerUp(event: PointerEvent): void {
     history.push(shape);
   }
   currentTool = createToolInstance();
+  markDirty();
 }
 
 export function init(
@@ -107,6 +127,7 @@ export function init(
   screenshotImage = new Image();
   screenshotImage.src = screenshot.toDataURL();
   screenshotImage.onload = () => {
+    markDirty();
     renderLoop();
   };
 
@@ -120,16 +141,19 @@ export function init(
 export function setTool(tool: AnnotationToolType): void {
   currentToolType = tool;
   currentTool = createToolInstance();
+  markDirty();
 }
 
 export function setColor(color: string): void {
   currentColor = color;
   currentTool = createToolInstance();
+  markDirty();
 }
 
 export function setLineWidth(width: number): void {
   currentLineWidth = width;
   currentTool = createToolInstance();
+  markDirty();
 }
 
 export function getLineWidth(): number {
@@ -138,10 +162,12 @@ export function getLineWidth(): number {
 
 export function undo(): void {
   history.undo();
+  markDirty();
 }
 
 export function redo(): void {
   history.redo();
+  markDirty();
 }
 
 export function getAnnotatedCanvas(): HTMLCanvasElement {

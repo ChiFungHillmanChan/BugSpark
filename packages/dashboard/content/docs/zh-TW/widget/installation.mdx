@@ -2,6 +2,18 @@
 
 BugSpark 小工具是一個輕量級的 JavaScript 片段，可為您的應用程式添加錯誤回報按鈕。
 
+## 環境變數
+
+以下所有安裝方式都透過環境變數來引用您的專案 API 金鑰。**請勿將 API 金鑰直接寫入原始碼中。**
+
+在您的 `.env`（或 `.env.local`）檔案中加入：
+
+```bash
+BUGSPARK_PROJECT_KEY=YOUR_API_KEY
+```
+
+您可以在 [儀表板](/dashboard) 的 **專案設定** 中找到您的專案 API 金鑰。
+
 ## Script 標籤
 
 最簡單的方式。在 `</body>` 結尾標籤前貼上以下程式碼：
@@ -9,11 +21,13 @@ BugSpark 小工具是一個輕量級的 JavaScript 片段，可為您的應用�
 ```html
 <script
   src="https://cdn.bugspark.dev/widget.js"
-  data-project="YOUR_API_KEY"
+  data-project-key="${BUGSPARK_PROJECT_KEY}"
   data-position="bottom-right"
   async
 ></script>
 ```
+
+> 對於伺服器渲染的頁面，請在建置時或透過範本引擎注入環境變數。
 
 小工具會非同步載入，不會阻擋頁面渲染。
 
@@ -31,7 +45,7 @@ npm install @bugspark/widget
 import { BugSpark } from "@bugspark/widget";
 
 BugSpark.init({
-  projectKey: "YOUR_API_KEY",
+  projectKey: process.env.BUGSPARK_PROJECT_KEY,
   position: "bottom-right",
 });
 ```
@@ -45,7 +59,7 @@ import { BugSpark } from "@bugspark/widget";
 function App() {
   useEffect(() => {
     BugSpark.init({
-      projectKey: "YOUR_API_KEY",
+      projectKey: process.env.BUGSPARK_PROJECT_KEY,
       position: "bottom-right",
     });
   }, []);
@@ -63,29 +77,34 @@ import { BugSpark } from "@bugspark/widget";
 
 onMounted(() => {
   BugSpark.init({
-    projectKey: "YOUR_API_KEY",
+    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
     position: "bottom-right",
   });
 });
 </script>
 ```
 
+> Vue（Vite）的客戶端環境變數需要 `VITE_` 前綴。請在 `.env` 檔案中加入 `VITE_BUGSPARK_PROJECT_KEY`。
+
 ## Angular
 
 ```typescript
 import { Component, OnInit } from "@angular/core";
 import { BugSpark } from "@bugspark/widget";
+import { environment } from "../environments/environment";
 
 @Component({ selector: "app-root", template: "<router-outlet />" })
 export class AppComponent implements OnInit {
   ngOnInit() {
     BugSpark.init({
-      projectKey: "YOUR_API_KEY",
+      projectKey: environment.bugsparkProjectKey,
       position: "bottom-right",
     });
   }
 }
 ```
+
+> 請將 `bugsparkProjectKey` 加入 `environment.ts` 和 `environment.prod.ts` 檔案中。
 
 ## 驗證安裝
 

@@ -15,6 +15,7 @@ import {
   registerApi,
   logoutApi,
   getMeApi,
+  type RegisterResult,
 } from "@/lib/auth";
 import type { User } from "@/types";
 
@@ -23,8 +24,8 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   isSuperadmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
+  register: (name: string, email: string, password: string, redirectTo?: string) => Promise<RegisterResult>;
   logout: () => void;
 }
 
@@ -43,25 +44,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, redirectTo?: string) => {
       const data = await loginApi(email, password);
       setUser(data);
-      router.push("/dashboard");
+      router.push(redirectTo ?? "/dashboard");
     },
     [router],
   );
 
   const register = useCallback(
-    async (name: string, email: string, password: string) => {
-      const data = await registerApi(name, email, password);
-      setUser(data);
-      router.push("/dashboard");
+    async (name: string, email: string, password: string, redirectTo?: string): Promise<RegisterResult> => {
+      const result = await registerApi(name, email, password);
+      if (result.kind === "user") {
+        setUser(result.user);
+        router.push(redirectTo ?? "/dashboard");
+      }
+      // When kind === "beta", the caller (register page) handles the UI
+      return result;
     },
     [router],
   );
 
   const logout = useCallback(async () => {
-    await logoutApi();
+    // Always clear local state and redirect, even if the API call fails
+    // (e.g. expired token, network error). The server session will expire on its own.
+    try {
+      await logoutApi();
+    } catch {
+      // Intentionally ignored – local cleanup is what matters
+    }
     setUser(null);
     router.push("/");
   }, [router]);

@@ -29,6 +29,26 @@ from app.services.linear_integration import (
     create_linear_issue,
     format_report_as_linear_issue,
 )
+from app.utils.encryption import decrypt_value, encrypt_value
+
+# Config keys that contain sensitive tokens
+_SENSITIVE_CONFIG_KEYS = {"token", "apiKey", "api_key", "secret", "access_token"}
+
+
+def _encrypt_config(config: dict) -> dict:
+    """Encrypt sensitive values in an integration config dict."""
+    return {
+        k: encrypt_value(v) if k in _SENSITIVE_CONFIG_KEYS and isinstance(v, str) else v
+        for k, v in config.items()
+    }
+
+
+def _decrypt_config(config: dict) -> dict:
+    """Decrypt sensitive values in an integration config dict."""
+    return {
+        k: decrypt_value(v) if k in _SENSITIVE_CONFIG_KEYS and isinstance(v, str) else v
+        for k, v in config.items()
+    }
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +83,7 @@ async def create_integration(
     integration = Integration(
         project_id=project.id,
         provider=body.provider,
-        config=body.config,
+        config=_encrypt_config(body.config),
     )
     db.add(integration)
     await db.commit()
@@ -111,7 +131,7 @@ async def update_integration(
 
     update_data = body.model_dump(exclude_unset=True)
     if "config" in update_data and update_data["config"] is not None:
-        merged_config = {**integration.config, **update_data["config"]}
+        merged_config = {**integration.config, **_encrypt_config(update_data["config"])}
         integration.config = merged_config
         del update_data["config"]
 
@@ -180,7 +200,7 @@ async def export_report_to_tracker(
         raise NotFoundException(f"No active {provider} integration found for this project")
 
     if provider == "github":
-        config = integration.config
+        config = _decrypt_config(integration.config)
         body = format_report_as_github_issue(report)
 
         try:
@@ -204,7 +224,7 @@ async def export_report_to_tracker(
         )
 
     elif provider == "linear":
-        config = integration.config
+        config = _decrypt_config(integration.config)
         formatted = format_report_as_linear_issue(report)
 
         issue_data = await create_linear_issue(

@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas import CamelModel
 
@@ -15,6 +15,7 @@ class UserResponse(CamelModel):
     role: str
     plan: str
     is_active: bool
+    beta_status: str = "none"
     plan_expires_at: datetime | None = None
     created_at: datetime
 
@@ -33,13 +34,13 @@ _UNSET = object()
 
 
 class AdminUserUpdate(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [{"plan": "pro", "plan_expires_at": "2026-03-10T00:00:00Z"}]
+        }
+    )
+
     role: str | None = Field(default=None)
     plan: str | None = Field(default=None)
     is_active: bool | None = Field(default=None)
     plan_expires_at: datetime | None = Field(default=None)
-
-    class Config:
-        # Allow extra fields to be passed through for proper null handling
-        json_schema_extra = {
-            "examples": [{"plan": "pro", "plan_expires_at": "2026-03-10T00:00:00Z"}]
-        }

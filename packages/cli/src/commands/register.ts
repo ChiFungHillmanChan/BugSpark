@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import prompts from "prompts";
 import { createUnauthClient } from "../lib/api-client.js";
-import { DEFAULT_API_URL, saveConfig } from "../lib/config.js";
+import { DEFAULT_API_URL, DEFAULT_DASHBOARD_URL, saveConfig } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
 
@@ -10,6 +10,7 @@ interface CLIAuthResponse {
   email: string;
   name: string;
   role: string;
+  plan: string;
   token: string;
 }
 
@@ -71,12 +72,13 @@ export async function registerCommand(): Promise<void> {
 
     await saveConfig({
       apiUrl: answers.apiUrl,
+      dashboardUrl: DEFAULT_DASHBOARD_URL,
       token: res.token,
     });
 
     console.log();
     success(
-      `Account created! Logged in as ${chalk.bold(res.name)} (${res.email})`
+      `Account created! Logged in as ${chalk.bold(res.name)} (${res.email}) — ${res.plan} plan`
     );
     console.log();
     console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);

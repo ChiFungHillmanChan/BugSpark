@@ -18,7 +18,10 @@ async def test_deliver_webhook_sends_request():
     webhook = _make_webhook()
     mock_response = MagicMock(status_code=200)
 
-    with patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls:
+    with (
+        patch("app.utils.url_validator.validate_webhook_url"),
+        patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.post.return_value = mock_response
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -37,7 +40,10 @@ async def test_deliver_webhook_includes_signature_header():
     webhook = _make_webhook(secret="test-secret")
     mock_response = MagicMock(status_code=200)
 
-    with patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls:
+    with (
+        patch("app.utils.url_validator.validate_webhook_url"),
+        patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.post.return_value = mock_response
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
@@ -56,7 +62,10 @@ async def test_deliver_webhook_includes_signature_header():
 async def test_deliver_webhook_handles_timeout():
     webhook = _make_webhook()
 
-    with patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls:
+    with (
+        patch("app.utils.url_validator.validate_webhook_url"),
+        patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.post.side_effect = httpx.TimeoutException("Connection timed out")
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)

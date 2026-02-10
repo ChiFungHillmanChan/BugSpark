@@ -3,6 +3,7 @@ from __future__ import annotations
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.app_settings import AppSettings
 from app.models.user import User
 from app.services.auth_service import create_refresh_token, generate_jti
 
@@ -10,7 +11,8 @@ from app.services.auth_service import create_refresh_token, generate_jti
 BASE = "/api/v1/auth"
 
 
-async def test_register_success(client: AsyncClient):
+async def test_register_success(client: AsyncClient, beta_mode_off: AppSettings):
+    """Register succeeds when beta mode is OFF – returns user + auth cookies."""
     response = await client.post(
         f"{BASE}/register",
         json={

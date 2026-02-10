@@ -7,9 +7,9 @@ let isRunning = false;
 let bugsparkEndpoint = '';
 let maxEntries = DEFAULT_MAX_ENTRIES;
 
-const originalFetch = window.fetch.bind(window);
-const originalXhrOpen = XMLHttpRequest.prototype.open;
-const originalXhrSend = XMLHttpRequest.prototype.send;
+let originalFetch: typeof window.fetch | null = null;
+let originalXhrOpen: ((method: string, url: string | URL, ...rest: unknown[]) => void) | null = null;
+let originalXhrSend: ((body?: Document | XMLHttpRequestBodyInit | null) => void) | null = null;
 
 function isBugSparkRequest(url: string): boolean {
   return bugsparkEndpoint !== '' && url.startsWith(bugsparkEndpoint);
@@ -51,6 +51,9 @@ function parseHeaders(
 }
 
 function patchFetch(): void {
+  const capturedFetch = originalFetch;
+  if (!capturedFetch) return;
+
   window.fetch = async (
     input: RequestInfo | URL,
     init?: RequestInit,
@@ -62,7 +65,7 @@ function patchFetch(): void {
         : input.url;
 
     if (isBugSparkRequest(url)) {
-      return originalFetch(input, init);
+      return capturedFetch(input, init);
     }
 
     const method = init?.method?.toUpperCase() ?? 'GET';
@@ -70,7 +73,7 @@ function patchFetch(): void {
     const timestamp = Date.now();
 
     try {
-      const response = await originalFetch(input, init);
+      const response = await capturedFetch(input, init);
       pushEntry({
         method,
         url,
@@ -115,7 +118,7 @@ function patchXhr(): void {
       startTime: 0,
       timestamp: 0,
     });
-    return originalXhrOpen.call(
+    return originalXhrOpen?.call(
       this,
       method,
       url,
@@ -141,7 +144,7 @@ function patchXhr(): void {
         });
       });
     }
-    return originalXhrSend.call(this, body);
+    return originalXhrSend?.call(this, body);
   };
 }
 
@@ -150,6 +153,12 @@ export function start(endpoint: string, limit: number = DEFAULT_MAX_ENTRIES): vo
   isRunning = true;
   bugsparkEndpoint = endpoint;
   maxEntries = limit;
+
+  // Capture originals at start time, not at module load
+  originalFetch = window.fetch.bind(window);
+  originalXhrOpen = XMLHttpRequest.prototype.open;
+  originalXhrSend = XMLHttpRequest.prototype.send;
+
   patchFetch();
   patchXhr();
 }
@@ -157,9 +166,12 @@ export function start(endpoint: string, limit: number = DEFAULT_MAX_ENTRIES): vo
 export function stop(): void {
   if (!isRunning) return;
   isRunning = false;
-  window.fetch = originalFetch;
-  XMLHttpRequest.prototype.open = originalXhrOpen;
-  XMLHttpRequest.prototype.send = originalXhrSend;
+  if (originalFetch) window.fetch = originalFetch;
+  if (originalXhrOpen) XMLHttpRequest.prototype.open = originalXhrOpen;
+  if (originalXhrSend) XMLHttpRequest.prototype.send = originalXhrSend;
+  originalFetch = null;
+  originalXhrOpen = null;
+  originalXhrSend = null;
 }
 
 export function getEntries(): NetworkLogEntry[] {

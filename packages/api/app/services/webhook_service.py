@@ -24,6 +24,14 @@ def _generate_signature(secret: str, payload_bytes: bytes) -> str:
 
 
 async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
+    from app.utils.url_validator import validate_webhook_url
+
+    try:
+        validate_webhook_url(webhook.url)
+    except Exception:
+        logger.warning("Blocked webhook delivery to unsafe URL: %s", webhook.url)
+        return
+
     body = json.dumps({"event": event, "data": payload}, default=str)
     payload_bytes = body.encode("utf-8")
     signature = _generate_signature(webhook.secret, payload_bytes)

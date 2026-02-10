@@ -30,6 +30,10 @@ export function info(msg: string): void {
   console.log(chalk.blue("ℹ") + " " + msg);
 }
 
+export function warn(msg: string): void {
+  console.log(chalk.yellow("⚠") + " " + msg);
+}
+
 export function dim(msg: string): string {
   return chalk.dim(msg);
 }

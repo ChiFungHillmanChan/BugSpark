@@ -30,5 +30,8 @@ export const queryKeys = {
     stats: ["admin", "stats"] as const,
     projects: ["admin", "projects"] as const,
     reports: ["admin", "reports"] as const,
+    betaUsers: <P extends object>(params?: P) =>
+      ["admin", "beta-users", params] as const,
+    settings: ["admin", "settings"] as const,
   },
 };

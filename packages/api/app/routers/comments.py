@@ -10,6 +10,7 @@ from app.dependencies import get_current_user, get_db
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.comment import Comment
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
@@ -42,14 +43,15 @@ async def _verify_report_access(
     if report is None:
         raise NotFoundException(translate("report.not_found", locale))
 
-    project_check = await db.execute(
-        select(Project.id).where(
-            Project.id == report.project_id,
-            Project.owner_id == user.id,
+    if user.role != Role.SUPERADMIN:
+        project_check = await db.execute(
+            select(Project.id).where(
+                Project.id == report.project_id,
+                Project.owner_id == user.id,
+            )
         )
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException(translate("report.not_authorized_view", locale))
+        if project_check.scalar_one_or_none() is None:
+            raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     return report
 
@@ -109,7 +111,7 @@ async def delete_comment(
 
     if comment is None:
         raise NotFoundException(translate("comment.not_found", locale))
-    if comment.author_id != current_user.id:
+    if comment.author_id != current_user.id and current_user.role != Role.SUPERADMIN:
         raise ForbiddenException(translate("comment.not_owner", locale))
 
     await db.delete(comment)

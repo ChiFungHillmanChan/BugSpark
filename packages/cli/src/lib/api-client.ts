@@ -4,6 +4,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public code?: string,
   ) {
     super(message);
     this.name = "ApiError";
@@ -32,13 +33,15 @@ async function request<T>(
 
   if (!resp.ok) {
     let detail = `HTTP ${resp.status}`;
+    let code: string | undefined;
     try {
-      const errBody = (await resp.json()) as { detail?: string };
+      const errBody = (await resp.json()) as { detail?: string; code?: string };
       if (errBody.detail) detail = errBody.detail;
+      if (errBody.code) code = errBody.code;
     } catch {
       // ignore parse errors
     }
-    throw new ApiError(resp.status, detail);
+    throw new ApiError(resp.status, detail, code);
   }
 
   if (resp.status === 204) return undefined as T;
@@ -69,13 +72,15 @@ async function requestNoAuth<T>(
 
   if (!resp.ok) {
     let detail = `HTTP ${resp.status}`;
+    let code: string | undefined;
     try {
-      const errBody = (await resp.json()) as { detail?: string };
+      const errBody = (await resp.json()) as { detail?: string; code?: string };
       if (errBody.detail) detail = errBody.detail;
+      if (errBody.code) code = errBody.code;
     } catch {
       // ignore parse errors
     }
-    throw new ApiError(resp.status, detail);
+    throw new ApiError(resp.status, detail, code);
   }
 
   if (resp.status === 204) return undefined as T;

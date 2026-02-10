@@ -32,6 +32,18 @@ MESSAGES: dict[str, str] = {
     "admin.invalid_role": "無效的角色",
     "admin.invalid_plan": "無效的方案",
     "admin.forbidden": "需要管理員權限",
+    # 裝置驗證
+    "device.invalid_code": "無效或已過期的裝置代碼",
+    "device.code_expired": "裝置代碼已過期",
+    # Beta 測試
+    "beta.waiting_list": "您的帳號正在 Beta 測試等候名單中，請等待管理員審核。",
+    "beta.rejected": "您的 Beta 測試申請已被拒絕。",
+    "beta.registered": "您已加入 Beta 測試等候名單。帳號核准後我們會通知您。",
+    "beta.approved": "Beta 測試申請已核准。",
+    "beta.already_applied": "此電子郵件的帳號已存在或已申請 Beta 測試。",
+    "beta.not_found": "找不到 Beta 使用者。",
+    "beta.not_beta_user": "此使用者不是 Beta 申請者。",
+    "beta.mode_updated": "Beta 模式設定已更新。",
     # 方案限制
     "plan.project_limit": "已達方案上限：您的方案最多允許 {limit} 個專案。請升級方案。",
     "plan.report_per_project_limit": "已達方案上限：您的方案每個專案最多允許 {limit} 則回報。請升級方案。",

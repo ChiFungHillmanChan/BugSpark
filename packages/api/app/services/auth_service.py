@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import hashlib
 import secrets
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
-from jose import JWTError, jwt
+import jwt
 
 from app.config import get_settings
+
+PAT_PREFIX = "bsk_pat_"
+PAT_PREFIX_LEN = 16
 
 
 def hash_password(password: str) -> str:
@@ -15,6 +19,24 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+
+
+def create_cli_pat(user_id, name: str = "BugSpark CLI", expires_days: int = 90):
+    """Generate a PAT for CLI usage and return (raw_token, token_hash, token_prefix, expires_at)."""
+    from app.models.personal_access_token import PersonalAccessToken
+
+    raw_token = f"{PAT_PREFIX}{secrets.token_urlsafe(48)}="
+    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+    token_prefix = raw_token[:PAT_PREFIX_LEN]
+
+    pat = PersonalAccessToken(
+        user_id=user_id,
+        name=name,
+        token_hash=token_hash,
+        token_prefix=token_prefix,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=expires_days),
+    )
+    return raw_token, pat
 
 
 def create_access_token(user_id: str, email: str) -> str:
@@ -51,5 +73,5 @@ def verify_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
         return payload
-    except JWTError as exc:
+    except jwt.InvalidTokenError as exc:
         raise ValueError(f"Invalid token: {exc}") from exc

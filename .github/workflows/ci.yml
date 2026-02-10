@@ -2,12 +2,12 @@
 # CI Pipeline — runs on every Pull Request targeting main
 # ============================================================================
 # Jobs:
-#   1. lint        – TypeScript type-check for dashboard & widget
+#   1. lint        – TypeScript type-check for dashboard, widget & CLI build
 #   2. audit       – dependency vulnerability scanning (npm + pip)
 #   3. test-api    – pytest for the FastAPI backend
 #   4. test-dashboard – vitest for the Next.js dashboard
 #   5. test-widget – vitest for the embeddable widget
-#   6. build       – full Turborepo build (dashboard + widget)
+#   6. build       – full Turborepo build (dashboard + widget + cli)
 # ============================================================================
 
 name: CI
@@ -45,6 +45,9 @@ jobs:
       - name: Lint widget
         run: pnpm --filter @bugspark/widget lint
 
+      - name: Build CLI
+        run: pnpm --filter @bugspark/cli build
+
   # --------------------------------------------------------------------------
   # Audit — dependency vulnerability scanning
   # --------------------------------------------------------------------------
@@ -70,7 +73,6 @@ jobs:
 
       - name: Audit npm dependencies
         run: pnpm audit --audit-level=moderate
-        continue-on-error: true
 
       - name: Install pip-audit
         run: pip install pip-audit
@@ -80,7 +82,6 @@ jobs:
         run: |
           pip install -e .
           pip-audit
-        continue-on-error: true
 
   # --------------------------------------------------------------------------
   # Test — FastAPI backend (pytest + asyncio)

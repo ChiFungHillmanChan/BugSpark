@@ -13,6 +13,7 @@ from app.models.project import Project
 from app.models.user import User
 from app.models.webhook import Webhook
 from app.schemas.webhook import WebhookCreate, WebhookResponse, WebhookUpdate
+from app.utils.url_validator import validate_webhook_url
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
@@ -36,6 +37,8 @@ async def create_webhook(
     db: AsyncSession = Depends(get_db),
 ) -> WebhookResponse:
     await _verify_project_ownership(project_id, current_user, db)
+
+    validate_webhook_url(body.url)
 
     webhook = Webhook(
         project_id=project_id,
@@ -81,6 +84,8 @@ async def update_webhook(
     await _verify_project_ownership(webhook.project_id, current_user, db)
 
     update_data = body.model_dump(exclude_unset=True)
+    if "url" in update_data:
+        validate_webhook_url(update_data["url"])
     for field, value in update_data.items():
         setattr(webhook, field, value)
 

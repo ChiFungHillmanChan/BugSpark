@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import apiClient from "@/lib/api-client";
 import { Key, Copy, Check, Trash2, Plus, Terminal } from "lucide-react";
 
@@ -45,6 +46,9 @@ export default function TokensPage() {
   const [newToken, setNewToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Revoke confirm dialog
+  const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
+
   const fetchTokens = useCallback(async () => {
     setIsLoading(true);
     const resp = await apiClient.get<TokenResponse[]>("/auth/tokens");
@@ -77,9 +81,14 @@ export default function TokensPage() {
     fetchTokens();
   }
 
-  async function handleRevoke(id: string) {
-    if (!confirm(t("revokeConfirm"))) return;
-    await apiClient.delete(`/auth/tokens/${id}`);
+  function handleRevoke(id: string) {
+    setRevokeTarget(id);
+  }
+
+  async function confirmRevoke() {
+    if (!revokeTarget) return;
+    await apiClient.delete(`/auth/tokens/${revokeTarget}`);
+    setRevokeTarget(null);
     fetchTokens();
   }
 
@@ -261,6 +270,16 @@ export default function TokensPage() {
           ))}
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={revokeTarget !== null}
+        title={t("revokeTitle")}
+        message={t("revokeConfirm")}
+        confirmLabel={t("revoke")}
+        isDestructive
+        onConfirm={confirmRevoke}
+        onCancel={() => setRevokeTarget(null)}
+      />
     </div>
   );
 }

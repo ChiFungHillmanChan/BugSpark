@@ -2,6 +2,18 @@
 
 The BugSpark widget is a lightweight JavaScript snippet that adds a bug reporting button to your application.
 
+## Environment Variable
+
+All installation methods below reference an environment variable for your project API key. **Never hard-code your API key in source code.**
+
+Add this to your `.env` (or `.env.local`) file:
+
+```bash
+BUGSPARK_PROJECT_KEY=YOUR_API_KEY
+```
+
+You can find your project API key in the [Dashboard](/dashboard) under **Project Settings**.
+
 ## Script Tag
 
 The simplest way to add BugSpark. Paste this before the closing `</body>` tag:
@@ -9,11 +21,13 @@ The simplest way to add BugSpark. Paste this before the closing `</body>` tag:
 ```html
 <script
   src="https://cdn.bugspark.dev/widget.js"
-  data-project="YOUR_API_KEY"
+  data-project-key="${BUGSPARK_PROJECT_KEY}"
   data-position="bottom-right"
   async
 ></script>
 ```
+
+> For server-rendered pages, inject the environment variable at build time or via your templating engine.
 
 The widget loads asynchronously and does not block page rendering.
 
@@ -31,7 +45,7 @@ Initialize in your app entry point:
 import { BugSpark } from "@bugspark/widget";
 
 BugSpark.init({
-  projectKey: "YOUR_API_KEY",
+  projectKey: process.env.BUGSPARK_PROJECT_KEY,
   position: "bottom-right",
 });
 ```
@@ -45,7 +59,7 @@ import { BugSpark } from "@bugspark/widget";
 function App() {
   useEffect(() => {
     BugSpark.init({
-      projectKey: "YOUR_API_KEY",
+      projectKey: process.env.BUGSPARK_PROJECT_KEY,
       position: "bottom-right",
     });
   }, []);
@@ -63,29 +77,34 @@ import { BugSpark } from "@bugspark/widget";
 
 onMounted(() => {
   BugSpark.init({
-    projectKey: "YOUR_API_KEY",
+    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
     position: "bottom-right",
   });
 });
 </script>
 ```
 
+> Vue (Vite) requires the `VITE_` prefix for client-side environment variables. Add `VITE_BUGSPARK_PROJECT_KEY` to your `.env` file.
+
 ## Angular
 
 ```typescript
 import { Component, OnInit } from "@angular/core";
 import { BugSpark } from "@bugspark/widget";
+import { environment } from "../environments/environment";
 
 @Component({ selector: "app-root", template: "<router-outlet />" })
 export class AppComponent implements OnInit {
   ngOnInit() {
     BugSpark.init({
-      projectKey: "YOUR_API_KEY",
+      projectKey: environment.bugsparkProjectKey,
       position: "bottom-right",
     });
   }
 }
 ```
+
+> Add `bugsparkProjectKey` to your `environment.ts` and `environment.prod.ts` files.
 
 ## Verifying Installation
 

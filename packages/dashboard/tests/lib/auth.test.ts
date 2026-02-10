@@ -37,7 +37,7 @@ describe('auth API functions', () => {
   });
 
   describe('registerApi', () => {
-    it('calls POST /auth/register and returns user', async () => {
+    it('calls POST /auth/register and returns user result when not beta', async () => {
       mockApiClient.post.mockResolvedValueOnce({ data: mockUser });
       const result = await registerApi('Test', 'test@example.com', 'password123');
 
@@ -46,7 +46,15 @@ describe('auth API functions', () => {
         email: 'test@example.com',
         password: 'password123',
       });
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual({ kind: 'user', user: mockUser });
+    });
+
+    it('returns beta result when response has betaStatus pending', async () => {
+      const betaResponse = { message: 'Added to waiting list', betaStatus: 'pending' };
+      mockApiClient.post.mockResolvedValueOnce({ data: betaResponse });
+      const result = await registerApi('Test', 'test@example.com', 'password123');
+
+      expect(result).toEqual({ kind: 'beta', result: betaResponse });
     });
   });
 

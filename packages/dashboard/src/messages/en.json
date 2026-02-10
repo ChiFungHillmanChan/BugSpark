@@ -7,7 +7,9 @@
     "docs": "Docs",
     "logOut": "Log out",
     "selectProject": "Select Project",
+    "allProjects": "All projects",
     "admin": "Admin",
+    "adminPanel": "Admin Panel",
     "adminDashboard": "Platform",
     "adminUsers": "Users"
   },
@@ -39,7 +41,9 @@
     "viewAll": "View all",
     "bugTrend": "Bug Trend",
     "severityBreakdown": "Severity Breakdown",
-    "noDataYet": "No data yet"
+    "noDataYet": "No data yet",
+    "selectProjectForCharts": "Select a project above to view charts",
+    "project": "Project"
   },
   "bugs": {
     "title": "Bugs",
@@ -174,7 +178,9 @@
     "switchLanguage": "Switch language",
     "personalAccessTokens": "Personal Access Tokens",
     "personalAccessTokensDesc": "Tokens for CLI and API access",
-    "saveFailed": "Failed to save changes. Please try again."
+    "saveFailed": "Failed to save changes. Please try again.",
+    "account": "Account",
+    "logOut": "Log out"
   },
   "tokens": {
     "title": "Personal Access Tokens",
@@ -391,6 +397,12 @@
     "deactivate": "Deactivate",
     "activate": "Activate",
     "totalUsersCount": "{count, plural, one {# user} other {# users}} total",
+    "roleUser": "User",
+    "roleAdmin": "Admin",
+    "roleSuperadmin": "Superadmin",
+    "planFree": "Free",
+    "planPro": "Pro",
+    "planEnterprise": "Enterprise",
     "save": "Save",
     "cancel": "Cancel"
   },
@@ -487,6 +499,10 @@
     "close": "Close",
     "back": "Back",
     "noResults": "No results found",
-    "appName": "BugSpark"
+    "appName": "BugSpark",
+    "planFree": "FREE",
+    "planPro": "PRO",
+    "planEnterprise": "ENT",
+    "planSuperadmin": "SA"
   }
 }

@@ -150,6 +150,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface BugFilters {
+  projectId?: string | null;
   search?: string;
   status?: Status[];
   severity?: Severity[];

@@ -17,6 +17,7 @@ from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate
+from app.services.plan_limits_service import check_project_limit
 from app.services.storage_service import delete_files
 
 logger = logging.getLogger(__name__)
@@ -86,6 +87,7 @@ async def create_project(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
+    await check_project_limit(db, current_user)
     raw_key = _generate_api_key()
     project = Project(
         owner_id=current_user.id,

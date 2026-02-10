@@ -8,6 +8,7 @@ import { BugFiltersBar } from "@/components/bugs/bug-filters";
 import { BugTable } from "@/components/bugs/bug-table";
 import { KanbanBoard } from "@/components/bugs/kanban-board";
 import { useBugs } from "@/hooks/use-bugs";
+import { useProjectContext } from "@/providers/project-provider";
 import { cn } from "@/lib/utils";
 import type { BugFilters } from "@/types";
 
@@ -15,6 +16,7 @@ type ViewMode = "table" | "kanban";
 
 export default function BugsPage() {
   const t = useTranslations("bugs");
+  const { selectedProjectId } = useProjectContext();
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [filters, setFilters] = useState<BugFilters>({
     page: 1,
@@ -23,7 +25,10 @@ export default function BugsPage() {
     sortOrder: "desc",
   });
 
-  const { data, isLoading } = useBugs(filters);
+  const { data, isLoading } = useBugs({
+    ...filters,
+    projectId: selectedProjectId,
+  });
 
   return (
     <div>

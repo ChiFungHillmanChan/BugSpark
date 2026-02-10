@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,9 +21,10 @@ router = APIRouter(prefix="/stats", tags=["stats"])
 async def overview_stats(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    project_id: uuid.UUID | None = Query(None, description="Filter stats by project"),
 ) -> OverviewStats:
     user_id = None if current_user.role == Role.SUPERADMIN else str(current_user.id)
-    return await get_overview_stats(db, user_id)
+    return await get_overview_stats(db, user_id, project_id)
 
 
 @router.get("/projects/{project_id}", response_model=ProjectStats)

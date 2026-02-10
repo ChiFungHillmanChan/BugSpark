@@ -10,7 +10,16 @@ import { useTheme, type Theme } from "@/providers/theme-provider";
 import { locales, LOCALE_COOKIE_NAME } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 import apiClient from "@/lib/api-client";
-import { Github, Key, ChevronRight, Sun, Moon, Monitor } from "lucide-react";
+import {
+  Github,
+  Key,
+  ChevronRight,
+  Sun,
+  Moon,
+  Monitor,
+  LogOut,
+} from "lucide-react";
+import { PlanBadge } from "@/components/shared/plan-badge";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
@@ -25,7 +34,7 @@ const THEME_OPTIONS: { value: Theme; icon: typeof Sun; key: string }[] = [
 
 export default function SettingsPage() {
   const t = useTranslations("settings");
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, setTheme } = useTheme();
   const locale = useLocale();
   const router = useRouter();
@@ -60,7 +69,10 @@ export default function SettingsPage() {
       <PageHeader title={t("title")} />
 
       <section className="mb-8">
-        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("profile")}</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <h2 className="text-sm font-medium text-gray-900 dark:text-white">{t("profile")}</h2>
+          {user && <PlanBadge plan={user.plan} role={user.role} />}
+        </div>
         {saveError && (
           <div className="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
             {saveError}
@@ -155,7 +167,7 @@ export default function SettingsPage() {
         </div>
       </section>
 
-      <section className="border-t border-gray-200 dark:border-navy-700 pt-8">
+      <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("language")}</h2>
         <div className="flex gap-3">
           {locales.map((loc) => (
@@ -172,6 +184,18 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
+      </section>
+
+      <section className="border-t border-gray-200 dark:border-navy-700 pt-8">
+        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("account")}</h2>
+        <button
+          type="button"
+          onClick={logout}
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          {t("logOut")}
+        </button>
       </section>
     </div>
   );

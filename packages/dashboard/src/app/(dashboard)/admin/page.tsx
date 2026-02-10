@@ -5,6 +5,17 @@ import { useAuth } from "@/providers/auth-provider";
 import { usePlatformStats } from "@/hooks/use-admin";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { PlanBadge } from "@/components/shared/plan-badge";
+import type { UserPlan } from "@/types";
+
+const BREAKDOWN_LABELS: Record<string, string> = {
+  free: "planFree",
+  pro: "planPro",
+  enterprise: "planEnterprise",
+  user: "roleUser",
+  admin: "roleAdmin",
+  superadmin: "roleSuperadmin",
+};
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (
@@ -18,10 +29,13 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
 function BreakdownCard({
   title,
   data,
+  variant,
 }: {
   title: string;
   data: Record<string, number>;
+  variant?: "plan" | "role";
 }) {
+  const t = useTranslations("admin");
   return (
     <div className="bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-navy-700 p-6">
       <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
@@ -30,7 +44,17 @@ function BreakdownCard({
       <div className="space-y-3">
         {Object.entries(data).map(([key, count]) => (
           <div key={key} className="flex items-center justify-between">
-            <span className="text-sm capitalize dark:text-gray-300">{key}</span>
+            <div className="flex items-center gap-2">
+              {variant === "plan" && (
+                <PlanBadge
+                  plan={key as UserPlan}
+                  role={key === "superadmin" ? "superadmin" : undefined}
+                />
+              )}
+              <span className="text-sm dark:text-gray-300">
+                {t(BREAKDOWN_LABELS[key] ?? key)}
+              </span>
+            </div>
             <span className="text-sm font-medium dark:text-white">{count}</span>
           </div>
         ))}
@@ -75,8 +99,8 @@ export default function AdminPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <BreakdownCard title={t("usersByPlan")} data={stats.usersByPlan} />
-        <BreakdownCard title={t("usersByRole")} data={stats.usersByRole} />
+        <BreakdownCard title={t("usersByPlan")} data={stats.usersByPlan} variant="plan" />
+        <BreakdownCard title={t("usersByRole")} data={stats.usersByRole} variant="role" />
       </div>
     </div>
   );

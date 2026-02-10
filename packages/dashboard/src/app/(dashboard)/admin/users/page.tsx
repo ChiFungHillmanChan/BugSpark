@@ -6,10 +6,23 @@ import { useAuth } from "@/providers/auth-provider";
 import { useAdminUsers, useAdminUpdateUser } from "@/hooks/use-admin";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { PlanBadge } from "@/components/shared/plan-badge";
 import type { AdminUser, UserRole, UserPlan } from "@/types";
 
 const ROLES: UserRole[] = ["user", "admin", "superadmin"];
 const PLANS: UserPlan[] = ["free", "pro", "enterprise"];
+
+const ROLE_LABEL_KEYS: Record<UserRole, string> = {
+  user: "roleUser",
+  admin: "roleAdmin",
+  superadmin: "roleSuperadmin",
+};
+
+const PLAN_LABEL_KEYS: Record<UserPlan, string> = {
+  free: "planFree",
+  pro: "planPro",
+  enterprise: "planEnterprise",
+};
 
 function UserRow({ user, currentUserId }: { user: AdminUser; currentUserId: string }) {
   const t = useTranslations("admin");
@@ -45,23 +58,26 @@ function UserRow({ user, currentUserId }: { user: AdminUser; currentUserId: stri
         >
           {ROLES.map((role) => (
             <option key={role} value={role}>
-              {role}
+              {t(ROLE_LABEL_KEYS[role])}
             </option>
           ))}
         </select>
       </td>
       <td className="py-3 px-4">
-        <select
-          value={user.plan}
-          onChange={(e) => handlePlanChange(e.target.value)}
-          className="text-sm border border-gray-200 dark:border-navy-600 rounded px-2 py-1 bg-white dark:bg-navy-800"
-        >
-          {PLANS.map((plan) => (
-            <option key={plan} value={plan}>
-              {plan}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <PlanBadge plan={user.plan} role={user.role} />
+          <select
+            value={user.plan}
+            onChange={(e) => handlePlanChange(e.target.value)}
+            className="text-sm border border-gray-200 dark:border-navy-600 rounded px-2 py-1 bg-white dark:bg-navy-800"
+          >
+            {PLANS.map((plan) => (
+              <option key={plan} value={plan}>
+                {t(PLAN_LABEL_KEYS[plan])}
+              </option>
+            ))}
+          </select>
+        </div>
       </td>
       <td className="py-3 px-4">
         <span

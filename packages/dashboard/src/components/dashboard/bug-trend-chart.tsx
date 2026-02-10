@@ -17,9 +17,14 @@ import { SkeletonChart } from "@/components/shared/skeleton-loader";
 interface BugTrendChartProps {
   data: BugTrend[] | undefined;
   isLoading: boolean;
+  noProjectSelected?: boolean;
 }
 
-export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
+export function BugTrendChart({
+  data,
+  isLoading,
+  noProjectSelected,
+}: BugTrendChartProps) {
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const { resolvedTheme } = useTheme();
@@ -27,10 +32,24 @@ export function BugTrendChart({ data, isLoading }: BugTrendChartProps) {
 
   if (isLoading) return <SkeletonChart />;
 
+  if (noProjectSelected) {
+    return (
+      <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t("bugTrend")}</h3>
+        <div className="h-64 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          {t("selectProjectForCharts")}
+        </div>
+      </div>
+    );
+  }
+
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">
-        {t("noDataYet")}
+      <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">{t("bugTrend")}</h3>
+        <div className="h-64 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          {t("noDataYet")}
+        </div>
       </div>
     );
   }

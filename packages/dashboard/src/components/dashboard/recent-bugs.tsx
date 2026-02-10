@@ -11,9 +11,16 @@ import type { BugReport } from "@/types";
 interface RecentBugsProps {
   bugs: BugReport[] | undefined;
   isLoading: boolean;
+  projectMap?: Record<string, string>;
+  showProject?: boolean;
 }
 
-export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
+export function RecentBugs({
+  bugs,
+  isLoading,
+  projectMap,
+  showProject = false,
+}: RecentBugsProps) {
   const t = useTranslations("dashboard");
   const tBugs = useTranslations("bugs");
 
@@ -32,6 +39,9 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
         <thead>
           <tr className="text-left text-xs text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-white/[0.04]">
             <th className="px-4 py-3 font-medium">{tBugs("id")}</th>
+            {showProject && (
+              <th className="px-4 py-3 font-medium">{t("project")}</th>
+            )}
             <th className="px-4 py-3 font-medium">{tBugs("bugTitle")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("severity")}</th>
             <th className="px-4 py-3 font-medium">{tBugs("status")}</th>
@@ -56,6 +66,11 @@ export function RecentBugs({ bugs, isLoading }: RecentBugsProps) {
                   {bug.trackingId}
                 </Link>
               </td>
+              {showProject && (
+                <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 truncate max-w-[120px]">
+                  {projectMap?.[bug.projectId] ?? bug.projectId.slice(0, 8)}
+                </td>
+              )}
               <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-200 truncate max-w-[200px]">
                 {bug.title}
               </td>

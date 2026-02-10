@@ -16,6 +16,7 @@ import { SkeletonChart } from "@/components/shared/skeleton-loader";
 interface SeverityChartProps {
   data: { severity: Severity; count: number }[] | undefined;
   isLoading: boolean;
+  noProjectSelected?: boolean;
 }
 
 const SEVERITY_COLORS: Record<Severity, string> = {
@@ -25,17 +26,39 @@ const SEVERITY_COLORS: Record<Severity, string> = {
   low: "#3b82f6",
 };
 
-export function SeverityChart({ data, isLoading }: SeverityChartProps) {
+export function SeverityChart({
+  data,
+  isLoading,
+  noProjectSelected,
+}: SeverityChartProps) {
   const t = useTranslations("dashboard");
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === "dark";
 
   if (isLoading) return <SkeletonChart />;
 
+  if (noProjectSelected) {
+    return (
+      <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+          {t("severityBreakdown")}
+        </h3>
+        <div className="h-64 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          {t("selectProjectForCharts")}
+        </div>
+      </div>
+    );
+  }
+
   if (!data || data.length === 0) {
     return (
-      <div className="h-64 flex items-center justify-center text-sm text-gray-400 dark:text-gray-500">
-        {t("noDataYet")}
+      <div className="bg-white dark:bg-navy-800/50 rounded-xl border border-gray-200 dark:border-white/[0.06] p-6 shadow-sm">
+        <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">
+          {t("severityBreakdown")}
+        </h3>
+        <div className="h-64 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
+          {t("noDataYet")}
+        </div>
       </div>
     );
   }

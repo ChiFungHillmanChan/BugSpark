@@ -7,7 +7,9 @@
     "docs": "文件",
     "logOut": "登出",
     "selectProject": "選擇專案",
+    "allProjects": "全部專案",
     "admin": "管理員",
+    "adminPanel": "管理面板",
     "adminDashboard": "平台總覽",
     "adminUsers": "使用者管理"
   },
@@ -39,7 +41,9 @@
     "viewAll": "查看全部",
     "bugTrend": "錯誤趨勢",
     "severityBreakdown": "嚴重程度分佈",
-    "noDataYet": "尚無資料"
+    "noDataYet": "尚無資料",
+    "selectProjectForCharts": "請在上方選擇專案以檢視圖表",
+    "project": "專案"
   },
   "bugs": {
     "title": "錯誤回報",
@@ -174,7 +178,9 @@
     "switchLanguage": "切換語言",
     "personalAccessTokens": "個人存取權杖",
     "personalAccessTokensDesc": "用於 CLI 同 API 存取嘅權杖",
-    "saveFailed": "儲存變更失敗，請重試。"
+    "saveFailed": "儲存變更失敗，請重試。",
+    "account": "帳戶",
+    "logOut": "登出"
   },
   "tokens": {
     "title": "個人存取權杖",
@@ -391,6 +397,12 @@
     "deactivate": "停用",
     "activate": "啟用",
     "totalUsersCount": "共 {count} 位使用者",
+    "roleUser": "使用者",
+    "roleAdmin": "管理員",
+    "roleSuperadmin": "超級管理員",
+    "planFree": "免費",
+    "planPro": "專業",
+    "planEnterprise": "企業",
     "save": "儲存",
     "cancel": "取消"
   },
@@ -487,6 +499,10 @@
     "close": "關閉",
     "back": "返回",
     "noResults": "找不到結果",
-    "appName": "BugSpark"
+    "appName": "BugSpark",
+    "planFree": "免費",
+    "planPro": "專業",
+    "planEnterprise": "企業",
+    "planSuperadmin": "超管"
   }
 }

@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
 import type { BugReport, BugFilters, PaginatedResponse } from "@/types";
@@ -6,8 +11,10 @@ import type { BugReport, BugFilters, PaginatedResponse } from "@/types";
 export function useBugs(filters: BugFilters) {
   return useQuery({
     queryKey: queryKeys.bugs.list(filters),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<PaginatedResponse<BugReport>> => {
       const params = new URLSearchParams();
+      if (filters.projectId) params.set("project_id", filters.projectId);
       if (filters.search) params.set("search", filters.search);
       if (filters.status?.length)
         params.set("status", filters.status.join(","));

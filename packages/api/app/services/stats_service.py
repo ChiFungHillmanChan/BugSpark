@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import uuid
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import case, cast, func, select, Date
@@ -10,13 +11,20 @@ from app.models.report import Report, Status
 from app.schemas.stats import BugTrend, OverviewStats, ProjectStats
 
 
-async def get_overview_stats(db: AsyncSession, user_id: str | None) -> OverviewStats:
+async def get_overview_stats(
+    db: AsyncSession,
+    user_id: str | None,
+    project_id: uuid.UUID | None = None,
+) -> OverviewStats:
     if user_id is not None:
         project_filter = Report.project_id.in_(
             select(Project.id).where(Project.owner_id == user_id)
         )
     else:
         project_filter = True
+
+    if project_id is not None:
+        project_filter = project_filter & (Report.project_id == project_id)
 
     today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 

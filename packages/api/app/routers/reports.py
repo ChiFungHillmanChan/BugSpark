@@ -16,6 +16,7 @@ from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
+from app.services.plan_limits_service import check_report_limit
 from app.services.similarity_service import find_similar_reports
 from app.services.storage_service import delete_file, generate_presigned_url
 from app.services.tracking_id_service import generate_tracking_id
@@ -64,6 +65,7 @@ async def create_report(
     project: Project = Depends(validate_api_key),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
+    await check_report_limit(db, project)
     tracking_id = await generate_tracking_id(db, str(project.id))
 
     report = Report(

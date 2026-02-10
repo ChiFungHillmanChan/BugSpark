@@ -1,15 +1,19 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
 import type { OverviewStats, ProjectStats } from "@/types";
 
-export function useDashboardStats() {
+export function useDashboardStats(projectId?: string | null) {
   return useQuery({
-    queryKey: queryKeys.stats.overview,
+    queryKey: [...queryKeys.stats.overview, projectId ?? "all"],
     queryFn: async (): Promise<OverviewStats> => {
-      const response = await apiClient.get<OverviewStats>("/stats/overview");
+      const params = projectId ? `?project_id=${projectId}` : "";
+      const response = await apiClient.get<OverviewStats>(
+        `/stats/overview${params}`,
+      );
       return response.data;
     },
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -23,5 +27,6 @@ export function useBugTrends(projectId: string) {
       return response.data;
     },
     enabled: !!projectId,
+    placeholderData: keepPreviousData,
   });
 }

@@ -12,7 +12,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
-from app.routers import admin, analysis, auth, comments, integrations, projects, reports, stats, tokens, upload, webhooks
+from app.routers import admin, analysis, auth, comments, integrations, plans, projects, reports, stats, tokens, upload, webhooks
 
 settings = get_settings()
 
@@ -69,6 +69,7 @@ app.include_router(webhooks.router, prefix="/api/v1")
 app.include_router(stats.router, prefix="/api/v1")
 app.include_router(analysis.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
+app.include_router(plans.router, prefix="/api/v1")
 
 
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=None)

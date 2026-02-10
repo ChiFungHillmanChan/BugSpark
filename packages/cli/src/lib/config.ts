@@ -5,7 +5,7 @@ import os from "node:os";
 
 export interface BugSparkConfig {
   apiUrl: string;
-  dashboardUrl: string;
+  dashboardUrl?: string;
   token: string;
 }
 
@@ -28,10 +28,6 @@ export function loadConfig(): BugSparkConfig | null {
   const parsed = JSON.parse(raw) as Partial<BugSparkConfig>;
 
   if (!parsed.token || !parsed.apiUrl) return null;
-  // Backfill dashboardUrl for configs saved before this field existed
-  if (!parsed.dashboardUrl) {
-    parsed.dashboardUrl = DEFAULT_DASHBOARD_URL;
-  }
   return parsed as BugSparkConfig;
 }
 

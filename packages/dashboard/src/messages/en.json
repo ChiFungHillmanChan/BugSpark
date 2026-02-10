@@ -152,7 +152,8 @@
     "notFound": "Project not found.",
     "rotateApiKey": "Rotate API Key",
     "rotateMessage": "This will invalidate the current API key and generate a new one. Any integrations using the old key will stop working.",
-    "rotateConfirm": "Rotate Key"
+    "rotateConfirm": "Rotate Key",
+    "createFailed": "Failed to create project. Please try again."
   },
   "settings": {
     "title": "Settings",

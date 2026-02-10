@@ -2,11 +2,12 @@ from __future__ import annotations
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 from slowapi.util import get_remote_address
+from sqlalchemy import text
 
 from app.config import get_settings
 from app.exceptions import register_exception_handlers
@@ -16,7 +17,7 @@ from app.routers import admin, analysis, auth, comments, integrations, projects,
 settings = get_settings()
 
 # Fail fast: reject weak JWT secret in production
-if settings.COOKIE_SECURE and settings.JWT_SECRET == "change-me-in-production":
+if settings.ENVIRONMENT != "development" and settings.JWT_SECRET == "change-me-in-production":
     raise RuntimeError(
         "FATAL: JWT_SECRET must be changed from the default value in production. "
         "Set a strong random secret via the JWT_SECRET environment variable."
@@ -36,6 +37,8 @@ app = FastAPI(
     title="BugSpark API",
     description="Universal bug reporting backend",
     version="0.1.0",
+    docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
 )
 
 app.state.limiter = limiter
@@ -67,8 +70,20 @@ app.include_router(integrations.router, prefix="/api/v1")
 
 
 @app.api_route("/health", methods=["GET", "HEAD"])
-async def health_check() -> dict[str, str]:
-    return {"status": "healthy"}
+async def health_check() -> dict[str, str] | JSONResponse:
+    from app.database import engine
+
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return {"status": "healthy", "db": "connected"}
+    except Exception:
+        import logging
+        logging.getLogger(__name__).warning("Health check DB probe failed", exc_info=True)
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "db": "unreachable"},
+        )
 
 
 _LANDING_HTML = """\

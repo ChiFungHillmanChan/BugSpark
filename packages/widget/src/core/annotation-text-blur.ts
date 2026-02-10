@@ -5,29 +5,26 @@ export function createTextTool(
   color: string,
   _lineWidth: number,
   onRequestInput: (x: number, y: number, callback: (text: string) => void) => void,
+  commitShape: (shape: AnnotationShape) => void,
 ): AnnotationTool {
-  let pendingShape: AnnotationShape | null = null;
-
   return {
     onPointerDown(event: ToolPointerEvent) {
       onRequestInput(event.x, event.y, (text: string) => {
         if (text.trim()) {
-          pendingShape = {
+          commitShape({
             type: 'text',
             color,
             lineWidth: 16,
             startX: event.x,
             startY: event.y,
             text,
-          };
+          });
         }
       });
     },
     onPointerMove() {},
     onPointerUp(): AnnotationShape | null {
-      const shape = pendingShape;
-      pendingShape = null;
-      return shape;
+      return null;
     },
     render() {},
   };

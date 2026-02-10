@@ -24,30 +24,30 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ApiEndpoint,
     DocsTabs,
     h1: ({ children }) => (
-      <h1 className="text-3xl font-bold text-gray-900 mt-8 mb-4">
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-8 mb-4">
         {children}
       </h1>
     ),
     h2: ({ children }) => (
-      <h2 className="text-2xl font-semibold text-gray-900 mt-8 mb-3 pb-2 border-b border-gray-200">
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-3 pb-2 border-b border-gray-200 dark:border-navy-700">
         {children}
       </h2>
     ),
     h3: ({ children }) => (
-      <h3 className="text-lg font-semibold text-gray-900 mt-6 mb-2">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mt-6 mb-2">
         {children}
       </h3>
     ),
     p: ({ children }) => (
-      <p className="text-gray-600 leading-relaxed mb-4">{children}</p>
+      <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">{children}</p>
     ),
     ul: ({ children }) => (
-      <ul className="list-disc pl-6 mb-4 space-y-1 text-gray-600">
+      <ul className="list-disc pl-6 mb-4 space-y-1 text-gray-600 dark:text-gray-300">
         {children}
       </ul>
     ),
     ol: ({ children }) => (
-      <ol className="list-decimal pl-6 mb-4 space-y-1 text-gray-600">
+      <ol className="list-decimal pl-6 mb-4 space-y-1 text-gray-600 dark:text-gray-300">
         {children}
       </ol>
     ),
@@ -63,38 +63,38 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       </a>
     ),
     code: ({ children }) => (
-      <code className="px-1.5 py-0.5 rounded bg-gray-100 text-sm font-mono text-accent">
+      <code className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-navy-800 text-sm font-mono text-accent">
         {children}
       </code>
     ),
     table: ({ children }) => (
-      <div className="overflow-x-auto mb-6 rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-x-auto mb-6 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm">
         <table className="w-full text-sm">{children}</table>
       </div>
     ),
     thead: ({ children }) => (
-      <thead className="bg-gray-50/80 border-b border-gray-200">
+      <thead className="bg-gray-50/80 dark:bg-navy-800/80 border-b border-gray-200 dark:border-navy-700">
         {children}
       </thead>
     ),
     tr: ({ children }) => (
-      <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50/50 transition-colors">
+      <tr className="border-b border-gray-100 dark:border-navy-700 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-navy-800/50 transition-colors">
         {children}
       </tr>
     ),
     th: ({ children }) => (
-      <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+      <th className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
         {children}
       </th>
     ),
     td: ({ children }) => (
-      <td className="px-4 py-3 text-gray-600 align-top">{children}</td>
+      <td className="px-4 py-3 text-gray-600 dark:text-gray-300 align-top">{children}</td>
     ),
     blockquote: ({ children }) => (
-      <blockquote className="border-l-4 border-accent/30 pl-4 my-4 text-gray-500 italic">
+      <blockquote className="border-l-4 border-accent/30 pl-4 my-4 text-gray-500 dark:text-gray-400 italic">
         {children}
       </blockquote>
     ),
-    hr: () => <hr className="my-8 border-gray-200" />,
+    hr: () => <hr className="my-8 border-gray-200 dark:border-navy-700" />,
   };
 }

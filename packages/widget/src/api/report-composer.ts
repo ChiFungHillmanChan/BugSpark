@@ -21,19 +21,27 @@ async function uploadScreenshot(
 async function fetchWithRetry(
   url: string,
   options: RequestInit,
-  retries = 1,
+  retries = 2,
 ): Promise<Response> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const response = await fetch(url, options);
-      // Only retry on 5xx server errors; return 4xx immediately
-      if (!response.ok && response.status >= 500 && attempt < retries) continue;
+      if (!response.ok && response.status >= 500 && attempt < retries) {
+        await delay(attempt);
+        continue;
+      }
       return response;
     } catch (error) {
       if (attempt === retries) throw error;
+      await delay(attempt);
     }
   }
   throw new Error('[BugSpark] Request failed after retries');
+}
+
+function delay(attempt: number): Promise<void> {
+  const ms = Math.min(1000 * Math.pow(2, attempt), 8000);
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function submitReport(

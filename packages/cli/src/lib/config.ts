@@ -24,11 +24,15 @@ function ensureDir(): void {
 export function loadConfig(): BugSparkConfig | null {
   if (!fs.existsSync(CONFIG_FILE)) return null;
 
-  const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
-  const parsed = JSON.parse(raw) as Partial<BugSparkConfig>;
+  try {
+    const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
+    const parsed = JSON.parse(raw) as Partial<BugSparkConfig>;
 
-  if (!parsed.token || !parsed.apiUrl) return null;
-  return parsed as BugSparkConfig;
+    if (!parsed.token || !parsed.apiUrl) return null;
+    return parsed as BugSparkConfig;
+  } catch {
+    return null;
+  }
 }
 
 export async function saveConfig(config: BugSparkConfig): Promise<void> {

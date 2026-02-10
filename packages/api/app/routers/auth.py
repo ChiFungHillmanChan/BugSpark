@@ -232,7 +232,7 @@ def _create_cli_pat(user: User, db: AsyncSession) -> tuple[str, PersonalAccessTo
         name="BugSpark CLI",
         token_hash=token_hash,
         token_prefix=token_prefix,
-        expires_at=None,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=90),
     )
     return raw_token, pat
 
@@ -285,6 +285,17 @@ async def cli_login(
 
     if not user.is_active:
         raise UnauthorizedException(translate("auth.account_deactivated", locale))
+
+    # Clean up old CLI PATs for this user
+    old_pats = await db.execute(
+        select(PersonalAccessToken).where(
+            PersonalAccessToken.user_id == user.id,
+            PersonalAccessToken.name == "BugSpark CLI",
+        )
+    )
+    for old_pat in old_pats.scalars().all():
+        await db.delete(old_pat)
+    await db.flush()
 
     raw_token, pat = _create_cli_pat(user, db)
     db.add(pat)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import hmac
+import logging
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
@@ -18,6 +19,8 @@ from app.models.enums import Role
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.project import Project
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 PAT_PREFIX = "bsk_pat_"
 PAT_PREFIX_LEN = 16
@@ -79,6 +82,8 @@ async def get_current_user(
         bearer_token = auth_header[7:]
         if bearer_token.startswith(PAT_PREFIX):
             return await _authenticate_via_pat(bearer_token, db, locale)
+        logger.warning("Rejected non-PAT Bearer token from %s", request.client.host if request.client else "unknown")
+        raise UnauthorizedException(translate("auth.invalid_token", locale))
 
     # 2. Fall back to cookie-based JWT auth (for dashboard)
     token = request.cookies.get("bugspark_access_token")

@@ -40,6 +40,8 @@ function createToolInstance(): AnnotationTool | null {
     case 'text':
       return createTextTool(currentColor, currentLineWidth, (x, y, cb) => {
         onRequestTextInput?.(x, y, cb);
+      }, (shape) => {
+        history.push(shape);
       });
     case 'blur': return createBlurTool();
     default: return null;

@@ -37,7 +37,7 @@ async def upload_screenshot(
     _project: Project = Depends(validate_api_key),
 ) -> dict[str, str]:
     file_content = await _read_with_size_limit(file)
-    object_key = upload_file(
+    object_key = await upload_file(
         file_content=file_content,
         filename=file.filename or "screenshot.png",
         content_type=file.content_type or "image/png",

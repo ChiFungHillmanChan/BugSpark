@@ -80,7 +80,7 @@ function UserRow({ user, currentUserId }: { user: AdminUser; currentUserId: stri
             onClick={handleToggleActive}
             className="text-sm text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
           >
-            {user.isActive ? "Deactivate" : "Activate"}
+            {user.isActive ? t("deactivate") : t("activate")}
           </button>
         )}
       </td>
@@ -148,7 +148,7 @@ export default function AdminUsersPage() {
             {isLoading ? (
               <tr>
                 <td colSpan={5} className="py-8 text-center text-gray-500 dark:text-gray-400">
-                  Loading...
+                  {t("loading")}
                 </td>
               </tr>
             ) : data?.items.length === 0 ? (
@@ -172,7 +172,7 @@ export default function AdminUsersPage() {
 
       {data && (
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
-          {data.total} user{data.total !== 1 ? "s" : ""} total
+          {t("totalUsersCount", { count: data.total })}
         </p>
       )}
     </div>

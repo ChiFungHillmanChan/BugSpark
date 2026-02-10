@@ -12,7 +12,7 @@ describe('mergeConfig', () => {
     expect(result.enableScreenshot).toBe(true);
     expect(result.enableConsoleLogs).toBe(true);
     expect(result.enableNetworkLogs).toBe(true);
-    expect(result.enableSessionRecording).toBe(true);
+    expect(result.enableSessionRecording).toBe(false);
   });
 
   it('merges user-provided options with defaults', () => {
@@ -52,5 +52,21 @@ describe('mergeConfig', () => {
 
   it('throws when endpoint is empty string', () => {
     expect(() => mergeConfig({ apiKey: 'test-key', endpoint: '' })).toThrow('[BugSpark] endpoint is required');
+  });
+
+  it('throws when endpoint does not start with http:// or https://', () => {
+    expect(() => mergeConfig({ apiKey: 'test-key', endpoint: 'ftp://bad.com' })).toThrow(
+      '[BugSpark] endpoint must start with https:// or http://',
+    );
+  });
+
+  it('accepts endpoint starting with http://', () => {
+    const result = mergeConfig({ apiKey: 'test-key', endpoint: 'http://localhost:8000' });
+    expect(result.endpoint).toBe('http://localhost:8000');
+  });
+
+  it('accepts endpoint starting with https://', () => {
+    const result = mergeConfig({ apiKey: 'test-key', endpoint: 'https://api.example.com' });
+    expect(result.endpoint).toBe('https://api.example.com');
   });
 });

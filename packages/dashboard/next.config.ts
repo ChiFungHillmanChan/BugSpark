@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
         port: "9000",
         pathname: "/bugspark-uploads/**",
       },
+      ...(process.env.NEXT_PUBLIC_S3_HOSTNAME
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: process.env.NEXT_PUBLIC_S3_HOSTNAME,
+              pathname: "/bugspark-uploads/**",
+            },
+          ]
+        : []),
     ],
   },
 };

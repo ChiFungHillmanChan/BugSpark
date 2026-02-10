@@ -8,15 +8,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.report import Report
 
 
+_pg_trgm_cache: bool | None = None
+
+
 async def _has_pg_trgm(db: AsyncSession) -> bool:
-    """Check whether the pg_trgm extension is available."""
+    """Check whether the pg_trgm extension is available (cached after first check)."""
+    global _pg_trgm_cache
+    if _pg_trgm_cache is not None:
+        return _pg_trgm_cache
     try:
         result = await db.execute(
             text("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm'")
         )
-        return result.scalar() is not None
+        _pg_trgm_cache = result.scalar() is not None
     except Exception:
-        return False
+        _pg_trgm_cache = False
+    return _pg_trgm_cache
 
 
 async def find_similar_reports(

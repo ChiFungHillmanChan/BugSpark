@@ -27,6 +27,7 @@ async function request<T>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!resp.ok) {
@@ -63,6 +64,7 @@ async function requestNoAuth<T>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    signal: AbortSignal.timeout(30_000),
   });
 
   if (!resp.ok) {

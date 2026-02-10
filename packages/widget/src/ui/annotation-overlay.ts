@@ -52,10 +52,38 @@ export function mount(
 }
 
 function handleTextInput(x: number, y: number, callback: (text: string) => void): void {
-  const text = prompt('Enter text:');
-  if (text) callback(text);
-  void x;
-  void y;
+  if (!overlayElement) return;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'bugspark-text-input';
+  input.placeholder = 'Enter text...';
+  input.style.cssText = `position:absolute;left:${x}px;top:${y}px;z-index:10000;padding:4px 8px;border:2px solid ${activeColor};border-radius:4px;font-size:14px;background:white;color:#333;outline:none;min-width:120px;`;
+
+  function commit(): void {
+    const text = input.value.trim();
+    input.remove();
+    if (text) callback(text);
+  }
+
+  function cancel(): void {
+    input.remove();
+  }
+
+  input.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commit();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      cancel();
+    }
+  });
+
+  input.addEventListener('blur', commit);
+
+  overlayElement.appendChild(input);
+  input.focus();
 }
 
 function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {

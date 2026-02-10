@@ -69,7 +69,7 @@ export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
             key={column.status}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, column.status)}
-            className="bg-gray-50 rounded-lg p-3 min-h-[200px]"
+            className="bg-gray-50 dark:bg-navy-800 rounded-lg p-3 min-h-[200px]"
           >
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -79,11 +79,11 @@ export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
                     statusColor(column.status),
                   )}
                 />
-                <h3 className="text-sm font-medium text-gray-700">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {t(column.labelKey)}
                 </h3>
               </div>
-              <span className="text-xs text-gray-400 font-medium">
+              <span className="text-xs text-gray-400 dark:text-gray-500 font-medium">
                 {columnBugs.length}
               </span>
             </div>
@@ -92,7 +92,7 @@ export function KanbanBoard({ bugs, isLoading }: KanbanBoardProps) {
                 ? Array.from({ length: 3 }).map((_, index) => (
                     <div
                       key={index}
-                      className="bg-white rounded-lg border border-gray-200 p-3 h-24 animate-pulse"
+                      className="bg-white dark:bg-navy-900 rounded-lg border border-gray-200 dark:border-navy-700 p-3 h-24 animate-pulse"
                     />
                   ))
                 : columnBugs.map((bug) => (

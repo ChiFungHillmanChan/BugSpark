@@ -173,7 +173,8 @@
     "switchTheme": "切換主題",
     "switchLanguage": "切換語言",
     "personalAccessTokens": "個人存取權杖",
-    "personalAccessTokensDesc": "用於 CLI 同 API 存取嘅權杖"
+    "personalAccessTokensDesc": "用於 CLI 同 API 存取嘅權杖",
+    "saveFailed": "儲存變更失敗，請重試。"
   },
   "tokens": {
     "title": "個人存取權杖",
@@ -205,7 +206,8 @@
     "revoke": "撤銷",
     "revokeConfirm": "確定撤銷？此權杖將立即失效。",
     "installCli": "安裝 CLI",
-    "installCliHint": "npm install -g @bugspark/cli"
+    "installCliHint": "npm install -g @bugspark/cli",
+    "loading": "載入中..."
   },
   "integrations": {
     "title": "整合",
@@ -384,6 +386,10 @@
     "active": "啟用中",
     "deactivated": "已停用",
     "noUsersFound": "找不到使用者",
+    "loading": "載入中...",
+    "deactivate": "停用",
+    "activate": "啟用",
+    "totalUsersCount": "共 {count} 位使用者",
     "save": "儲存",
     "cancel": "取消"
   },

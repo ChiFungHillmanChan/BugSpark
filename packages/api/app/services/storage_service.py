@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 import boto3
@@ -19,6 +20,8 @@ _MAGIC_SIGNATURES: list[tuple[bytes, str]] = [
 # WebP: starts with "RIFF" and bytes 8-12 are "WEBP"
 _WEBP_RIFF = b"RIFF"
 _WEBP_MARKER = b"WEBP"
+
+_s3_client = None
 
 
 def _validate_magic_bytes(file_content: bytes, declared_content_type: str) -> None:
@@ -43,17 +46,20 @@ def _validate_magic_bytes(file_content: bytes, declared_content_type: str) -> No
 
 
 def _get_s3_client():
-    settings = get_settings()
-    return boto3.client(
-        "s3",
-        endpoint_url=settings.S3_ENDPOINT_URL,
-        aws_access_key_id=settings.S3_ACCESS_KEY,
-        aws_secret_access_key=settings.S3_SECRET_KEY,
-        config=BotoConfig(signature_version="s3v4"),
-    )
+    global _s3_client
+    if _s3_client is None:
+        settings = get_settings()
+        _s3_client = boto3.client(
+            "s3",
+            endpoint_url=settings.S3_ENDPOINT_URL,
+            aws_access_key_id=settings.S3_ACCESS_KEY,
+            aws_secret_access_key=settings.S3_SECRET_KEY,
+            config=BotoConfig(signature_version="s3v4"),
+        )
+    return _s3_client
 
 
-def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
+async def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
     """Upload a file to S3 and return the object key (not the full URL)."""
     if content_type not in ALLOWED_CONTENT_TYPES:
         raise BadRequestException(
@@ -70,7 +76,8 @@ def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
     object_key = f"screenshots/{uuid.uuid4()}.{extension}"
 
     client = _get_s3_client()
-    client.put_object(
+    await asyncio.to_thread(
+        client.put_object,
         Bucket=settings.S3_BUCKET_NAME,
         Key=object_key,
         Body=file_content,
@@ -80,11 +87,12 @@ def upload_file(file_content: bytes, filename: str, content_type: str) -> str:
     return object_key
 
 
-def generate_presigned_url(key: str, expires_in: int = 900) -> str:
+async def generate_presigned_url(key: str, expires_in: int = 900) -> str:
     """Generate a presigned URL for an S3 object key."""
     settings = get_settings()
     client = _get_s3_client()
-    return client.generate_presigned_url(
+    return await asyncio.to_thread(
+        client.generate_presigned_url,
         "get_object",
         Params={"Bucket": settings.S3_BUCKET_NAME, "Key": key},
         ExpiresIn=expires_in,

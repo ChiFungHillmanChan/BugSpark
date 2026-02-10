@@ -90,7 +90,7 @@ async def analyze_bug_report(
     if not settings.ANTHROPIC_API_KEY:
         raise ValueError("ANTHROPIC_API_KEY not configured")
 
-    client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+    client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY, timeout=30)
 
     user_prompt = (
         f"Title: {title}\n"

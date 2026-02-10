@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -39,6 +40,19 @@ class Settings(BaseSettings):
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]
+
+    @model_validator(mode="after")
+    def _validate_production_settings(self) -> Settings:
+        if self.ENVIRONMENT != "development":
+            if self.JWT_SECRET == "change-me-in-production":
+                raise ValueError(
+                    "JWT_SECRET must be changed from the default value in non-development environments"
+                )
+            if len(self.JWT_SECRET) < 32:
+                raise ValueError(
+                    "JWT_SECRET must be at least 32 characters in non-development environments"
+                )
+        return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 

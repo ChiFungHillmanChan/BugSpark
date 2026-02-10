@@ -26,6 +26,9 @@ MESSAGES: dict[str, str] = {
     # Projects
     "project.not_found": "Project not found",
     "project.not_owner": "Not the project owner",
+    # Comments
+    "comment.not_found": "Comment not found",
+    "comment.not_owner": "Not the comment author",
     # Admin
     "admin.user_not_found": "User not found",
     "admin.cannot_demote_self": "Cannot change your own role",

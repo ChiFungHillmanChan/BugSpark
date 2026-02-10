@@ -26,6 +26,7 @@ export const docsNavConfig: DocNavItem[] = [
       { titleKey: "cliInstallation", slug: "cli/installation" },
       { titleKey: "cliCommands", slug: "cli/commands" },
       { titleKey: "cliAuthentication", slug: "cli/authentication" },
+      { titleKey: "cliAiSetup", slug: "cli/ai-setup" },
     ],
   },
   {

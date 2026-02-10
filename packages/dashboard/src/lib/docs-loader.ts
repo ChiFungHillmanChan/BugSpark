@@ -14,6 +14,7 @@ const MDX_MODULES: Record<string, () => Promise<MDXModule>> = {
   "cli/commands": () => import("@content/docs/cli/commands.mdx"),
   "cli/authentication": () =>
     import("@content/docs/cli/authentication.mdx"),
+  "cli/ai-setup": () => import("@content/docs/cli/ai-setup.mdx"),
   "api/authentication": () =>
     import("@content/docs/api/authentication.mdx"),
   "api/reports": () => import("@content/docs/api/reports.mdx"),
@@ -43,6 +44,7 @@ const MDX_MODULES_ZH_TW: Record<string, () => Promise<MDXModule>> = {
   "cli/commands": () => import("@content/docs/zh-TW/cli/commands.mdx"),
   "cli/authentication": () =>
     import("@content/docs/zh-TW/cli/authentication.mdx"),
+  "cli/ai-setup": () => import("@content/docs/zh-TW/cli/ai-setup.mdx"),
   "api/authentication": () =>
     import("@content/docs/zh-TW/api/authentication.mdx"),
   "api/reports": () => import("@content/docs/zh-TW/api/reports.mdx"),

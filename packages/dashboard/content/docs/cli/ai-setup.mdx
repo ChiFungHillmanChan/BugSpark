@@ -1,0 +1,259 @@
+# AI Setup
+
+Use this page as a ready-to-paste prompt for your favourite AI coding assistant (Cursor, GitHub Copilot, Claude, ChatGPT, etc.). It tells the AI exactly what BugSpark is, how to analyse your project, and how to install the widget — all in one go.
+
+Copy the prompt that matches your language, paste it into your AI chat, and let the assistant do the heavy lifting.
+
+---
+
+## English Prompt
+
+Copy the entire block below and paste it into your AI assistant:
+
+````text
+You are a senior full-stack developer. I need you to help me set up BugSpark — an open-source bug reporting tool — in my project.
+
+## Step 1 — Analyse my project
+
+1. Scan the project root and identify the tech stack (framework, language, package manager).
+2. Determine whether this is a frontend app (React, Next.js, Vue, Svelte, etc.), a mobile app (React Native, Flutter), or a static site.
+3. Check if a `package.json` (or equivalent) already exists and which package manager lock file is present (package-lock.json → npm, pnpm-lock.yaml → pnpm, yarn.lock → yarn).
+4. Identify the main entry point or layout file where global scripts/components are loaded.
+5. Report your findings before proceeding.
+
+## Step 2 — Install the BugSpark CLI
+
+Run ONE of the following commands based on the detected package manager:
+
+```bash
+npm install -g @bugspark/cli
+```
+
+Or:
+
+```bash
+pnpm add -g @bugspark/cli
+```
+
+Or:
+
+```bash
+yarn global add @bugspark/cli
+```
+
+Verify the installation:
+
+```bash
+bugspark --version
+```
+
+## Step 3 — Authenticate
+
+```bash
+bugspark login
+```
+
+This will:
+1. Ask for the API URL (press Enter to use the default: https://bugspark-api.onrender.com/api/v1).
+2. Open the browser for token creation.
+3. Ask you to paste the token (starts with bsk_pat_).
+4. Verify and save credentials to ~/.bugspark/config.json.
+
+## Step 4 — Initialise the project
+
+```bash
+bugspark init
+```
+
+Select an existing project or create a new one. The CLI will output a ready-to-use widget snippet.
+
+## Step 5 — Install the widget
+
+### Option A — Script tag (any site)
+
+Add before the closing `</body>` tag:
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+### Option B — NPM package (React / Next.js / Vue)
+
+```bash
+npm install @bugspark/widget
+```
+
+Initialise in your app entry point (e.g. _app.tsx, layout.tsx, main.ts):
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+For React, wrap inside useEffect:
+
+```typescript
+import { useEffect } from "react";
+import { BugSpark } from "@bugspark/widget";
+
+export default function App({ children }) {
+  useEffect(() => {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }, []);
+
+  return <>{children}</>;
+}
+```
+
+## Step 6 — Verify
+
+1. Start the dev server.
+2. Open the browser and confirm you see the BugSpark bug-reporting button in the bottom-right corner.
+3. Submit a test report and check that it appears in the BugSpark dashboard.
+
+Replace YOUR_API_KEY with the actual API key shown by `bugspark init`.
+Done! Report back when the widget is working.
+````
+
+---
+
+## Cantonese Prompt (廣東話版本)
+
+將以下嘅完整內容複製，然後貼去你嘅 AI 助手入面：
+
+````text
+你係一個資深全端開發者。我需要你幫我喺我個專案入面設定 BugSpark — 一個開源嘅錯誤回報工具。
+
+## 第 1 步 — 分析我個專案
+
+1. 掃描專案根目錄，搵出用緊咩技術棧（框架、語言、套件管理器）。
+2. 判斷呢個係前端應用（React、Next.js、Vue、Svelte 等）、手機應用（React Native、Flutter），定係靜態網站。
+3. 檢查有冇 `package.json`（或者同等嘅檔案），同埋用緊邊個套件管理器（package-lock.json → npm、pnpm-lock.yaml → pnpm、yarn.lock → yarn）。
+4. 搵出主要入口檔案或者佈局檔案（即係載入全域腳本/元件嘅地方）。
+5. 報告你嘅發現先，之後先繼續。
+
+## 第 2 步 — 安裝 BugSpark CLI
+
+根據偵測到嘅套件管理器，執行以下其中一個命令：
+
+```bash
+npm install -g @bugspark/cli
+```
+
+或者：
+
+```bash
+pnpm add -g @bugspark/cli
+```
+
+或者：
+
+```bash
+yarn global add @bugspark/cli
+```
+
+驗證安裝：
+
+```bash
+bugspark --version
+```
+
+## 第 3 步 — 驗證身份
+
+```bash
+bugspark login
+```
+
+呢個命令會：
+1. 問你 API 網址（撳 Enter 用預設值：https://bugspark-api.onrender.com/api/v1）。
+2. 開瀏覽器畀你建立權杖（Token）。
+3. 叫你貼上權杖（以 bsk_pat_ 開頭）。
+4. 驗證同儲存憑證去 ~/.bugspark/config.json。
+
+## 第 4 步 — 初始化專案
+
+```bash
+bugspark init
+```
+
+揀一個已有嘅專案或者建立新嘅。CLI 會輸出一段即用嘅小工具程式碼。
+
+## 第 5 步 — 安裝小工具
+
+### 選項 A — Script 標籤（任何網站）
+
+喺 `</body>` 結尾標籤之前加入：
+
+```html
+<script
+  src="https://cdn.bugspark.dev/widget.js"
+  data-project="YOUR_API_KEY"
+  data-position="bottom-right"
+  async
+></script>
+```
+
+### 選項 B — NPM 套件（React / Next.js / Vue）
+
+```bash
+npm install @bugspark/widget
+```
+
+喺你嘅應用入口檔案初始化（例如 _app.tsx、layout.tsx、main.ts）：
+
+```typescript
+import { BugSpark } from "@bugspark/widget";
+
+BugSpark.init({
+  projectKey: "YOUR_API_KEY",
+  position: "bottom-right",
+});
+```
+
+React 嘅話，包喺 useEffect 入面：
+
+```typescript
+import { useEffect } from "react";
+import { BugSpark } from "@bugspark/widget";
+
+export default function App({ children }) {
+  useEffect(() => {
+    BugSpark.init({
+      projectKey: "YOUR_API_KEY",
+      position: "bottom-right",
+    });
+  }, []);
+
+  return <>{children}</>;
+}
+```
+
+## 第 6 步 — 驗證
+
+1. 啟動開發伺服器。
+2. 開瀏覽器，確認你睇到右下角有 BugSpark 嘅錯誤回報按鈕。
+3. 提交一個測試回報，然後去 BugSpark 儀表板確認有收到。
+
+記住將 YOUR_API_KEY 換成 `bugspark init` 顯示嘅實際 API 金鑰。
+搞掂！做完之後同我講返。
+````
+
+---
+
+## Tips
+
+- **Replace `YOUR_API_KEY`** — The prompt reminds the AI, but make sure you have your real key from the [Dashboard](/settings/tokens) or from `bugspark init`.
+- **Works with any AI** — Cursor, GitHub Copilot Chat, Claude, ChatGPT, Windsurf, or any code-aware assistant.
+- **Customise freely** — You can add extra instructions (e.g. "also configure dark mode" or "put the button on the left side") after pasting the prompt.

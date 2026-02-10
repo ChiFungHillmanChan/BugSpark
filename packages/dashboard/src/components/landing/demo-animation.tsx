@@ -2,16 +2,20 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { DemoBrowserContent } from "@/components/landing/demo-browser-content";
 
-type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "reset";
+type DemoAnimationVariant = "browser" | "dashboard";
 
 interface DemoAnimationProps {
-  phase: DemoPhase;
+  variant?: DemoAnimationVariant;
   className?: string;
+  children: React.ReactNode;
 }
 
-export function DemoAnimation({ phase, className }: DemoAnimationProps) {
+export function DemoAnimation({
+  variant = "browser",
+  className,
+  children,
+}: DemoAnimationProps) {
   const t = useTranslations("landing");
 
   return (
@@ -31,12 +35,12 @@ export function DemoAnimation({ phase, className }: DemoAnimationProps) {
           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-white dark:bg-navy-900 rounded-md px-2 sm:px-3 py-1 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 font-mono">
-          https://your-app.com
+          {variant === "browser" ? "https://your-app.com" : "https://app.bugspark.dev"}
         </div>
       </div>
 
-      {/* Animated browser content */}
-      <DemoBrowserContent phase={phase} />
+      {/* Content */}
+      {children}
     </div>
   );
 }

@@ -1,22 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CosmicBackground } from "@/components/shared/cosmic-background";
 import { SectionHeader } from "@/components/shared/section-header";
 import { DemoStepNarration } from "@/components/landing/demo-step-narration";
+import type { StepConfig } from "@/components/landing/demo-step-narration";
 import { DemoAnimation } from "@/components/landing/demo-animation";
+import { DemoTabSwitcher } from "@/components/landing/demo-tab-switcher";
+import type { DemoTab } from "@/components/landing/demo-tab-switcher";
+import { DemoBrowserContent } from "@/components/landing/demo-browser-content";
+import type { ReportPhase } from "@/components/landing/demo-browser-content";
+import { DemoDashboardContent } from "@/components/landing/demo-dashboard-content";
+import type { DashboardPhase } from "@/components/landing/demo-dashboard-content";
+import { useDemoPhase } from "@/hooks/use-demo-phase";
+import type { PhaseConfig } from "@/hooks/use-demo-phase";
 
-type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "reset";
-
-interface PhaseConfig {
-  phase: DemoPhase;
-  duration: number;
-}
-
-const PHASE_SEQUENCE: PhaseConfig[] = [
+const REPORT_PHASES: PhaseConfig<ReportPhase>[] = [
   { phase: "idle", duration: 1500 },
   { phase: "click", duration: 500 },
+  { phase: "capture", duration: 1200 },
+  { phase: "annotate", duration: 2500 },
   { phase: "modal", duration: 1000 },
   { phase: "fill", duration: 4000 },
   { phase: "submit", duration: 2000 },
@@ -24,38 +28,108 @@ const PHASE_SEQUENCE: PhaseConfig[] = [
   { phase: "reset", duration: 1500 },
 ];
 
-function useDemoPhase(): DemoPhase {
-  const [phaseIndex, setPhaseIndex] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
+const DASHBOARD_PHASES: PhaseConfig<DashboardPhase>[] = [
+  { phase: "appear", duration: 1500 },
+  { phase: "triage", duration: 2500 },
+  { phase: "assign", duration: 2000 },
+  { phase: "resolve", duration: 2500 },
+  { phase: "reset", duration: 1500 },
+];
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReducedMotion(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+const REPORT_STEPS: StepConfig<ReportPhase>[] = [
+  {
+    titleKey: "demoStep1Title",
+    descKey: "demoStep1Desc",
+    activePhases: ["idle", "click"],
+  },
+  {
+    titleKey: "demoStep2Title",
+    descKey: "demoStep2Desc",
+    activePhases: ["capture"],
+  },
+  {
+    titleKey: "demoStep3Title",
+    descKey: "demoStep3Desc",
+    activePhases: ["annotate"],
+  },
+  {
+    titleKey: "demoStep4Title",
+    descKey: "demoStep4Desc",
+    activePhases: ["modal", "fill", "submit"],
+  },
+  {
+    titleKey: "demoStep5Title",
+    descKey: "demoStep5Desc",
+    activePhases: ["toast", "reset"],
+  },
+];
 
-  const advancePhase = useCallback(() => {
-    setPhaseIndex((prev) => (prev + 1) % PHASE_SEQUENCE.length);
-  }, []);
+const DASHBOARD_STEPS: StepConfig<DashboardPhase>[] = [
+  {
+    titleKey: "demoDashStep1Title",
+    descKey: "demoDashStep1Desc",
+    activePhases: ["appear"],
+  },
+  {
+    titleKey: "demoDashStep2Title",
+    descKey: "demoDashStep2Desc",
+    activePhases: ["triage"],
+  },
+  {
+    titleKey: "demoDashStep3Title",
+    descKey: "demoDashStep3Desc",
+    activePhases: ["assign"],
+  },
+  {
+    titleKey: "demoDashStep4Title",
+    descKey: "demoDashStep4Desc",
+    activePhases: ["resolve", "reset"],
+  },
+];
 
-  useEffect(() => {
-    if (reducedMotion) {
-      setPhaseIndex(3);
-      return;
-    }
+function ReportDemo() {
+  const phase = useDemoPhase({
+    phases: REPORT_PHASES,
+    reducedMotionFreezeIndex: 5,
+  });
 
-    const timer = setTimeout(advancePhase, PHASE_SEQUENCE[phaseIndex].duration);
-    return () => clearTimeout(timer);
-  }, [phaseIndex, reducedMotion, advancePhase]);
+  return (
+    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <DemoStepNarration
+        phase={phase}
+        steps={REPORT_STEPS}
+        className="order-2 lg:order-1"
+      />
+      <DemoAnimation variant="browser" className="order-1 lg:order-2">
+        <DemoBrowserContent phase={phase} />
+      </DemoAnimation>
+    </div>
+  );
+}
 
-  return PHASE_SEQUENCE[phaseIndex].phase;
+function DashboardDemo() {
+  const phase = useDemoPhase({
+    phases: DASHBOARD_PHASES,
+    reducedMotionFreezeIndex: 3,
+  });
+
+  return (
+    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <DemoStepNarration
+        phase={phase}
+        steps={DASHBOARD_STEPS}
+        className="order-2 lg:order-1"
+      />
+      <DemoAnimation variant="dashboard" className="order-1 lg:order-2">
+        <DemoDashboardContent phase={phase} />
+      </DemoAnimation>
+    </div>
+  );
 }
 
 export function WidgetDemoSection() {
   const t = useTranslations("landing");
-  const phase = useDemoPhase();
+  const [activeTab, setActiveTab] = useState<DemoTab>("report");
 
   return (
     <section className="py-20 sm:py-28 bg-gray-50 dark:bg-navy-950 relative">
@@ -67,13 +141,14 @@ export function WidgetDemoSection() {
           subtitle={t("demoSubtitle")}
         />
 
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Step narration — below animation on mobile, left on desktop */}
-          <DemoStepNarration phase={phase} className="order-2 lg:order-1" />
+        <DemoTabSwitcher activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {/* Animated browser mockup — above narration on mobile, right on desktop */}
-          <DemoAnimation phase={phase} className="order-1 lg:order-2" />
-        </div>
+        {/* Key forces remount on tab switch, resetting animation */}
+        {activeTab === "report" ? (
+          <ReportDemo key="report" />
+        ) : (
+          <DashboardDemo key="track" />
+        )}
       </div>
     </section>
   );

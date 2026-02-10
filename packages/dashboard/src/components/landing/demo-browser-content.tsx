@@ -3,30 +3,27 @@
 import { useTranslations } from "next-intl";
 import { Bug, X, Send, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DemoBrokenLogin } from "@/components/landing/demo-broken-login";
+import { DemoAnnotationOverlay } from "@/components/landing/demo-annotation-overlay";
+import type { AnnotationPhase } from "@/components/landing/demo-annotation-overlay";
+import { DemoScreenshotThumbnail } from "@/components/landing/demo-screenshot-thumbnail";
 
-type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "reset";
+export type ReportPhase =
+  | "idle"
+  | "click"
+  | "capture"
+  | "annotate"
+  | "modal"
+  | "fill"
+  | "submit"
+  | "toast"
+  | "reset";
 
 interface DemoBrowserContentProps {
-  phase: DemoPhase;
+  phase: ReportPhase;
 }
 
 const SEVERITY_OPTIONS = ["Low", "Medium", "High", "Critical"] as const;
-
-function SkeletonPage() {
-  return (
-    <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-      <div className="h-5 sm:h-6 bg-gray-100 dark:bg-navy-800 rounded w-40 sm:w-48" />
-      <div className="h-3 sm:h-4 bg-gray-50 dark:bg-navy-800/50 rounded w-full" />
-      <div className="h-3 sm:h-4 bg-gray-50 dark:bg-navy-800/50 rounded w-5/6" />
-      <div className="h-3 sm:h-4 bg-gray-50 dark:bg-navy-800/50 rounded w-4/6" />
-      <div className="grid grid-cols-3 gap-3 sm:gap-4 mt-4 sm:mt-6">
-        <div className="h-16 sm:h-24 bg-gray-50 dark:bg-navy-800/50 rounded-lg" />
-        <div className="h-16 sm:h-24 bg-gray-50 dark:bg-navy-800/50 rounded-lg" />
-        <div className="h-16 sm:h-24 bg-gray-50 dark:bg-navy-800/50 rounded-lg" />
-      </div>
-    </div>
-  );
-}
 
 function TypewriterText({ text, isVisible }: { text: string; isVisible: boolean }) {
   return (
@@ -41,7 +38,7 @@ function TypewriterText({ text, isVisible }: { text: string; isVisible: boolean 
   );
 }
 
-function WidgetModal({ phase }: { phase: DemoPhase }) {
+function WidgetModal({ phase }: { phase: ReportPhase }) {
   const t = useTranslations("landing");
   const showModal = phase === "modal" || phase === "fill" || phase === "submit";
   const isFilling = phase === "fill" || phase === "submit";
@@ -68,6 +65,9 @@ function WidgetModal({ phase }: { phase: DemoPhase }) {
 
       {/* Body */}
       <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+        {/* Screenshot thumbnail */}
+        <DemoScreenshotThumbnail />
+
         {/* Title field */}
         <div>
           <label className="block text-[10px] sm:text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
@@ -139,7 +139,7 @@ function WidgetModal({ phase }: { phase: DemoPhase }) {
   );
 }
 
-function FloatingButton({ phase }: { phase: DemoPhase }) {
+function FloatingButton({ phase }: { phase: ReportPhase }) {
   const isIdle = phase === "idle";
   const isPressed = phase === "click";
 
@@ -158,7 +158,7 @@ function FloatingButton({ phase }: { phase: DemoPhase }) {
   );
 }
 
-function CursorPointer({ phase }: { phase: DemoPhase }) {
+function CursorPointer({ phase }: { phase: ReportPhase }) {
   const isVisible = phase === "click";
 
   return (
@@ -183,7 +183,7 @@ function CursorPointer({ phase }: { phase: DemoPhase }) {
   );
 }
 
-function SuccessToast({ phase }: { phase: DemoPhase }) {
+function SuccessToast({ phase }: { phase: ReportPhase }) {
   const t = useTranslations("landing");
   const isVisible = phase === "toast";
 
@@ -203,8 +203,15 @@ function SuccessToast({ phase }: { phase: DemoPhase }) {
   );
 }
 
+function getAnnotationPhase(phase: ReportPhase): AnnotationPhase | null {
+  if (phase === "capture") return "capture";
+  if (phase === "annotate") return "annotate";
+  return null;
+}
+
 export function DemoBrowserContent({ phase }: DemoBrowserContentProps) {
   const isResetting = phase === "reset";
+  const hideLoginPage = phase === "modal" || phase === "fill" || phase === "submit";
 
   return (
     <div
@@ -214,7 +221,9 @@ export function DemoBrowserContent({ phase }: DemoBrowserContentProps) {
         isResetting && "animate-[demo-fade-out_0.8s_ease-in_forwards]",
       )}
     >
-      <SkeletonPage />
+      {!hideLoginPage && <DemoBrokenLogin />}
+      {hideLoginPage && <div className="h-full" />}
+      <DemoAnnotationOverlay phase={getAnnotationPhase(phase)} />
       <WidgetModal phase={phase} />
       <FloatingButton phase={phase} />
       <CursorPointer phase={phase} />

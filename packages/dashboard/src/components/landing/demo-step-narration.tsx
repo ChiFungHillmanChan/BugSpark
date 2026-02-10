@@ -3,53 +3,28 @@
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
-type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "reset";
+export interface StepConfig<T extends string> {
+  titleKey: string;
+  descKey: string;
+  activePhases: T[];
+}
 
-interface DemoStepNarrationProps {
-  phase: DemoPhase;
+interface DemoStepNarrationProps<T extends string> {
+  phase: T;
+  steps: StepConfig<T>[];
   className?: string;
 }
 
-interface StepConfig {
-  titleKey: string;
-  descKey: string;
-  activePhases: DemoPhase[];
-}
-
-const STEPS: StepConfig[] = [
-  {
-    titleKey: "demoStep1Title",
-    descKey: "demoStep1Desc",
-    activePhases: ["idle", "click"],
-  },
-  {
-    titleKey: "demoStep2Title",
-    descKey: "demoStep2Desc",
-    activePhases: ["modal"],
-  },
-  {
-    titleKey: "demoStep3Title",
-    descKey: "demoStep3Desc",
-    activePhases: ["fill"],
-  },
-  {
-    titleKey: "demoStep4Title",
-    descKey: "demoStep4Desc",
-    activePhases: ["submit"],
-  },
-  {
-    titleKey: "demoStep5Title",
-    descKey: "demoStep5Desc",
-    activePhases: ["toast", "reset"],
-  },
-];
-
-export function DemoStepNarration({ phase, className }: DemoStepNarrationProps) {
+export function DemoStepNarration<T extends string>({
+  phase,
+  steps,
+  className,
+}: DemoStepNarrationProps<T>) {
   const t = useTranslations("landing");
 
   return (
     <div className={cn("flex flex-col gap-3 sm:gap-4", className)}>
-      {STEPS.map((step, index) => {
+      {steps.map((step, index) => {
         const isActive = step.activePhases.includes(phase);
 
         return (

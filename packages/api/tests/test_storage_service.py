@@ -43,7 +43,9 @@ def test_upload_file_rejects_invalid_content_type():
 
 
 def test_upload_file_rejects_oversized_file():
-    oversized_content = b"\x00" * (MAX_FILE_SIZE_BYTES + 1)
+    # Create oversized content with valid PNG magic bytes so it passes magic byte validation
+    # but fails size validation
+    oversized_content = b"\x89PNG\r\n\x1a\n" + b"\x00" * (MAX_FILE_SIZE_BYTES + 1)
     with pytest.raises(BadRequestException, match="exceeds maximum size"):
         upload_file(oversized_content, "big.png", "image/png")
 

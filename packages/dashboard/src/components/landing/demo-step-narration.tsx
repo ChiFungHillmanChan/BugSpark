@@ -7,6 +7,7 @@ type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "res
 
 interface DemoStepNarrationProps {
   phase: DemoPhase;
+  className?: string;
 }
 
 interface StepConfig {
@@ -43,11 +44,11 @@ const STEPS: StepConfig[] = [
   },
 ];
 
-export function DemoStepNarration({ phase }: DemoStepNarrationProps) {
+export function DemoStepNarration({ phase, className }: DemoStepNarrationProps) {
   const t = useTranslations("landing");
 
   return (
-    <div className="flex flex-col gap-3 sm:gap-4">
+    <div className={cn("flex flex-col gap-3 sm:gap-4", className)}>
       {STEPS.map((step, index) => {
         const isActive = step.activePhases.includes(phase);
 

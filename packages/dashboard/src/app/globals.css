@@ -29,7 +29,6 @@
   --animate-pulse-glow: pulse-glow 4s ease-in-out infinite;
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
   --animate-fade-in-up: fade-in-up 0.6s ease-out both;
-  --animate-demo-cursor-move: demo-cursor-move 0.5s ease-in-out forwards;
   --animate-demo-button-press: demo-button-press 0.3s ease-in-out;
   --animate-demo-modal-enter: demo-modal-enter 0.4s ease-out forwards;
   --animate-demo-submit-glow: demo-submit-glow 1s ease-in-out infinite;
@@ -88,11 +87,6 @@
   animation-timing-function: ease-in;
   animation-iteration-count: infinite;
   will-change: transform, opacity;
-}
-
-@keyframes demo-cursor-move {
-  from { transform: translate(0, 0); opacity: 1; }
-  to { transform: translate(var(--cursor-dx, 0px), var(--cursor-dy, 0px)); opacity: 1; }
 }
 
 @keyframes demo-button-press {

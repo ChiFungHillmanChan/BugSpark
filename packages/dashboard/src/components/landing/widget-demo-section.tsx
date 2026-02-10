@@ -68,11 +68,11 @@ export function WidgetDemoSection() {
         />
 
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left: step narration */}
-          <DemoStepNarration phase={phase} />
+          {/* Step narration — below animation on mobile, left on desktop */}
+          <DemoStepNarration phase={phase} className="order-2 lg:order-1" />
 
-          {/* Right: animated browser mockup */}
-          <DemoAnimation phase={phase} />
+          {/* Animated browser mockup — above narration on mobile, right on desktop */}
+          <DemoAnimation phase={phase} className="order-1 lg:order-2" />
         </div>
       </div>
     </section>

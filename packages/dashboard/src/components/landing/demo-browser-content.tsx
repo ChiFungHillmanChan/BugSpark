@@ -33,7 +33,7 @@ function TypewriterText({ text, isVisible }: { text: string; isVisible: boolean 
     <span
       className={cn(
         "inline-block overflow-hidden whitespace-nowrap transition-all duration-[2000ms] ease-out",
-        isVisible ? "max-w-full" : "max-w-0",
+        isVisible ? "max-w-[999px]" : "max-w-0",
       )}
     >
       {text}
@@ -52,7 +52,7 @@ function WidgetModal({ phase }: { phase: DemoPhase }) {
   return (
     <div
       className={cn(
-        "absolute bottom-14 sm:bottom-16 right-3 sm:right-4 w-56 sm:w-72",
+        "absolute bottom-14 sm:bottom-16 right-3 sm:right-4 w-56 sm:w-72 max-w-[calc(100%-24px)]",
         "bg-white dark:bg-navy-800 rounded-xl shadow-2xl",
         "border border-gray-200 dark:border-white/[0.08] overflow-hidden",
         phase === "modal" && "animate-[demo-modal-enter_0.4s_ease-out_forwards]",

@@ -1,22 +1,27 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { DemoBrowserContent } from "@/components/landing/demo-browser-content";
 
 type DemoPhase = "idle" | "click" | "modal" | "fill" | "submit" | "toast" | "reset";
 
 interface DemoAnimationProps {
   phase: DemoPhase;
+  className?: string;
 }
 
-export function DemoAnimation({ phase }: DemoAnimationProps) {
+export function DemoAnimation({ phase, className }: DemoAnimationProps) {
   const t = useTranslations("landing");
 
   return (
     <div
       role="img"
       aria-label={t("demoTitle")}
-      className="rounded-xl overflow-hidden shadow-2xl border border-gray-200 dark:border-white/[0.08]"
+      className={cn(
+        "rounded-xl overflow-hidden shadow-2xl border border-gray-200 dark:border-white/[0.08]",
+        className,
+      )}
     >
       {/* Browser chrome */}
       <div className="bg-gray-100 dark:bg-navy-800 border-b border-gray-200 dark:border-navy-700 px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3">

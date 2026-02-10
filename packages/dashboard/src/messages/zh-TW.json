@@ -156,6 +156,7 @@
     "addDomain": "新增",
     "domainInvalid": "網域必須以 http:// 或 https:// 開頭",
     "removeDomain": "移除",
+    "changesSaved": "變更已儲存。",
     "cancel": "取消",
     "create": "建立",
     "creating": "建立中...",

@@ -10,7 +10,19 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
   const surfaceBg = isDark ? '#16213e' : '#f5f5f5';
 
   return `
-    :host { all: initial; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    :host {
+      all: initial;
+      display: block !important;
+      position: fixed !important;
+      top: 0 !important; left: 0 !important;
+      width: 0 !important; height: 0 !important;
+      overflow: visible !important;
+      z-index: 2147483647 !important;
+      pointer-events: none !important;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      contain: layout style;
+      isolation: isolate;
+    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     @keyframes bugspark-fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -22,8 +34,9 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       position: fixed; width: 56px; height: 56px; border-radius: 50%;
       background: ${primaryColor}; border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 999998;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 2147483647;
       transition: transform 0.2s, box-shadow 0.2s;
+      pointer-events: auto;
     }
     .bugspark-fab:hover { animation: bugspark-pulse 1s ease-in-out infinite; box-shadow: 0 6px 20px rgba(0,0,0,0.35); }
     .bugspark-fab svg { width: 28px; height: 28px; fill: white; }
@@ -35,7 +48,8 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
     .bugspark-overlay {
       position: fixed; inset: 0; background: ${overlayBg};
       display: flex; align-items: center; justify-content: center;
-      z-index: 999999; animation: bugspark-fadeIn 0.2s ease;
+      z-index: 2147483647; animation: bugspark-fadeIn 0.2s ease;
+      pointer-events: auto;
     }
 
     .bugspark-modal {
@@ -119,8 +133,9 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
     }
 
     .bugspark-annotation-overlay {
-      position: fixed; inset: 0; z-index: 999999;
+      position: fixed; inset: 0; z-index: 2147483647;
       background: rgba(0,0,0,0.95); display: flex; flex-direction: column;
+      pointer-events: auto;
     }
 
     /* ── Annotation Toolbar ── */
@@ -314,8 +329,9 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
     .bugspark-toast {
       position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
       padding: 12px 24px; border-radius: 8px; font-size: 14px;
-      color: white; z-index: 1000000; animation: bugspark-slideUp 0.3s ease;
+      color: white; z-index: 2147483647; animation: bugspark-slideUp 0.3s ease;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      pointer-events: auto;
     }
     .bugspark-toast--success { background: #27ae60; }
     .bugspark-toast--error { background: #e94560; }

@@ -10,6 +10,31 @@ export function mount(primaryColor: string, theme: 'light' | 'dark' | 'auto', br
 
   hostElement = document.createElement('div');
   hostElement.id = 'bugspark-host';
+
+  // Inline styles with !important to resist host-page CSS overrides.
+  // The host element lives in the light DOM, so any host-page rule
+  // (`div {}`, `* {}`, resets, Tailwind preflight, etc.) can target it.
+  // These styles ensure the element never affects page layout and always
+  // renders above everything. Max z-index = 2147483647.
+  hostElement.style.cssText = [
+    'position:fixed',
+    'top:0',
+    'left:0',
+    'width:0',
+    'height:0',
+    'overflow:visible',
+    'z-index:2147483647',
+    'pointer-events:none',
+    'padding:0',
+    'margin:0',
+    'border:none',
+    'background:none',
+    'opacity:1',
+    'transform:none',
+    'isolation:isolate',
+    'contain:layout style',
+  ].map(s => s + ' !important').join(';');
+
   shadowRoot = hostElement.attachShadow({ mode: 'open' });
 
   styleElement = document.createElement('style');

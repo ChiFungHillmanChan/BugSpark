@@ -56,6 +56,9 @@ export default function ProjectDetailPage({
   const [modalTitle, setModalTitle] = useState("");
   const [buttonText, setButtonText] = useState("");
   const [colorSaved, setColorSaved] = useState(false);
+  const [changesSaved, setChangesSaved] = useState(false);
+  const [editingDomainIndex, setEditingDomainIndex] = useState<number | null>(null);
+  const [editingDomainValue, setEditingDomainValue] = useState("");
   const [showRotateSuccess, setShowRotateSuccess] = useState(false);
 
   const hasSyncedRef = useRef(false);
@@ -102,9 +105,33 @@ export default function ProjectDetailPage({
     setDomains((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleStartEditDomain(index: number) {
+    setEditingDomainIndex(index);
+    setEditingDomainValue(domains[index]);
+  }
+
+  function handleFinishEditDomain() {
+    if (editingDomainIndex === null) return;
+    const trimmed = editingDomainValue.trim();
+    if (trimmed && (trimmed.startsWith("http://") || trimmed.startsWith("https://"))) {
+      setDomains((prev) => prev.map((d, i) => (i === editingDomainIndex ? trimmed : d)));
+    }
+    setEditingDomainIndex(null);
+    setEditingDomainValue("");
+  }
+
   function handleSave(event: FormEvent) {
     event.preventDefault();
-    updateProject.mutate({ id, data: { name, domain: domains.join(", ") } });
+    updateProject.mutate(
+      { id, data: { name, domain: domains.join(", ") } },
+      {
+        onSuccess: () => {
+          hasSyncedRef.current = false;
+          setChangesSaved(true);
+          setTimeout(() => setChangesSaved(false), 3000);
+        },
+      },
+    );
   }
 
   async function handleRotateKey() {
@@ -249,22 +276,40 @@ export class AppComponent implements OnInit {
           <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t("domainsHint")}</p>
           {domains.length > 0 && (
             <div className="flex flex-wrap gap-2 mb-2">
-              {domains.map((d, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20"
-                >
-                  {d}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveDomain(i)}
-                    className="hover:text-red-500 transition-colors"
-                    aria-label={t("removeDomain")}
+              {domains.map((d, i) =>
+                editingDomainIndex === i ? (
+                  <input
+                    key={i}
+                    type="text"
+                    value={editingDomainValue}
+                    onChange={(e) => setEditingDomainValue(e.target.value)}
+                    onBlur={handleFinishEditDomain}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") { e.preventDefault(); handleFinishEditDomain(); }
+                      if (e.key === "Escape") { setEditingDomainIndex(null); setEditingDomainValue(""); }
+                    }}
+                    autoFocus
+                    className="px-2.5 py-1 rounded-full text-xs font-medium border border-accent bg-white dark:bg-navy-800 text-accent focus:outline-none focus:ring-2 focus:ring-accent min-w-[180px]"
+                  />
+                ) : (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20 cursor-default"
+                    onDoubleClick={() => handleStartEditDomain(i)}
+                    title="Double-click to edit"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
+                    {d}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDomain(i)}
+                      className="hover:text-red-500 transition-colors"
+                      aria-label={t("removeDomain")}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ),
+              )}
             </div>
           )}
           <div className="flex gap-2">
@@ -296,6 +341,11 @@ export class AppComponent implements OnInit {
         >
           {updateProject.isPending ? t("creating") : t("saveChanges")}
         </button>
+        {changesSaved && (
+          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 text-sm">
+            {t("changesSaved")}
+          </div>
+        )}
       </form>
 
       <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
@@ -328,22 +378,24 @@ export class AppComponent implements OnInit {
               {t("snippetEnvStep")}
             </p>
           </div>
-          <div className="relative">
-            <div className="bg-navy-800 px-4 py-1.5 text-xs text-gray-400 font-mono rounded-t-lg">.env</div>
+          <div>
+            <div className="flex items-center justify-between bg-navy-800 px-4 py-1.5 rounded-t-lg">
+              <span className="text-xs text-gray-400 font-mono">.env</span>
+              <button
+                onClick={handleCopyEnv}
+                className="p-1 rounded-md text-gray-400 hover:text-white transition-colors"
+                aria-label="Copy env"
+              >
+                {hasCopiedEnv ? (
+                  <Check className="w-3.5 h-3.5 text-green-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+            </div>
             <pre className="bg-navy-900 rounded-b-lg p-4 overflow-x-auto">
               <code className="text-sm text-emerald-400 font-mono leading-relaxed">{envLineDisplay}</code>
             </pre>
-            <button
-              onClick={handleCopyEnv}
-              className="absolute top-2 right-2 p-1.5 rounded-md bg-navy-700 text-gray-400 hover:text-white transition-opacity"
-              aria-label="Copy env"
-            >
-              {hasCopiedEnv ? (
-                <Check className="w-3.5 h-3.5 text-green-500" />
-              ) : (
-                <Copy className="w-3.5 h-3.5" />
-              )}
-            </button>
           </div>
         </div>
 

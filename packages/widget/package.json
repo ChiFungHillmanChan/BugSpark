@@ -1,6 +1,6 @@
 {
   "name": "@bugspark/widget",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Embeddable bug reporting widget with auto screenshot, console logs, network logs, and session recording",
   "type": "module",
   "main": "dist/bugspark.iife.js",

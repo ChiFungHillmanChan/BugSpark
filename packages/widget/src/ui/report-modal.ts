@@ -225,11 +225,14 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
   body.className = 'bugspark-modal__body';
 
   if (branding?.logo) {
-    const logo = document.createElement('img');
-    logo.src = branding.logo;
-    logo.alt = 'Logo';
-    logo.style.cssText = 'max-height: 32px; margin-bottom: 12px;';
-    body.appendChild(logo);
+    const logoUrl = branding.logo;
+    if (/^https?:\/\//i.test(logoUrl)) {
+      const logo = document.createElement('img');
+      logo.src = logoUrl;
+      logo.alt = 'Logo';
+      logo.style.cssText = 'max-height: 32px; margin-bottom: 12px;';
+      body.appendChild(logo);
+    }
   }
 
   if (screenshotDataUrl) {

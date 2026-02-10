@@ -74,7 +74,7 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       if (typeof data.ownerPlan === 'string') {
         config.ownerPlan = data.ownerPlan;
       }
-      if (typeof data.primaryColor === 'string' && data.primaryColor !== config.primaryColor) {
+      if (typeof data.primaryColor === 'string' && data.primaryColor.startsWith('#') && data.primaryColor !== config.primaryColor) {
         config.primaryColor = data.primaryColor;
         shouldUpdateTheme = true;
       }
@@ -84,7 +84,7 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       if (typeof data.modalTitle === 'string') {
         config.branding = { ...config.branding, modalTitle: data.modalTitle };
       }
-      if (typeof data.logoUrl === 'string') {
+      if (typeof data.logoUrl === 'string' && /^https?:\/\//i.test(data.logoUrl)) {
         config.branding = { ...config.branding, logo: data.logoUrl };
       }
 

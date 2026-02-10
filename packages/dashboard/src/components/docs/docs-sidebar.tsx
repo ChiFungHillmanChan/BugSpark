@@ -27,7 +27,7 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
       <div>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-md hover:bg-gray-100 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white rounded-md hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           {t(item.titleKey)}
           <ChevronRight
@@ -38,7 +38,7 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
           />
         </button>
         {isOpen && (
-          <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-200 pl-3">
+          <div className="ml-3 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-700 pl-3">
             {item.children!.map((child) => (
               <NavItem
                 key={child.slug}
@@ -61,7 +61,7 @@ function NavItem({ item, basePath, pathname, t }: NavItemProps) {
         "block px-3 py-1.5 text-sm rounded-md transition-colors",
         isActive
           ? "bg-accent/10 text-accent font-medium"
-          : "text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+          : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/[0.06]",
       )}
     >
       {t(item.titleKey)}
@@ -78,7 +78,7 @@ export function DocsSidebar({ basePath }: DocsSidebarProps) {
   const t = useTranslations("docs");
 
   return (
-    <nav className="w-56 shrink-0 space-y-1 pr-6 border-r border-gray-200">
+    <nav className="w-56 shrink-0 space-y-1 pr-6 border-r border-gray-200 dark:border-gray-700">
       {docsNavConfig.map((item) => (
         <NavItem
           key={item.slug}

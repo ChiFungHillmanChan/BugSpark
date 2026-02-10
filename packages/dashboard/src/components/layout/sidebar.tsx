@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                   isActive
                     ? "bg-accent/10 text-accent border-l-2 border-accent"
-                    : "text-gray-400 hover:text-white hover:bg-white/[0.04]",
+                    : "text-gray-300 hover:text-white hover:bg-white/[0.04]",
                 )}
               >
                 <item.icon className="w-5 h-5" />
@@ -122,7 +122,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {isSuperadmin && (
             <>
               <div className="pt-4 pb-1 px-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
                   {t("admin")}
                 </span>
               </div>
@@ -140,7 +140,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                       "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                       isActive
                         ? "bg-accent/10 text-accent border-l-2 border-accent"
-                        : "text-gray-400 hover:text-white hover:bg-white/[0.04]",
+                        : "text-gray-300 hover:text-white hover:bg-white/[0.04]",
                     )}
                   >
                     <item.icon className="w-5 h-5" />
@@ -173,14 +173,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Link
               href="/settings"
               onClick={onClose}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-300 hover:text-white"
               title={t("settings")}
             >
               <Settings className="w-4 h-4" />
             </Link>
             <button
               onClick={logout}
-              className="text-gray-400 hover:text-white"
+              className="text-gray-300 hover:text-white"
               title={t("logOut")}
             >
               <LogOut className="w-4 h-4" />

@@ -10,8 +10,9 @@ Manage bug reports programmatically.
 
 ### Request Body
 
+
 | Field | Type | Required | Description |
-|-------|------|----------|-------------|
+| :--- | :--- | :--- | :--- |
 | `title` | `string` | yes | Short summary of the bug |
 | `description` | `string` | yes | Detailed description |
 | `severity` | `string` | yes | `critical`, `high`, `medium`, or `low` |
@@ -60,8 +61,9 @@ curl -X POST https://api.bugspark.dev/api/v1/reports \
 
 ### Query Parameters
 
+
 | Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| :--- | :--- | :--- | :--- |
 | `project_id` | `uuid` | all | Filter by project |
 | `status` | `string` | all | Filter by status |
 | `severity` | `string` | all | Filter by severity |

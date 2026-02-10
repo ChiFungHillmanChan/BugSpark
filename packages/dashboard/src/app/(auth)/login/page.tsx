@@ -2,12 +2,14 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 
 export default function LoginPage() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
   const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,8 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      const redirectTo = searchParams.get("redirect") ?? undefined;
+      await login(email, password, redirectTo);
     } catch {
       setError(t("invalidCredentials"));
     } finally {

@@ -23,7 +23,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   isSuperadmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -43,10 +43,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (email: string, password: string, redirectTo?: string) => {
       const data = await loginApi(email, password);
       setUser(data);
-      router.push("/dashboard");
+      router.push(redirectTo ?? "/dashboard");
     },
     [router],
   );
@@ -61,7 +61,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
-    await logoutApi();
+    // Always clear local state and redirect, even if the API call fails
+    // (e.g. expired token, network error). The server session will expire on its own.
+    try {
+      await logoutApi();
+    } catch {
+      // Intentionally ignored – local cleanup is what matters
+    }
     setUser(null);
     router.push("/");
   }, [router]);

@@ -20,7 +20,7 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
       z-index: 2147483647 !important;
       pointer-events: none !important;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      contain: layout style;
+      contain: style;
       isolation: isolate;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

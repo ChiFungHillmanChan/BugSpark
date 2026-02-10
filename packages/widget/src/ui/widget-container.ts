@@ -32,7 +32,7 @@ export function mount(primaryColor: string, theme: 'light' | 'dark' | 'auto', br
     'opacity:1',
     'transform:none',
     'isolation:isolate',
-    'contain:layout style',
+    'contain:style',
   ].map(s => s + ' !important').join(';');
 
   shadowRoot = hostElement.attachShadow({ mode: 'open' });

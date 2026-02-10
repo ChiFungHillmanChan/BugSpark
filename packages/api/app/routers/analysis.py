@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
-from app.models.enums import Role
+from app.models.enums import Plan, Role
 from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
@@ -31,6 +31,9 @@ async def _get_authorized_report(
     current_user: User,
     db: AsyncSession,
 ) -> Report:
+    if current_user.role != Role.SUPERADMIN and current_user.plan != Plan.ENTERPRISE:
+        raise ForbiddenException("AI analysis is only available on the Enterprise plan")
+
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
 

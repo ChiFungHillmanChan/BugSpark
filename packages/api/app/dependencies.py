@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
+import uuid
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
@@ -182,3 +183,21 @@ async def validate_api_key(
             return project
 
     raise UnauthorizedException(translate("auth.invalid_api_key", locale))
+
+
+async def get_owned_project(
+    project_id: uuid.UUID,
+    user: User,
+    db: AsyncSession,
+    locale: str = "en",
+) -> Project:
+    """Verify a project exists and belongs to the given user (or user is superadmin)."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+
+    if project is None:
+        raise NotFoundException(translate("project.not_found", locale))
+    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
+        raise ForbiddenException(translate("project.not_owner", locale))
+
+    return project

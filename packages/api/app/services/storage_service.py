@@ -79,10 +79,7 @@ def _get_s3_client():
             region_name=region_name,
             config=BotoConfig(signature_version="s3v4"),
         )
-        logger.info(
-            f"Initialized S3/R2 client: endpoint={settings.S3_ENDPOINT_URL}, "
-            f"bucket={settings.S3_BUCKET_NAME}"
-        )
+        logger.info("Initialized S3/R2 client")
     return _s3_client
 
 
@@ -119,14 +116,11 @@ async def upload_file(
             Body=file_content,
             ContentType=content_type,
         )
-        logger.info(f"Successfully uploaded file to {settings.S3_BUCKET_NAME}/{object_key}")
+        logger.info("Successfully uploaded file: %s", object_key)
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(
-            f"Failed to upload file to S3/R2: {error_code} - {error_message}. "
-            f"Bucket: {settings.S3_BUCKET_NAME}, Endpoint: {settings.S3_ENDPOINT_URL}"
-        )
+        logger.error("Failed to upload file to S3/R2: %s - %s", error_code, error_message)
         raise BadRequestException("Failed to upload file to storage")
     except Exception as e:
         logger.exception(f"Unexpected error uploading file to S3/R2: {e}")
@@ -164,7 +158,7 @@ async def delete_file(key: str) -> None:
             Bucket=settings.S3_BUCKET_NAME,
             Key=key,
         )
-        logger.info(f"Deleted file from R2: {settings.S3_BUCKET_NAME}/{key}")
+        logger.info("Deleted file from R2: %s", key)
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
@@ -219,10 +213,7 @@ async def generate_presigned_url(key: str, expires_in: int = 900) -> str:
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(
-            f"Failed to generate presigned URL: {error_code} - {error_message}. "
-            f"Bucket: {settings.S3_BUCKET_NAME}, Key: {key}"
-        )
+        logger.error("Failed to generate presigned URL: %s - %s", error_code, error_message)
         raise BadRequestException("Failed to generate file URL")
     except Exception as e:
         logger.exception(f"Unexpected error generating presigned URL: {e}")

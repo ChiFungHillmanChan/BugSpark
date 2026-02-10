@@ -13,6 +13,8 @@ MESSAGES: dict[str, str] = {
     "auth.logged_out": "已登出",
     "auth.account_deactivated": "帳號已被停用",
     "auth.token_expired": "個人存取權杖已過期",
+    "auth.wrong_current_password": "目前密碼不正確",
+    "auth.password_changed": "密碼更新成功",
     # Tokens
     "token.not_found": "找不到權杖",
     "token.not_owner": "非權杖擁有者",

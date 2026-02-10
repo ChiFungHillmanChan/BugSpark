@@ -13,6 +13,8 @@ MESSAGES: dict[str, str] = {
     "auth.logged_out": "Logged out",
     "auth.account_deactivated": "Account has been deactivated",
     "auth.token_expired": "Personal access token has expired",
+    "auth.wrong_current_password": "Current password is incorrect",
+    "auth.password_changed": "Password updated successfully",
     # Tokens
     "token.not_found": "Token not found",
     "token.not_owner": "Not the token owner",

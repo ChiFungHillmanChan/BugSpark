@@ -34,6 +34,7 @@
   },
   "dashboard": {
     "title": "儀表板",
+    "totalProjects": "專案總數",
     "totalBugs": "錯誤總數",
     "openBugs": "未解決錯誤",
     "resolvedToday": "今日已解決",
@@ -161,7 +162,12 @@
     "rotateApiKey": "輪換 API 金鑰",
     "rotateMessage": "這將使目前的 API 金鑰失效並產生新的金鑰。使用舊金鑰的整合將停止運作。",
     "rotateConfirm": "輪換金鑰",
-    "createFailed": "建立專案失敗，請重試。"
+    "createFailed": "建立專案失敗，請重試。",
+    "widgetAppearance": "小工具外觀",
+    "widgetColor": "按鈕顏色",
+    "widgetColorDesc": "自訂網站上 BugSpark 浮動按鈕的顏色。",
+    "widgetPreview": "預覽",
+    "colorSaved": "小工具顏色已儲存。"
   },
   "settings": {
     "title": "設定",
@@ -183,6 +189,15 @@
     "personalAccessTokens": "個人存取權杖",
     "personalAccessTokensDesc": "用於 CLI 同 API 存取嘅權杖",
     "saveFailed": "儲存變更失敗，請重試。",
+    "password": "變更密碼",
+    "currentPassword": "目前密碼",
+    "newPassword": "新密碼",
+    "confirmPassword": "確認新密碼",
+    "updatePassword": "更新密碼",
+    "updatingPassword": "更新中...",
+    "passwordUpdated": "密碼更新成功。",
+    "passwordMismatch": "新密碼不相符。",
+    "passwordChangeFailed": "密碼變更失敗，請檢查目前密碼。",
     "account": "帳戶",
     "logOut": "登出"
   },

@@ -4,7 +4,15 @@ function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 }
 
+// In cross-origin setups (dashboard on Vercel, API on Render), document.cookie
+// only exposes cookies from the *dashboard's* domain — not the API's domain.
+// So we store the CSRF token in memory, populated from the X-CSRF-Token response
+// header that the API sends on login/refresh.
+let csrfTokenStore: string | null = null;
+
 function getCsrfToken(): string | null {
+  if (csrfTokenStore) return csrfTokenStore;
+  // Fallback: read from same-origin cookie (works in local dev)
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
     /(?:^|;\s*)bugspark_csrf_token=([^;]*)/,
@@ -37,7 +45,14 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Capture CSRF token from response headers (set by login/refresh endpoints)
+    const newCsrfToken = response.headers["x-csrf-token"];
+    if (newCsrfToken) {
+      csrfTokenStore = newCsrfToken;
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
@@ -45,9 +60,16 @@ apiClient.interceptors.response.use(
       originalRequest._isRetry = true;
 
       try {
-        await axios.post(`${getApiBaseUrl()}/auth/refresh`, null, {
-          withCredentials: true,
-        });
+        const refreshResponse = await axios.post(
+          `${getApiBaseUrl()}/auth/refresh`,
+          null,
+          { withCredentials: true },
+        );
+        // Capture CSRF token from refresh response
+        const newCsrfToken = refreshResponse.headers["x-csrf-token"];
+        if (newCsrfToken) {
+          csrfTokenStore = newCsrfToken;
+        }
         return apiClient(originalRequest);
       } catch {
         // AuthProvider and dashboard layout guard handle redirect to /

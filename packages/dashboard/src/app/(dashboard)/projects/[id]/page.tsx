@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, type FormEvent } from "react";
+import { useState, useEffect, use, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { ApiKeyDisplay } from "@/components/projects/api-key-display";
@@ -9,6 +9,19 @@ import { useProject, useUpdateProject } from "@/hooks/use-projects";
 import { Skeleton } from "@/components/shared/skeleton-loader";
 import { Copy, Check } from "lucide-react";
 import apiClient from "@/lib/api-client";
+
+const PRESET_COLORS = [
+  "#e94560", // Default red
+  "#6366f1", // Indigo
+  "#3b82f6", // Blue
+  "#10b981", // Emerald
+  "#f59e0b", // Amber
+  "#ef4444", // Red
+  "#8b5cf6", // Violet
+  "#ec4899", // Pink
+  "#14b8a6", // Teal
+  "#f97316", // Orange
+];
 
 export default function ProjectDetailPage({
   params,
@@ -23,12 +36,21 @@ export default function ProjectDetailPage({
   const [domain, setDomain] = useState("");
   const [isDeactivateOpen, setIsDeactivateOpen] = useState(false);
   const [hasCopiedSnippet, setHasCopiedSnippet] = useState(false);
+  const [widgetColor, setWidgetColor] = useState("#e94560");
+  const [colorSaved, setColorSaved] = useState(false);
 
   const hasNameLoaded = project && name === "";
   if (hasNameLoaded) {
     setName(project.name);
     setDomain(project.domain);
   }
+
+  useEffect(() => {
+    if (project?.settings && typeof project.settings === "object") {
+      const saved = (project.settings as Record<string, unknown>).widgetColor;
+      if (typeof saved === "string") setWidgetColor(saved);
+    }
+  }, [project]);
 
   function handleSave(event: FormEvent) {
     event.preventDefault();
@@ -121,6 +143,85 @@ export default function ProjectDetailPage({
             ) : (
               <Copy className="w-3.5 h-3.5" />
             )}
+          </button>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("widgetAppearance")}</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t("widgetColorDesc")}</p>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("widgetColor")}</label>
+            <div className="flex flex-wrap gap-2 mb-3">
+              {PRESET_COLORS.map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setWidgetColor(color)}
+                  className={`w-8 h-8 rounded-full border-2 transition-all ${
+                    widgetColor === color
+                      ? "border-gray-900 dark:border-white scale-110"
+                      : "border-transparent hover:scale-105"
+                  }`}
+                  style={{ backgroundColor: color }}
+                  title={color}
+                />
+              ))}
+              <label className="w-8 h-8 rounded-full border-2 border-dashed border-gray-300 dark:border-navy-600 flex items-center justify-center cursor-pointer hover:border-gray-400 dark:hover:border-navy-500 transition-colors overflow-hidden">
+                <input
+                  type="color"
+                  value={widgetColor}
+                  onChange={(e) => setWidgetColor(e.target.value)}
+                  className="opacity-0 absolute w-0 h-0"
+                />
+                <span className="text-xs text-gray-400">+</span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("widgetPreview")}</label>
+            <div className="flex items-center gap-4 p-4 bg-gray-50 dark:bg-navy-900 border border-gray-200 dark:border-navy-700 rounded-lg">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors"
+                style={{ backgroundColor: widgetColor }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">{widgetColor}</span>
+            </div>
+          </div>
+
+          {colorSaved && (
+            <div className="p-3 rounded-lg bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 text-sm">
+              {t("colorSaved")}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              updateProject.mutate(
+                { id, data: { settings: { ...((project?.settings as Record<string, unknown>) ?? {}), widgetColor } } },
+                {
+                  onSuccess: () => {
+                    setColorSaved(true);
+                    setTimeout(() => setColorSaved(false), 3000);
+                    refetch();
+                  },
+                },
+              );
+            }}
+            disabled={updateProject.isPending}
+            className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50"
+          >
+            {updateProject.isPending ? t("creating") : t("saveChanges")}
           </button>
         </div>
       </div>

@@ -34,6 +34,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "totalProjects": "Total Projects",
     "totalBugs": "Total Bugs",
     "openBugs": "Open Bugs",
     "resolvedToday": "Resolved Today",
@@ -161,7 +162,12 @@
     "rotateApiKey": "Rotate API Key",
     "rotateMessage": "This will invalidate the current API key and generate a new one. Any integrations using the old key will stop working.",
     "rotateConfirm": "Rotate Key",
-    "createFailed": "Failed to create project. Please try again."
+    "createFailed": "Failed to create project. Please try again.",
+    "widgetAppearance": "Widget Appearance",
+    "widgetColor": "Button Color",
+    "widgetColorDesc": "Customize the color of the BugSpark floating button on your site.",
+    "widgetPreview": "Preview",
+    "colorSaved": "Widget color saved."
   },
   "settings": {
     "title": "Settings",
@@ -183,6 +189,15 @@
     "personalAccessTokens": "Personal Access Tokens",
     "personalAccessTokensDesc": "Tokens for CLI and API access",
     "saveFailed": "Failed to save changes. Please try again.",
+    "password": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "updatePassword": "Update Password",
+    "updatingPassword": "Updating...",
+    "passwordUpdated": "Password updated successfully.",
+    "passwordMismatch": "New passwords do not match.",
+    "passwordChangeFailed": "Failed to change password. Check your current password.",
     "account": "Account",
     "logOut": "Log out"
   },

@@ -37,6 +37,11 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
+filterwarnings = [
+    "error",
+    # httpx per-request cookies deprecation – will be resolved when httpx drops the API
+    "ignore:Setting per-request cookies=:DeprecationWarning:httpx",
+]
 
 [build-system]
 requires = ["setuptools>=75.0"]

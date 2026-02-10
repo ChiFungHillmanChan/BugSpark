@@ -17,7 +17,7 @@ from app.i18n import get_locale, translate
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
 from app.schemas.auth import CLIAuthResponse, LoginRequest, RegisterRequest
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import PasswordChange, UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
     create_refresh_token,
@@ -64,6 +64,10 @@ def _set_auth_cookies(response: Response, access_token: str, refresh_token: str)
         path="/",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
     )
+    # Also send CSRF token as a response header so cross-origin clients
+    # (dashboard on Vercel, API on Render) can read it — document.cookie
+    # only exposes cookies from the *page's own domain*, not the API domain.
+    response.headers["X-CSRF-Token"] = csrf_token
 
 
 def _clear_auth_cookies(response: Response) -> None:
@@ -214,6 +218,24 @@ async def update_me(
     await db.refresh(current_user)
 
     return UserResponse.model_validate(current_user)
+
+
+@router.put("/me/password")
+async def change_password(
+    body: PasswordChange,
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    locale = get_locale(request)
+
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise BadRequestException(translate("auth.wrong_current_password", locale))
+
+    current_user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+
+    return {"detail": translate("auth.password_changed", locale)}
 
 
 # ── CLI-specific auth (returns PAT in body, no cookies) ────────────────────

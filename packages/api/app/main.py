@@ -37,14 +37,15 @@ if settings.ENVIRONMENT != "development" and settings.JWT_SECRET == "change-me-i
 if settings.SENTRY_DSN:
     try:
         import sentry_sdk
-        from sentry_sdk.integrations.fastapi import FastApiIntegration
-        from sentry_sdk.integrations.starlette import StarletteIntegration
 
         sentry_sdk.init(
             dsn=settings.SENTRY_DSN,
-            traces_sample_rate=0.1,
+            send_default_pii=True,
+            enable_logs=True,
+            traces_sample_rate=1.0,
+            profile_session_sample_rate=1.0,
+            profile_lifecycle="trace",
             environment=settings.ENVIRONMENT,
-            integrations=[StarletteIntegration(), FastApiIntegration()],
         )
         logger.info("Sentry error tracking initialized")
     except ImportError:

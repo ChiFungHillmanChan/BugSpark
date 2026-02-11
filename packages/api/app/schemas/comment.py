@@ -21,7 +21,7 @@ class CommentCreate(BaseModel):
 class CommentResponse(CamelModel):
     id: uuid.UUID
     report_id: uuid.UUID
-    author_id: uuid.UUID
+    author_id: uuid.UUID | None
     author_name: str
     body: str
     created_at: datetime

@@ -20,6 +20,7 @@ from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.plan_limits_service import check_report_limit
+from app.utils.sql_helpers import escape_like
 from app.services.spam_protection_service import check_honeypot, is_duplicate_report, validate_origin
 from app.services.similarity_service import find_similar_reports
 from app.services.storage_service import delete_file, generate_presigned_url, validate_object_key
@@ -177,7 +178,7 @@ async def list_reports(
         elif severity_values:
             query = query.where(Report.severity.in_(severity_values))
     if search is not None:
-        escaped_search = search.replace("%", "\\%").replace("_", "\\_")
+        escaped_search = escape_like(search)
         search_filter = f"%{escaped_search}%"
         query = query.where(
             Report.title.ilike(search_filter) | Report.description.ilike(search_filter)

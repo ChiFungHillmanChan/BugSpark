@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   ChevronDown,
@@ -15,6 +16,9 @@ import { useProjectContext } from "@/providers/project-provider";
 import { useProjects } from "@/hooks/use-projects";
 
 const ACCENT_COLOR = "#e94560";
+
+/** Matches /projects/<uuid> — the project-settings page. */
+const PROJECT_SETTINGS_RE = /^\/projects\/[^/]+$/;
 
 function getProjectColor(settings: Record<string, unknown>): string {
   if (
@@ -37,6 +41,8 @@ export function ProjectSwitcher({ onNavigate }: ProjectSwitcherProps) {
   const { data: projects } = useProjects();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations("nav");
 
   useEffect(() => {
@@ -61,6 +67,24 @@ export function ProjectSwitcher({ onNavigate }: ProjectSwitcherProps) {
   const displayColor = selectedProject
     ? getProjectColor(selectedProject.settings)
     : ACCENT_COLOR;
+
+  /**
+   * When the user picks a new project, update the context **and** navigate
+   * to the correct page when the current route is project-specific.
+   */
+  function handleSelectProject(projectId: string | null) {
+    setSelectedProjectId(projectId);
+    setIsOpen(false);
+
+    // If user is on a project-settings page (/projects/<id>), navigate to
+    // the newly-selected project's settings — or back to /dashboard when
+    // "All projects" is chosen (project settings require a single project).
+    if (PROJECT_SETTINGS_RE.test(pathname)) {
+      router.push(projectId ? `/projects/${projectId}` : "/dashboard");
+    }
+    // Pages like /dashboard and /bugs react to context automatically — no
+    // explicit navigation needed.
+  }
 
   return (
     <div className="px-4 mt-4 mb-4" ref={containerRef}>
@@ -90,10 +114,7 @@ export function ProjectSwitcher({ onNavigate }: ProjectSwitcherProps) {
       {isOpen && (
         <div className="mt-1 rounded-lg bg-white dark:bg-navy-900 border border-gray-200 dark:border-white/[0.06] py-1 shadow-lg">
           <button
-            onClick={() => {
-              setSelectedProjectId(null);
-              setIsOpen(false);
-            }}
+            onClick={() => handleSelectProject(null)}
             className={cn(
               "w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/[0.04]",
               !selectedProjectId && "text-accent font-medium",
@@ -114,10 +135,7 @@ export function ProjectSwitcher({ onNavigate }: ProjectSwitcherProps) {
             return (
               <button
                 key={project.id}
-                onClick={() => {
-                  setSelectedProjectId(project.id);
-                  setIsOpen(false);
-                }}
+                onClick={() => handleSelectProject(project.id)}
                 className={cn(
                   "w-full flex items-center gap-2.5 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/[0.04]",
                   isSelected && "text-accent font-medium",

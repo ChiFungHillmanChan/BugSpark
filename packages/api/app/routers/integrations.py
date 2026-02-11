@@ -8,7 +8,7 @@ from httpx import HTTPStatusError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_db, get_owned_project
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.integration import Integration
@@ -55,18 +55,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["integrations"])
 
 
-async def _get_owned_project(
-    project_id: uuid.UUID, user: User, db: AsyncSession
-) -> Project:
-    result = await db.execute(select(Project).where(Project.id == project_id))
-    project = result.scalar_one_or_none()
-    if project is None:
-        raise NotFoundException("Project not found")
-    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
-        raise ForbiddenException("Not the project owner")
-    return project
-
-
 @router.post(
     "/projects/{project_id}/integrations",
     response_model=IntegrationResponse,
@@ -78,7 +66,7 @@ async def create_integration(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationResponse:
-    project = await _get_owned_project(project_id, current_user, db)
+    project = await get_owned_project(project_id, current_user, db)
 
     integration = Integration(
         project_id=project.id,
@@ -101,7 +89,7 @@ async def list_integrations(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[IntegrationResponse]:
-    await _get_owned_project(project_id, current_user, db)
+    await get_owned_project(project_id, current_user, db)
 
     result = await db.execute(
         select(Integration).where(Integration.project_id == project_id)
@@ -127,7 +115,7 @@ async def update_integration(
     if integration is None:
         raise NotFoundException("Integration not found")
 
-    await _get_owned_project(integration.project_id, current_user, db)
+    await get_owned_project(integration.project_id, current_user, db)
 
     update_data = body.model_dump(exclude_unset=True)
     if "config" in update_data and update_data["config"] is not None:
@@ -157,7 +145,7 @@ async def delete_integration(
     if integration is None:
         raise NotFoundException("Integration not found")
 
-    await _get_owned_project(integration.project_id, current_user, db)
+    await get_owned_project(integration.project_id, current_user, db)
 
     await db.delete(integration)
     await db.commit()

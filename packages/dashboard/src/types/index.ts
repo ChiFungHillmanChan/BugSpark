@@ -127,7 +127,7 @@ export interface DeviceMetadata {
 export interface Comment {
   id: string;
   reportId: string;
-  authorId: string;
+  authorId: string | null;
   authorName: string;
   body: string;
   createdAt: string;

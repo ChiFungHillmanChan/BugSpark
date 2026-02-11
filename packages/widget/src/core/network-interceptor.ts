@@ -142,7 +142,7 @@ function patchXhr(): void {
           duration: Math.round(performance.now() - metadata.startTime),
           timestamp: metadata.timestamp,
         });
-      });
+      }, { once: true });
     }
     return originalXhrSend?.call(this, body);
   };

@@ -26,6 +26,9 @@ MESSAGES: dict[str, str] = {
     # Projects
     "project.not_found": "找不到專案",
     "project.not_owner": "非專案擁有者",
+    # 留言
+    "comment.not_found": "找不到留言",
+    "comment.not_owner": "非留言作者",
     # Admin
     "admin.user_not_found": "找不到使用者",
     "admin.cannot_demote_self": "無法更改自己的角色",

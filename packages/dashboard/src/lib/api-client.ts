@@ -12,6 +12,18 @@ let csrfTokenStore: string | null = null;
 
 function getCsrfToken(): string | null {
   if (csrfTokenStore) return csrfTokenStore;
+  // Fallback: read from sessionStorage (survives page refresh in cross-origin setup)
+  try {
+    const stored = typeof sessionStorage !== "undefined"
+      ? sessionStorage.getItem("bugspark_csrf_token")
+      : null;
+    if (stored) {
+      csrfTokenStore = stored;
+      return stored;
+    }
+  } catch {
+    // SSR or restricted storage — ignore
+  }
   // Fallback: read from same-origin cookie (works in local dev)
   if (typeof document === "undefined") return null;
   const match = document.cookie.match(
@@ -52,6 +64,11 @@ apiClient.interceptors.response.use(
     const newCsrfToken = response.headers["x-csrf-token"];
     if (newCsrfToken) {
       csrfTokenStore = newCsrfToken;
+      try {
+        sessionStorage.setItem("bugspark_csrf_token", newCsrfToken);
+      } catch {
+        // SSR or restricted storage — ignore
+      }
     }
     return response;
   },
@@ -71,6 +88,11 @@ apiClient.interceptors.response.use(
               const newCsrfToken = refreshResponse.headers["x-csrf-token"];
               if (newCsrfToken) {
                 csrfTokenStore = newCsrfToken;
+                try {
+                  sessionStorage.setItem("bugspark_csrf_token", newCsrfToken);
+                } catch {
+                  // SSR or restricted storage — ignore
+                }
               }
             })
             .finally(() => {

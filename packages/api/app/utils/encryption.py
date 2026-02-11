@@ -43,11 +43,17 @@ def encrypt_value(plaintext: str) -> str:
 
 def decrypt_value(ciphertext: str) -> str:
     """Decrypt a ciphertext string.
-    If no encryption key is configured, returns the value unchanged (dev mode).
+    If no encryption key is configured in development, returns the value unchanged.
+    In production, raises RuntimeError to prevent reading unencrypted secrets.
     If decryption fails (e.g. plaintext stored before encryption was enabled), returns as-is.
     """
     fernet = _get_fernet()
     if fernet is None:
+        if get_settings().ENVIRONMENT != "development":
+            raise RuntimeError(
+                "ENCRYPTION_KEY must be set in production. "
+                "Generate one with: python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\""
+            )
         return ciphertext
     try:
         return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")

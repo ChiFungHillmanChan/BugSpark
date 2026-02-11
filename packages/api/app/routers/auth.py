@@ -256,8 +256,10 @@ async def get_me(
 
 
 @router.patch("/me", response_model=UserResponse)
+@limiter.limit("5/minute")
 async def update_me(
     body: UserUpdate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
@@ -272,6 +274,7 @@ async def update_me(
 
 
 @router.put("/me/password")
+@limiter.limit("3/minute")
 async def change_password(
     body: PasswordChange,
     request: Request,

@@ -30,6 +30,15 @@ class BetaRegisterResponse(CamelModel):
     beta_status: str
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class CLIAuthResponse(CamelModel):
     """Response for CLI login/register — returns user info + a PAT token."""
 

@@ -25,6 +25,7 @@ from app.services.spam_protection_service import check_honeypot, is_duplicate_re
 from app.services.similarity_service import find_similar_reports
 from app.services.storage_service import delete_file, generate_presigned_url, validate_object_key
 from app.services.tracking_id_service import generate_tracking_id
+from app.services.notification_service import notify_new_report
 from app.services.webhook_service import dispatch_webhooks
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -142,6 +143,10 @@ async def create_report(
     response = await _report_to_response(report)
     await dispatch_webhooks(
         db, background_tasks, str(project.id), "report.created", response.model_dump(mode="json")
+    )
+
+    background_tasks.add_task(
+        notify_new_report, db, str(project.id), response.model_dump(mode="json")
     )
 
     return response

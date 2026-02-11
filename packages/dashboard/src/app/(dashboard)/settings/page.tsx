@@ -17,8 +17,13 @@ import {
   Sun,
   Moon,
   LogOut,
+  Download,
+  Trash2,
+  Loader2,
+  Users,
 } from "lucide-react";
 import { PlanBadge } from "@/components/shared/plan-badge";
+import { NotificationSettings } from "@/components/settings/notification-settings";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
@@ -46,6 +51,11 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordError, setPasswordError] = useState("");
+
+  // Data export / account deletion state
+  const [isExporting, setIsExporting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
   useEffect(() => {
@@ -89,6 +99,35 @@ export default function SettingsPage() {
       setPasswordError(t("passwordChangeFailed"));
     } finally {
       setIsChangingPassword(false);
+    }
+  }
+
+  async function handleExportData() {
+    setIsExporting(true);
+    try {
+      const response = await apiClient.get("/auth/me/export");
+      const blob = new Blob([JSON.stringify(response.data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "bugspark-data-export.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Export failed silently
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setIsDeleting(true);
+    try {
+      await apiClient.delete("/auth/me");
+      await logout();
+    } catch {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   }
 
@@ -238,7 +277,24 @@ export default function SettingsPage() {
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400" />
           </Link>
+          <Link
+            href="/settings/team"
+            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Users className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("teamMembers")}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("teamMembersDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </Link>
         </div>
+      </section>
+
+      <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+        <NotificationSettings />
       </section>
 
       <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
@@ -285,14 +341,60 @@ export default function SettingsPage() {
 
       <section className="border-t border-gray-200 dark:border-navy-700 pt-8">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("account")}</h2>
-        <button
-          type="button"
-          onClick={logout}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          {t("logOut")}
-        </button>
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleExportData}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-navy-700 rounded-lg hover:bg-gray-50 dark:hover:bg-navy-800 transition-colors disabled:opacity-50"
+          >
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {isExporting ? "Exporting..." : "Export Data"}
+          </button>
+          <button
+            type="button"
+            onClick={logout}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            {t("logOut")}
+          </button>
+
+          {!showDeleteConfirm ? (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 border border-red-200 dark:border-red-900/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Account
+            </button>
+          ) : (
+            <div className="p-4 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-lg">
+              <p className="text-sm text-red-700 dark:text-red-300 mb-3">
+                Are you sure you want to delete your account? This action will deactivate your account and you will be logged out.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleDeleteAccount}
+                  disabled={isDeleting}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50"
+                >
+                  {isDeleting && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {isDeleting ? "Deleting..." : "Yes, delete my account"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-navy-700 rounded-lg hover:bg-gray-50 dark:hover:bg-navy-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </section>
     </div>
   );

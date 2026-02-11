@@ -1,11 +1,12 @@
 import type { SessionEvent } from '../types';
 import { getCssSelector } from '../utils/dom-helpers';
 
-const BUFFER_DURATION_MS = 30_000;
+const BUFFER_DURATION_MS = 60_000;
 const SCROLL_DEBOUNCE_MS = 250;
 const RESIZE_DEBOUNCE_MS = 500;
 
 let events: SessionEvent[] = [];
+let snapshotEvents: SessionEvent[] | null = null;
 let isRunning = false;
 
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -91,9 +92,23 @@ export function stop(): void {
 
   if (scrollTimeout) clearTimeout(scrollTimeout);
   if (resizeTimeout) clearTimeout(resizeTimeout);
+
+  snapshotEvents = null;
+}
+
+export function snapshot(): void {
+  const cutoff = Date.now() - BUFFER_DURATION_MS;
+  snapshotEvents = events.filter((e) => e.timestamp >= cutoff);
+}
+
+export function clearSnapshot(): void {
+  snapshotEvents = null;
 }
 
 export function getEvents(): SessionEvent[] {
+  if (snapshotEvents !== null) {
+    return [...snapshotEvents];
+  }
   const cutoff = Date.now() - BUFFER_DURATION_MS;
   return events.filter((e) => e.timestamp >= cutoff);
 }

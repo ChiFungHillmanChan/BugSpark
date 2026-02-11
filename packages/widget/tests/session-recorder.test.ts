@@ -78,4 +78,96 @@ describe('SessionRecorder', () => {
 
     document.body.removeChild(button);
   });
+
+  it('snapshot() freezes events at the current point in time', () => {
+    sessionRecorder.start();
+
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.click();
+
+    sessionRecorder.snapshot();
+
+    const snapshotEvents = sessionRecorder.getEvents();
+    expect(snapshotEvents.length).toBeGreaterThanOrEqual(1);
+    expect(snapshotEvents.find((e) => e.type === 'click')).toBeDefined();
+
+    document.body.removeChild(button);
+  });
+
+  it('new events after snapshot() do not appear in getEvents()', () => {
+    sessionRecorder.start();
+
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.click();
+
+    sessionRecorder.snapshot();
+    const countAfterSnapshot = sessionRecorder.getEvents().length;
+
+    const button2 = document.createElement('button');
+    button2.id = 'second-btn';
+    document.body.appendChild(button2);
+    button2.click();
+
+    const eventsAfterNewClick = sessionRecorder.getEvents();
+    expect(eventsAfterNewClick.length).toBe(countAfterSnapshot);
+
+    document.body.removeChild(button);
+    document.body.removeChild(button2);
+  });
+
+  it('clearSnapshot() returns getEvents() to live buffer', () => {
+    sessionRecorder.start();
+
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.click();
+
+    sessionRecorder.snapshot();
+    const snapshotCount = sessionRecorder.getEvents().length;
+
+    const button2 = document.createElement('button');
+    button2.id = 'live-btn';
+    document.body.appendChild(button2);
+    button2.click();
+
+    sessionRecorder.clearSnapshot();
+
+    const liveEvents = sessionRecorder.getEvents();
+    expect(liveEvents.length).toBeGreaterThan(snapshotCount);
+
+    document.body.removeChild(button);
+    document.body.removeChild(button2);
+  });
+
+  it('stop() clears snapshot so getEvents() returns live buffer', () => {
+    sessionRecorder.start();
+
+    const button = document.createElement('button');
+    document.body.appendChild(button);
+    button.click();
+
+    sessionRecorder.snapshot();
+    const snapshotCount = sessionRecorder.getEvents().length;
+    expect(snapshotCount).toBeGreaterThanOrEqual(1);
+
+    sessionRecorder.stop();
+
+    // After stop, snapshot is cleared. Start again and add a new event.
+    sessionRecorder.start();
+
+    const button2 = document.createElement('button');
+    button2.id = 'after-stop-btn';
+    document.body.appendChild(button2);
+    button2.click();
+
+    // getEvents() should return live buffer (not a frozen snapshot)
+    const events = sessionRecorder.getEvents();
+    const hasNewClick = events.some((e) => e.target?.includes('after-stop-btn'));
+    expect(hasNewClick).toBe(true);
+
+    document.body.removeChild(button);
+    document.body.removeChild(button2);
+  });
 });

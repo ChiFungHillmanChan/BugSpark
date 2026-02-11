@@ -45,6 +45,10 @@ export function mount(
   root.appendChild(buttonElement);
 }
 
+export function getElement(): HTMLButtonElement | null {
+  return buttonElement;
+}
+
 export function show(): void {
   if (buttonElement) {
     buttonElement.style.display = 'flex';

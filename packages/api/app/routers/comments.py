@@ -91,7 +91,7 @@ async def create_comment(
     )
     db.add(comment)
     await db.commit()
-    await db.refresh(comment)
+    await db.refresh(comment, attribute_names=["author"])
 
     return _build_comment_response(comment)
 

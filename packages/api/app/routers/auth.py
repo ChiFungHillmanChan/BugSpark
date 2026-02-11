@@ -31,6 +31,7 @@ from app.services.auth_service import (
     verify_password,
     verify_token,
 )
+from app.models.personal_access_token import PersonalAccessToken
 from app.services.data_export_service import export_user_data
 from app.services.email_verification_service import send_verification_email
 
@@ -205,9 +206,25 @@ async def delete_my_account(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
-    """Soft-delete the current user account (GDPR right to erasure)."""
+    """Anonymize and deactivate the current user account (GDPR right to erasure)."""
+    from sqlalchemy import delete as sa_delete
+
+    # Anonymize PII
+    current_user.email = f"deleted_{current_user.id}@anonymized.invalid"
+    current_user.name = "Deleted User"
+    current_user.hashed_password = "ACCOUNT_DELETED"
     current_user.is_active = False
     current_user.refresh_token_jti = None
+    current_user.email_verification_token = None
+    current_user.password_reset_token = None
+
+    # Delete all personal access tokens
+    await db.execute(
+        sa_delete(PersonalAccessToken).where(
+            PersonalAccessToken.user_id == current_user.id
+        )
+    )
+
     await db.commit()
 
     clear_auth_cookies(response)

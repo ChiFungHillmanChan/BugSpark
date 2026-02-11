@@ -3,12 +3,15 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 from app.services.email_service import send_email
+
+VERIFICATION_TOKEN_EXPIRY_DAYS = 7
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,9 @@ async def send_verification_email(
     """Generate a verification token and send the verification email."""
     raw_token = generate_verification_token()
     user.email_verification_token = hash_token(raw_token)
+    user.email_verification_expires_at = datetime.now(timezone.utc) + timedelta(
+        days=VERIFICATION_TOKEN_EXPIRY_DAYS
+    )
     await db.commit()
 
     verify_link = f"{frontend_url}/verify-email?token={raw_token}"
@@ -56,8 +62,20 @@ async def verify_email(db: AsyncSession, token: str) -> bool:
     if user is None:
         return False
 
+    # Check token expiry
+    if user.email_verification_expires_at is not None:
+        expires_at = user.email_verification_expires_at
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < datetime.now(timezone.utc):
+            user.email_verification_token = None
+            user.email_verification_expires_at = None
+            await db.commit()
+            return False
+
     user.is_email_verified = True
     user.email_verification_token = None
+    user.email_verification_expires_at = None
     await db.commit()
 
     return True

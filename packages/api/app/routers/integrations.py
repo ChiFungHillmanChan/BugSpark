@@ -52,6 +52,20 @@ def _decrypt_config(config: dict) -> dict:
 
 logger = logging.getLogger(__name__)
 
+_REQUIRED_CONFIG_KEYS: dict[str, set[str]] = {
+    "github": {"token", "owner", "repo"},
+    "linear": {"apiKey", "teamId"},
+}
+
+
+def _validate_merged_config(config: dict, provider: str) -> None:
+    """Validate that merged config still contains all required keys for the provider."""
+    required = _REQUIRED_CONFIG_KEYS.get(provider, set())
+    missing = required - set(config.keys())
+    if missing:
+        raise BadRequestException(f"{provider} config missing required keys: {', '.join(sorted(missing))}")
+
+
 router = APIRouter(tags=["integrations"])
 
 
@@ -120,6 +134,8 @@ async def update_integration(
     update_data = body.model_dump(exclude_unset=True)
     if "config" in update_data and update_data["config"] is not None:
         merged_config = {**integration.config, **_encrypt_config(update_data["config"])}
+        # Validate required keys per provider after merge
+        _validate_merged_config(merged_config, integration.provider)
         integration.config = merged_config
         del update_data["config"]
 
@@ -212,13 +228,17 @@ async def export_report_to_tracker(
         config = _decrypt_config(integration.config)
         formatted = format_report_as_linear_issue(report)
 
-        issue_data = await create_linear_issue(
-            api_key=config["apiKey"],
-            team_id=config["teamId"],
-            title=formatted.title,
-            description=formatted.description,
-            priority=formatted.priority,
-        )
+        try:
+            issue_data = await create_linear_issue(
+                api_key=config["apiKey"],
+                team_id=config["teamId"],
+                title=formatted.title,
+                description=formatted.description,
+                priority=formatted.priority,
+            )
+        except Exception as exc:
+            logger.warning("Linear API error: %s", exc)
+            raise BadRequestException(f"Linear API error: {exc}")
 
         return ExportResponse(
             issue_url=issue_data["issue_url"],

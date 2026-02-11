@@ -23,7 +23,9 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 async def _verify_project_ownership(
     project_id: uuid.UUID, user: User, db: AsyncSession
 ) -> None:
-    result = await db.execute(select(Project).where(Project.id == project_id))
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.is_active.is_(True))
+    )
     project = result.scalar_one_or_none()
     if project is None:
         raise NotFoundException("Project not found")

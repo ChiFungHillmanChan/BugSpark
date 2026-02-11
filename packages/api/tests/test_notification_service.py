@@ -71,7 +71,7 @@ async def test_tracking_id_included_in_email(
 
     with (
         patch("app.database.async_session") as mock_session_factory,
-        patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send,
+        patch("app.services.task_queue_service.enqueue", new_callable=AsyncMock) as mock_enqueue,
     ):
         mock_ctx = MagicMock()
         mock_ctx.__aenter__ = AsyncMock(return_value=db_session)
@@ -79,9 +79,9 @@ async def test_tracking_id_included_in_email(
         mock_session_factory.return_value = mock_ctx
 
         await notify_new_report(str(notify_project.id), report_data)
-        mock_send.assert_called_once()
-        html_body = mock_send.call_args[1].get("html") or mock_send.call_args[0][2]
-        assert "BUG-0042" in html_body
+        mock_enqueue.assert_called_once()
+        payload = mock_enqueue.call_args[1].get("payload") or mock_enqueue.call_args[0][2]
+        assert "BUG-0042" in payload["html"]
 
 
 async def test_tracking_id_camelcase_not_read(
@@ -98,7 +98,7 @@ async def test_tracking_id_camelcase_not_read(
 
     with (
         patch("app.database.async_session") as mock_session_factory,
-        patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send,
+        patch("app.services.task_queue_service.enqueue", new_callable=AsyncMock) as mock_enqueue,
     ):
         mock_ctx = MagicMock()
         mock_ctx.__aenter__ = AsyncMock(return_value=db_session)
@@ -106,6 +106,6 @@ async def test_tracking_id_camelcase_not_read(
         mock_session_factory.return_value = mock_ctx
 
         await notify_new_report(str(notify_project.id), report_data)
-        mock_send.assert_called_once()
-        html_body = mock_send.call_args[1].get("html") or mock_send.call_args[0][2]
-        assert "BUG-OLD" not in html_body
+        mock_enqueue.assert_called_once()
+        payload = mock_enqueue.call_args[1].get("payload") or mock_enqueue.call_args[0][2]
+        assert "BUG-OLD" not in payload["html"]

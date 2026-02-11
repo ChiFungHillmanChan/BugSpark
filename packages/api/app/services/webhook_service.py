@@ -98,11 +98,16 @@ async def deliver_webhook_from_payload(payload: dict) -> None:
     async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.post(url, content=payload_bytes, headers=headers)
         logger.info("Webhook delivered to %s: status=%d", url, response.status_code)
-        if response.status_code >= 400:
+        if response.status_code >= 500:
             raise httpx.HTTPStatusError(
                 f"Webhook returned {response.status_code}",
                 request=response.request,
                 response=response,
+            )
+        if 400 <= response.status_code < 500:
+            logger.warning(
+                "Webhook %s returned client error %d — not retrying",
+                url, response.status_code,
             )
 
 

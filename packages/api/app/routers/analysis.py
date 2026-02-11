@@ -90,6 +90,9 @@ async def analyze_report_stream(
                 user_actions=report.user_actions,
                 metadata=report.metadata_,
             ):
+                if await request.is_disconnected():
+                    logger.info("SSE client disconnected, stopping analysis stream")
+                    return
                 yield f"data: {chunk}\n\n"
             yield "data: [DONE]\n\n"
         except ValueError as exc:

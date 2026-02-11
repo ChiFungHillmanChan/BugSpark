@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
@@ -102,6 +103,11 @@ def _generate_device_code() -> str:
     return secrets.token_urlsafe(32)
 
 
+def _hash_device_code(code: str) -> str:
+    """Hash a device code with SHA-256 for storage."""
+    return hashlib.sha256(code.encode()).hexdigest()
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────
 
 
@@ -124,7 +130,7 @@ async def request_device_code(
     expires_at = _utcnow() + timedelta(minutes=DEVICE_CODE_EXPIRY_MINUTES)
 
     session = DeviceAuthSession(
-        device_code=device_code,
+        device_code=_hash_device_code(device_code),
         user_code=user_code,
         status="pending",
         expires_at=expires_at,
@@ -144,6 +150,7 @@ async def request_device_code(
 
 
 @router.post("/approve", response_model=DeviceApproveResponse)
+@_device_limiter.limit("5/minute")
 async def approve_device(
     body: DeviceApproveRequest,
     request: Request,
@@ -210,9 +217,10 @@ async def poll_device_token(
     """
     locale = get_locale(request)
 
+    hashed_device_code = _hash_device_code(body.device_code)
     result = await db.execute(
         select(DeviceAuthSession).where(
-            DeviceAuthSession.device_code == body.device_code,
+            DeviceAuthSession.device_code == hashed_device_code,
         )
     )
     session = result.scalar_one_or_none()

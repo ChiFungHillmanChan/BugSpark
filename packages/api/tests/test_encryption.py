@@ -69,7 +69,9 @@ def test_encrypt_without_key_in_development():
     import app.utils.encryption as enc_mod
     from app.config import get_settings
 
-    os.environ.pop("ENCRYPTION_KEY", None)
+    # Must explicitly set to empty (not just pop) because pydantic_settings
+    # falls back to .env file values when an env var is absent.
+    os.environ["ENCRYPTION_KEY"] = ""
     os.environ["ENVIRONMENT"] = "development"
     enc_mod._fernet = None
     get_settings.cache_clear()
@@ -81,5 +83,6 @@ def test_encrypt_without_key_in_development():
     assert decrypt_value(plaintext) == plaintext
 
     # Restore
+    os.environ.pop("ENCRYPTION_KEY", None)
     os.environ.pop("ENVIRONMENT", None)
     get_settings.cache_clear()

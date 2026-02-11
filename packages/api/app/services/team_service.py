@@ -81,9 +81,13 @@ async def invite_member(
     safe_inviter = html_escape(inviter.name)
     safe_project = html_escape(project.name)
     safe_role = html_escape(role)
+    subject = (
+        f"{inviter.name} invited you to {project.name} on BugSpark"
+        .replace("\r", "").replace("\n", "")
+    )
     await send_email(
         to=email,
-        subject=f"{inviter.name} invited you to {project.name} on BugSpark",
+        subject=subject,
         html=(
             f"<p>Hi,</p>"
             f"<p><strong>{safe_inviter}</strong> has invited you to join "

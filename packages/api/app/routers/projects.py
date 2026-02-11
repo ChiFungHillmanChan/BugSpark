@@ -103,7 +103,7 @@ async def get_console_log_quota(
     db: AsyncSession = Depends(get_db),
 ) -> ConsoleLogQuotaResponse:
     """Check how many console-log-included reports the project owner has left today."""
-    today_start = datetime.combine(date.today(), time.min, tzinfo=timezone.utc)
+    today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
     count_result = await db.execute(
         select(func.count())
         .select_from(Report)
@@ -220,29 +220,29 @@ async def delete_project(
     locale = get_locale(request)
     project = await get_owned_project(project_id, current_user, db, locale)
 
-    # Collect all screenshot keys from reports for R2 cleanup
-    result = await db.execute(
-        select(Report.screenshot_url, Report.annotated_screenshot_url)
-        .where(Report.project_id == project_id)
-    )
-    screenshot_rows = result.all()
-    file_keys = []
-    for row in screenshot_rows:
-        if row.screenshot_url:
-            file_keys.append(row.screenshot_url)
-        if row.annotated_screenshot_url:
-            file_keys.append(row.annotated_screenshot_url)
-
-    # Delete files from R2/S3
-    if file_keys:
-        logger.info(f"Deleting {len(file_keys)} screenshot(s) from R2 for project {project_id}")
-        await delete_files(file_keys)
-
     if permanent:
+        # Collect all screenshot keys from reports for R2 cleanup
+        result = await db.execute(
+            select(Report.screenshot_url, Report.annotated_screenshot_url)
+            .where(Report.project_id == project_id)
+        )
+        screenshot_rows = result.all()
+        file_keys = []
+        for row in screenshot_rows:
+            if row.screenshot_url:
+                file_keys.append(row.screenshot_url)
+            if row.annotated_screenshot_url:
+                file_keys.append(row.annotated_screenshot_url)
+
+        # Delete files from R2/S3
+        if file_keys:
+            logger.info(f"Deleting {len(file_keys)} screenshot(s) from R2 for project {project_id}")
+            await delete_files(file_keys)
+
         # Hard delete: removes project and cascades to reports (via DB FK)
         await db.delete(project)
     else:
-        # Soft delete: mark inactive, but still clean up R2 files
+        # Soft delete: mark inactive, preserve R2 files for potential undo
         project.is_active = False
 
     await db.commit()

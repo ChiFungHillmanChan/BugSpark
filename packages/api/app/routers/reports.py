@@ -105,7 +105,7 @@ async def create_report(
     has_console_logs = bool(body.console_logs)
     console_logs_included = False
     if has_console_logs:
-        today_start = datetime.combine(date.today(), time.min, tzinfo=timezone.utc)
+        today_start = datetime.combine(datetime.now(timezone.utc).date(), time.min, tzinfo=timezone.utc)
         count_result = await db.execute(
             select(func.count())
             .select_from(Report)

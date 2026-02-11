@@ -73,8 +73,8 @@ class ReportCreate(BaseModel):
 
 
 class ReportUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
+    title: str | None = Field(default=None, min_length=1, max_length=500)
+    description: str | None = Field(default=None, min_length=1, max_length=10000)
     severity: Literal["low", "medium", "high", "critical"] | None = None
     category: Literal["bug", "ui", "performance", "crash", "other"] | None = None
     status: Literal["new", "triaging", "in_progress", "resolved", "closed"] | None = None

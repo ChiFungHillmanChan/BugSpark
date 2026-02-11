@@ -23,3 +23,12 @@ export interface ProjectResponse {
   isActive: boolean;
   createdAt: string;
 }
+
+export interface WebhookResponse {
+  id: string;
+  projectId: string;
+  url: string;
+  events: string[];
+  isActive: boolean;
+  createdAt: string;
+}

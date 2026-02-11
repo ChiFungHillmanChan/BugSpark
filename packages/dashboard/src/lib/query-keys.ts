@@ -20,6 +20,9 @@ export const queryKeys = {
   integrations: {
     list: (projectId: string) => ["integrations", projectId] as const,
   },
+  webhooks: {
+    list: (projectId: string) => ["webhooks", projectId] as const,
+  },
   team: {
     members: (projectId: string) => ["team", "members", projectId] as const,
   },

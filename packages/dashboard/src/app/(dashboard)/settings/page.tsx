@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { Github, Key, ChevronRight, Users } from "lucide-react";
+import { Github, Key, ChevronRight, Users, Radio } from "lucide-react";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { SettingsProfileForm } from "./components/settings-profile-form";
 import { SettingsPasswordForm } from "./components/settings-password-form";
@@ -58,6 +58,19 @@ export default function SettingsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{t("teamMembers")}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{t("teamMembersDesc")}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gray-400" />
+          </Link>
+          <Link
+            href="/settings/webhooks"
+            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <Radio className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("webhooks")}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t("webhooksDesc")}</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-400" />

@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import { createClient } from "../lib/api-client.js";
-import { getConfigOrExit } from "../lib/config.js";
+import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
 
@@ -42,8 +41,7 @@ export async function listReportsCommand(options: {
   severity?: string;
   limit?: string;
 }): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     const params = new URLSearchParams();
@@ -90,8 +88,7 @@ export async function listReportsCommand(options: {
 }
 
 export async function viewReportCommand(reportId: string): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     const r = await client.get<ReportResponse & {
@@ -141,8 +138,7 @@ export async function updateReportCommand(
   reportId: string,
   options: { status?: string; severity?: string }
 ): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   const body: Record<string, string> = {};
   if (options.status) body.status = options.status;

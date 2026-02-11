@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import { createClient } from "../lib/api-client.js";
-import { getConfigOrExit } from "../lib/config.js";
+import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
 
@@ -34,8 +33,7 @@ function formatDate(iso: string | null): string {
 }
 
 export async function listTokensCommand(): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     const tokens = await client.get<TokenResponse[]>("/auth/tokens");
@@ -72,8 +70,7 @@ export async function createTokenCommand(
   name: string,
   options: { expires?: string }
 ): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   const body: { name: string; expiresInDays?: number } = { name };
   if (options.expires) {
@@ -104,8 +101,7 @@ export async function createTokenCommand(
 }
 
 export async function revokeTokenCommand(tokenId: string): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     await client.delete(`/auth/tokens/${tokenId}`);

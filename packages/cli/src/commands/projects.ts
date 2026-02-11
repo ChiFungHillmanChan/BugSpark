@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import { createClient } from "../lib/api-client.js";
-import { getConfigOrExit } from "../lib/config.js";
+import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
 
@@ -14,8 +13,7 @@ interface ProjectResponse {
 }
 
 export async function listProjectsCommand(): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     const projects = await client.get<ProjectResponse[]>("/projects");
@@ -49,8 +47,7 @@ export async function createProjectCommand(
   name: string,
   options: { domain?: string }
 ): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { config, client } = await getAuthenticatedClientOrExit();
 
   try {
     const body: Record<string, string> = { name };
@@ -83,8 +80,7 @@ export async function createProjectCommand(
 }
 
 export async function deleteProjectCommand(projectId: string): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { client } = await getAuthenticatedClientOrExit();
 
   try {
     await client.delete(`/projects/${projectId}`);

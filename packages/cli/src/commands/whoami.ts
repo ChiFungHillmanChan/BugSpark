@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import { createClient } from "../lib/api-client.js";
-import { getConfigOrExit } from "../lib/config.js";
+import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error } from "../lib/output.js";
 
@@ -13,8 +12,7 @@ interface UserResponse {
 }
 
 export async function whoamiCommand(): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { config, client } = await getAuthenticatedClientOrExit();
 
   try {
     const user = await client.get<UserResponse>("/auth/me");

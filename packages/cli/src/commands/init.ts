@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { select, input } from "@inquirer/prompts";
-import { createClient } from "../lib/api-client.js";
-import { getConfigOrExit } from "../lib/config.js";
+import type { ApiClient } from "../lib/api-client.js";
+import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
 
@@ -15,8 +15,7 @@ interface ProjectResponse {
 }
 
 export async function initCommand(): Promise<void> {
-  const config = getConfigOrExit();
-  const client = createClient(config);
+  const { config, client } = await getAuthenticatedClientOrExit();
 
   console.log();
   console.log(chalk.bold("  🐛⚡ BugSpark Project Setup"));
@@ -109,7 +108,7 @@ export async function initCommand(): Promise<void> {
 }
 
 async function createNewProject(
-  client: ReturnType<typeof createClient>,
+  client: ApiClient,
   apiUrl: string
 ): Promise<ProjectResponse> {
   const name = await input({

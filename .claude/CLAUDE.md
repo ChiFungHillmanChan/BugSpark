@@ -89,7 +89,7 @@ pnpm dev              # Rollup watch mode
 - **Roles:** `user`, `admin`, `superadmin` — enforced via `require_admin()` and `require_superadmin()` dependencies
 - **Device auth:** OAuth-style device code flow for CLI (`/device/code`, `/device/token`, `/device/approve`) with polling and expiry
 - **Team/project members:** Invite-based team membership with role assignment per project
-- **Dashboard auth:** `src/providers/auth-provider.tsx` (context) + `src/middleware.ts` (route guards + locale cookie init)
+- **Dashboard auth:** `src/providers/auth-provider.tsx` (context with safe redirect validation) + `src/middleware.ts` (route guards for `/dashboard`, `/bugs`, `/projects`, `/settings`, `/admin` + locale cookie init)
 
 ### Database
 - PostgreSQL in production, SQLite in tests (with type compatibility shims in `tests/conftest.py`)
@@ -101,9 +101,9 @@ pnpm dev              # Rollup watch mode
 ### Dashboard Patterns
 - App Router with three route groups: `(public)` (landing, docs), `(auth)` (login, register), `(dashboard)` (protected app)
 - Dashboard pages: overview, bugs (list + detail), projects (list + detail), settings (profile, integrations, tokens, team), admin (overview, users, reports, beta)
-- `src/lib/api-client.ts` — Axios instance with CSRF token injection, Accept-Language header, and 401 auto-refresh interceptor
+- `src/lib/api-client.ts` — Axios instance with CSRF token injection (try-catch safe `decodeURIComponent`), Accept-Language header, and 401 auto-refresh interceptor
 - `src/lib/query-keys.ts` — Factory pattern for TanStack Query cache key management
-- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-similar-bugs
+- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-similar-bugs, use-team, use-debounce
 - `src/types/index.ts` — Shared TypeScript interfaces (User, Project, BugReport, Comment, Webhook, Integration, AnalysisResponse with rootCause/fixSuggestions/affectedArea, ExportResult with issueIdentifier, etc.)
 - `src/providers/` — AuthProvider (login/register/logout context), ThemeProvider (light/dark/system with localStorage), QueryProvider
 - `src/i18n/` + `src/messages/` — next-intl for English and Traditional Chinese (cookie-based `bugspark_locale`, no URL prefix)
@@ -151,7 +151,7 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 - **GitHub** (`app/services/github_integration.py`): Creates GitHub Issues via REST API. Config requires `token`, `owner`, `repo`.
 - **Linear** (`app/services/linear_integration.py`): Creates Linear issues via GraphQL API (`https://api.linear.app/graphql`). Config requires `apiKey`, `teamId`. Uses `SEVERITY_TO_PRIORITY` mapping (critical=1, high=2, medium=3, low=4). Returns `issue_url`, `issue_identifier` (e.g. "ENG-123"), `issue_id`.
 - **Schema validation** (`app/schemas/integration.py`): `SUPPORTED_PROVIDERS = {"github", "linear"}`, validates required config keys per provider. `ExportResponse` includes `issue_identifier: str | None` for Linear.
-- **Dashboard**: Integrations settings page supports both GitHub and Linear forms. Bug detail page shows "Export to GitHub" and "Export to Linear" buttons.
+- **Dashboard**: Integrations settings page split into orchestrator (`page.tsx`) + `settings/components/github-integration-form.tsx`, `linear-integration-form.tsx`, `integration-list.tsx`. Bug detail page shows "Export to GitHub" and "Export to Linear" buttons.
 
 ### AI Analysis
 - **Service** (`app/services/ai_analysis_service.py`): Sends structured prompt to Anthropic API requesting 6 fields: `summary`, `suggestedCategory`, `suggestedSeverity`, `reproductionSteps`, `rootCause`, `fixSuggestions`, `affectedArea`
@@ -176,8 +176,11 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 
 ### Dashboard Tests
 - Vitest + React Testing Library with jsdom environment
-- Tests in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
+- 35 test files (261 tests) in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
 - Use `renderWithIntl` from `tests/test-utils.tsx` for components that use `useTranslations()` (wraps with NextIntlClientProvider)
+- **lib tests:** middleware (route guards, locale cookies), auth-provider (auth flow, safe redirect), api-client (baseURL, CSRF handling, malformed cookie safety), auth (login/register/logout APIs), query-keys, utils
+- **component tests:** error-boundary, confirm-dialog, severity-badge, status-badge, stat-card, skeleton-loader, empty-state, page-header, metadata-panel, console-log-viewer, session-timeline, tokens-page, api-key-display, export-to-tracker, ai-analysis-panel, network-waterfall, performance-metrics, team-page, admin-beta-page
+- **hook tests:** use-bugs, use-projects, use-analysis, use-team, use-integrations, use-comments, use-stats, use-admin, use-similar-bugs
 
 ### Widget Tests
 - Vitest with jsdom environment
@@ -260,12 +263,11 @@ Format: `feat(api):`, `fix(dashboard):`, scopes are `api`, `dashboard`, `widget`
 
 ### File Size Violations (300-line limit)
 - `app/routers/reports.py` (353 lines) — split report CRUD from export/analysis endpoints
-- `dashboard/settings/integrations/page.tsx` (369 lines) — extract GitHub and Linear forms into components
 - `widget/annotation-overlay.ts` (317 lines) — extract `createToolbar()` into separate file
 - `tests/conftest.py` (337 lines) — borderline, test fixtures are inherently verbose
 
 ### Test Coverage Gaps
-- **Dashboard:** Only 4 test files. No tests for auth provider, hooks, admin pages, settings pages, bug detail components, project pages, error boundary.
+- **Dashboard:** 35 test files covering lib, hooks, and components. Remaining gaps: project detail page, settings profile page, dashboard overview page, docs pages.
 - **API:** No tests for `stats_service.py`, `ai_analysis_service.py`, `report_formatter.py`, `email_verification_service.py`, `password_reset_service.py` (direct).
 - **Widget:** No tests for `annotation-overlay.ts`, `annotation-text-blur.ts`, `toast.ts`, `floating-button.ts`, `widget-container.ts`.
 
@@ -273,5 +275,5 @@ Format: `feat(api):`, `fix(dashboard):`, scopes are `api`, `dashboard`, `widget`
 - **CLI:** `STATUS_COLORS` map has stale `open` key instead of `new`/`triaging`; inline response types should consolidate into `types.ts`; unused `ora` dependency
 - **Widget:** Module-level mutable state prevents clean re-initialization after `destroy()`; `destroy()` doesn't call `consoleInterceptor.clear()`; `_lineWidth` unused parameter in `annotation-text-blur.ts`
 - **API:** `device_auth.py` defines 6 Pydantic schemas inline instead of in `schemas/`; `main.py` contains ~107-line inline HTML landing page; `IntegrationResponse.has_token` only checks `token` key (misses Linear's `apiKey`)
-- **Dashboard:** Inconsistent admin authorization patterns (useEffect vs synchronous check); hardcoded English strings in error-boundary, session-timeline, api-key-display, project-settings-form, admin beta page; middleware missing `/dashboard` in `DASHBOARD_ROUTES`
+- **Dashboard:** Hardcoded English strings in session-timeline, project-settings-form
 - **Infra:** Deploy smoke test uses fixed `sleep 120`; `render.yaml` missing `ANTHROPIC_API_KEY`/`RESEND_API_KEY` entries; Docker Compose binds ports to `0.0.0.0`

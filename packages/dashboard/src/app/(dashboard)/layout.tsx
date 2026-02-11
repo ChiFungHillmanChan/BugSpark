@@ -3,13 +3,14 @@
 import { useState, useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useAuth } from "@/providers/auth-provider";
+import { AuthProvider, useAuth } from "@/providers/auth-provider";
+import { ProjectProvider } from "@/providers/project-provider";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { Bug } from "lucide-react";
 import { ErrorBoundary } from "@/components/shared/error-boundary";
 
-export default function DashboardLayout({ children }: { children: ReactNode }) {
+function DashboardContent({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
@@ -37,23 +38,33 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-navy-950">
-      <Sidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-      />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-6">
-          <ErrorBoundary
-            errorTitle={t("error")}
-            errorDescription={t("errorDescription")}
-            retryLabel={t("tryAgain")}
-          >
-            {children}
-          </ErrorBoundary>
-        </main>
+    <ProjectProvider>
+      <div className="flex h-screen bg-gray-50 dark:bg-navy-950">
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
+          <main className="flex-1 overflow-y-auto p-6">
+            <ErrorBoundary
+              errorTitle={t("error")}
+              errorDescription={t("errorDescription")}
+              retryLabel={t("tryAgain")}
+            >
+              {children}
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
-    </div>
+    </ProjectProvider>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </AuthProvider>
   );
 }

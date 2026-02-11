@@ -12,8 +12,20 @@ interface StoredPosition {
   y: number;
 }
 
-function getStorageKey(projectKey: string): string {
+function hashKey(key: string): string {
+  let hash = 0;
+  for (let i = 0; i < key.length; i++) {
+    hash = ((hash << 5) - hash + key.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function getLegacyStorageKey(projectKey: string): string {
   return `${STORAGE_KEY_PREFIX}${projectKey.slice(0, 8)}`;
+}
+
+function getStorageKey(projectKey: string): string {
+  return `${STORAGE_KEY_PREFIX}${hashKey(projectKey)}`;
 }
 
 function clampX(x: number, buttonWidth: number): number {
@@ -33,7 +45,18 @@ function applyPosition(button: HTMLButtonElement, x: number, y: number): void {
 
 export function restorePosition(projectKey: string, button: HTMLButtonElement): boolean {
   try {
-    const stored = localStorage.getItem(getStorageKey(projectKey));
+    let stored = localStorage.getItem(getStorageKey(projectKey));
+
+    // One-time fallback: migrate from legacy key that used the shared prefix
+    if (!stored) {
+      const legacyKey = getLegacyStorageKey(projectKey);
+      stored = localStorage.getItem(legacyKey);
+      if (stored) {
+        localStorage.setItem(getStorageKey(projectKey), stored);
+        localStorage.removeItem(legacyKey);
+      }
+    }
+
     if (!stored) return false;
 
     const position = JSON.parse(stored) as StoredPosition;
@@ -51,6 +74,7 @@ export function restorePosition(projectKey: string, button: HTMLButtonElement): 
 export function clearStoredPosition(projectKey: string): void {
   try {
     localStorage.removeItem(getStorageKey(projectKey));
+    localStorage.removeItem(getLegacyStorageKey(projectKey));
   } catch {
     // localStorage may be unavailable
   }

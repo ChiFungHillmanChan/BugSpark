@@ -188,6 +188,7 @@ async def is_project_admin(
             ProjectMember.project_id == project.id,
             ProjectMember.user_id == user.id,
             ProjectMember.role == "admin",
+            ProjectMember.invite_accepted_at.is_not(None),
         )
     )
     return result.scalar_one_or_none() is not None

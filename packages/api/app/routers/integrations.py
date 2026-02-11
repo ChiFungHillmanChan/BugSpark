@@ -8,7 +8,7 @@ from httpx import HTTPStatusError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db, get_owned_project
+from app.dependencies import get_accessible_project, get_current_user, get_db, get_owned_project
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.integration import Integration
@@ -89,7 +89,7 @@ async def list_integrations(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[IntegrationResponse]:
-    await get_owned_project(project_id, current_user, db)
+    await get_accessible_project(project_id, current_user, db)
 
     result = await db.execute(
         select(Integration).where(Integration.project_id == project_id)

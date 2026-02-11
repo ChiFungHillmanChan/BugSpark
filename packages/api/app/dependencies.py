@@ -191,7 +191,7 @@ async def get_owned_project(
     db: AsyncSession,
     locale: str = "en",
 ) -> Project:
-    """Verify a project exists and belongs to the given user, a team member, or superadmin."""
+    """Verify a project exists and belongs to the owner or superadmin only."""
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
 
@@ -201,13 +201,32 @@ async def get_owned_project(
     if user.role == Role.SUPERADMIN or project.owner_id == user.id:
         return project
 
-    # Check if user is a team member of this project
+    raise ForbiddenException(translate("project.not_owner", locale))
+
+
+async def get_accessible_project(
+    project_id: uuid.UUID,
+    user: User,
+    db: AsyncSession,
+    locale: str = "en",
+) -> Project:
+    """Verify a project exists and user is the owner, superadmin, or an accepted team member."""
+    result = await db.execute(select(Project).where(Project.id == project_id))
+    project = result.scalar_one_or_none()
+
+    if project is None:
+        raise NotFoundException(translate("project.not_found", locale))
+
+    if user.role == Role.SUPERADMIN or project.owner_id == user.id:
+        return project
+
     from app.models.project_member import ProjectMember
 
     member_result = await db.execute(
         select(ProjectMember).where(
             ProjectMember.project_id == project.id,
             ProjectMember.user_id == user.id,
+            ProjectMember.invite_accepted_at.is_not(None),
         )
     )
     member = member_result.scalar_one_or_none()

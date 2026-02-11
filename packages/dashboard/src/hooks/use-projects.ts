@@ -13,6 +13,18 @@ export function useProjects() {
   });
 }
 
+export function useManageableProjects() {
+  return useQuery({
+    queryKey: queryKeys.projects.manageable,
+    queryFn: async (): Promise<Project[]> => {
+      const response = await apiClient.get<Project[]>(
+        "/projects?manageable=true",
+      );
+      return response.data;
+    },
+  });
+}
+
 export function useProject(id: string) {
   return useQuery({
     queryKey: queryKeys.projects.detail(id),

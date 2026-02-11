@@ -3,9 +3,11 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Loader2, CheckCircle2, Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 import apiClient from "@/lib/api-client";
 
 export default function ForgotPasswordPage() {
+  const t = useTranslations("auth");
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -20,7 +22,7 @@ export default function ForgotPasswordPage() {
       await apiClient.post("/auth/forgot-password", { email });
       setIsSuccess(true);
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError(t("forgotPasswordError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -36,16 +38,16 @@ export default function ForgotPasswordPage() {
             </div>
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
-            Check your email
+            {t("checkYourEmail")}
           </h2>
           <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 max-w-sm mx-auto">
-            If an account with that email exists, we sent a password reset link. Please check your inbox.
+            {t("checkYourEmailDesc")}
           </p>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 py-3 sm:py-3.5 px-8 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
           >
-            Back to login
+            {t("backToLogin")}
           </Link>
         </div>
       </div>
@@ -60,11 +62,11 @@ export default function ForgotPasswordPage() {
             <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
           </div>
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-            Forgot password
+            {t("forgotPassword")}
           </h2>
         </div>
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
-          Enter your email and we will send you a reset link.
+          {t("forgotPasswordDesc")}
         </p>
 
         {error && (
@@ -76,7 +78,7 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
-              Email
+              {t("email")}
             </label>
             <input
               id="email"
@@ -85,7 +87,7 @@ export default function ForgotPasswordPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="w-full px-3.5 py-2.5 sm:px-4 sm:py-3 border border-gray-300 dark:border-white/[0.1] rounded-xl text-sm sm:text-base bg-white dark:bg-navy-900/60 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent dark:focus:border-accent/50 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-shadow"
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
             />
           </div>
 
@@ -95,14 +97,14 @@ export default function ForgotPasswordPage() {
             className="w-full py-3 sm:py-3.5 px-6 bg-accent hover:bg-accent-hover dark:gradient-btn text-white rounded-xl text-sm sm:text-base font-semibold disabled:opacity-50 flex items-center justify-center gap-2 sm:gap-2.5 transition-all hover:shadow-lg hover:shadow-accent/20 active:scale-[0.98]"
           >
             {isSubmitting && <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />}
-            {isSubmitting ? "Sending..." : "Send reset link"}
+            {isSubmitting ? t("sendingResetLink") : t("sendResetLink")}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm sm:text-base text-gray-500 dark:text-gray-400">
-          Remember your password?{" "}
+          {t("rememberPassword")}{" "}
           <Link href="/login" className="text-accent hover:underline font-medium">
-            Sign in
+            {t("signIn")}
           </Link>
         </p>
       </div>

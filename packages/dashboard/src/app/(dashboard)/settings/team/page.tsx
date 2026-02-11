@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
-import { useProjects } from "@/hooks/use-projects";
+import { useManageableProjects } from "@/hooks/use-projects";
 import {
   useTeamMembers,
   useInviteMember,
@@ -95,7 +95,7 @@ function MemberRow({
 
 export default function TeamSettingsPage() {
   const t = useTranslations("team");
-  const { data: projects } = useProjects();
+  const { data: projects, isLoading: isLoadingProjects } = useManageableProjects();
   const [selectedProjectId, setSelectedProjectId] = useState("");
   const [isInviting, setIsInviting] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -136,21 +136,28 @@ export default function TeamSettingsPage() {
       </p>
 
       <div className="mb-6">
-        <select
-          value={selectedProjectId}
-          onChange={(e) => {
-            setSelectedProjectId(e.target.value);
-            setFeedback(null);
-          }}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
-        >
-          <option value="">{t("selectProject")}</option>
-          {projects?.map((project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
+        {isLoadingProjects ? (
+          <div className="flex items-center gap-2 px-3 py-2">
+            <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+            <span className="text-sm text-gray-400">{t("selectProject")}</span>
+          </div>
+        ) : (
+          <select
+            value={selectedProjectId}
+            onChange={(e) => {
+              setSelectedProjectId(e.target.value);
+              setFeedback(null);
+            }}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-navy-700 rounded-lg text-sm bg-white dark:bg-navy-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+          >
+            <option value="">{t("selectProject")}</option>
+            {projects?.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {!selectedProjectId ? (

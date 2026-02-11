@@ -55,7 +55,7 @@ async def notify_new_report(
         return
 
     title = report_data.get("title", "Untitled")
-    tracking_id = report_data.get("trackingId", "")
+    tracking_id = report_data.get("tracking_id", "")
     severity_label = severity.upper()
 
     html = (

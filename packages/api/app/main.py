@@ -111,6 +111,14 @@ app.include_router(plans.router, prefix="/api/v1")
 app.include_router(team.router, prefix="/api/v1")
 
 
+@app.get("/debug-sentry", include_in_schema=False)
+async def debug_sentry() -> None:
+    """Trigger a test error for Sentry. Only available in development."""
+    if settings.ENVIRONMENT != "development":
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    raise RuntimeError("BugSpark Sentry test — this error is intentional!")
+
+
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=None)
 async def health_check() -> JSONResponse:
     from app.database import engine

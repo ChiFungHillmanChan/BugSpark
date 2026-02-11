@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db, get_owned_project, validate_api_key
+from app.dependencies import get_accessible_project, get_current_user, get_db, get_owned_project, validate_api_key
 from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
@@ -148,10 +148,26 @@ async def create_project(
 async def list_projects(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
+    manageable: bool = Query(False, description="Include projects where user is an accepted admin member"),
 ) -> list[ProjectResponse]:
     query = select(Project).where(Project.is_active.is_(True))
     if current_user.role != Role.SUPERADMIN:
-        query = query.where(Project.owner_id == current_user.id)
+        if manageable:
+            from app.models.project_member import ProjectMember
+
+            admin_project_ids = (
+                select(ProjectMember.project_id)
+                .where(
+                    ProjectMember.user_id == current_user.id,
+                    ProjectMember.role == "admin",
+                    ProjectMember.invite_accepted_at.is_not(None),
+                )
+            )
+            query = query.where(
+                (Project.owner_id == current_user.id) | Project.id.in_(admin_project_ids)
+            )
+        else:
+            query = query.where(Project.owner_id == current_user.id)
 
     result = await db.execute(query)
     projects = result.scalars().all()
@@ -166,7 +182,7 @@ async def get_project(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectResponse:
     locale = get_locale(request)
-    project = await get_owned_project(project_id, current_user, db, locale)
+    project = await get_accessible_project(project_id, current_user, db, locale)
     return _project_response(project)
 
 

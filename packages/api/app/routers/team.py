@@ -5,7 +5,7 @@ import uuid
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_active_user, get_db, get_owned_project
+from app.dependencies import get_accessible_project, get_active_user, get_db
 from app.exceptions import ForbiddenException
 from app.i18n import get_locale, translate
 from app.models.project import Project
@@ -65,7 +65,7 @@ async def list_members(
     db: AsyncSession = Depends(get_db),
 ) -> list[ProjectMemberResponse]:
     locale = get_locale(request)
-    project = await get_owned_project(project_id, user, db, locale)
+    project = await get_accessible_project(project_id, user, db, locale)
     members = await get_project_members(db, str(project.id))
     return [_member_response(m) for m in members]
 
@@ -83,7 +83,7 @@ async def invite(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectMemberResponse:
     locale = get_locale(request)
-    project = await get_owned_project(project_id, user, db, locale)
+    project = await get_accessible_project(project_id, user, db, locale)
     await _require_project_admin(project, user, db, locale)
     member = await invite_member(db, project, user, body.email, body.role, locale)
     return _member_response(member)
@@ -102,7 +102,7 @@ async def update_role(
     db: AsyncSession = Depends(get_db),
 ) -> ProjectMemberResponse:
     locale = get_locale(request)
-    project = await get_owned_project(project_id, user, db, locale)
+    project = await get_accessible_project(project_id, user, db, locale)
     await _require_project_admin(project, user, db, locale)
     member = await update_member_role(
         db, str(project.id), str(member_id), body.role, locale,
@@ -122,7 +122,7 @@ async def remove(
     db: AsyncSession = Depends(get_db),
 ) -> None:
     locale = get_locale(request)
-    project = await get_owned_project(project_id, user, db, locale)
+    project = await get_accessible_project(project_id, user, db, locale)
     await _require_project_admin(project, user, db, locale)
     await remove_member(db, str(project.id), str(member_id), locale)
 

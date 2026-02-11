@@ -69,12 +69,12 @@ pnpm dev              # Rollup watch mode
 ## Architecture
 
 ### API Structure
-- **Routers:** `app/routers/` — auth, tokens, projects, reports, upload, comments, webhooks, stats, analysis, integrations, admin
+- **Routers:** `app/routers/` — auth (split into auth_helpers, auth_email, auth_password, auth_cli, auth_beta), tokens, projects, reports, upload, comments, webhooks, stats, analysis, integrations, admin, device_auth
 - **Models:** `app/models/` — SQLAlchemy ORM models (User, Project, Report, Comment, Webhook, Integration, PersonalAccessToken) with enums (Role, Plan)
 - **Schemas:** `app/schemas/` — Pydantic request/response models with `CamelModel` base for camelCase serialization (auth, user, token, project, report, comment, webhook, integration, analysis, stats, admin, similarity)
 - **Rate Limiter:** `app/rate_limiter.py` — Shared slowapi `Limiter` instance with API-key-aware key function (extracted from main.py to avoid circular imports)
-- **Services:** `app/services/` — Business logic (auth, storage, tracking IDs, webhooks, AI analysis, GitHub, Linear, spam protection, similarity, stats)
-- **Middleware:** `app/middleware/csrf.py` — CSRF double-submit cookie validation
+- **Services:** `app/services/` — Business logic (auth, storage, tracking IDs, webhooks, AI analysis, GitHub, Linear, spam protection, similarity, stats, team, email, email verification, password reset, report formatter, plan limits, task queue, notification)
+- **Middleware:** `app/middleware/` — CSRF double-submit cookie validation (`csrf.py`), security headers (`security_headers.py`), widget CORS (`widget_cors.py`)
 - **Dependencies:** `app/dependencies.py` — FastAPI `Depends` for DB sessions, auth (`get_current_user`, `get_active_user`), role guards (`require_admin`, `require_superadmin`), API key validation (`validate_api_key`), PAT authentication
 - **Exceptions:** `app/exceptions.py` — Custom exception hierarchy (NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException) with i18n support
 - **i18n:** `app/i18n/` — Server-side locale detection and message catalogs (English, Traditional Chinese)

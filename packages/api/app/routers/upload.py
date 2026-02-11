@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, Request, UploadFile
 
 from app.dependencies import validate_api_key
 from app.exceptions import BadRequestException
 from app.models.project import Project
+from app.rate_limiter import limiter
 from app.services.storage_service import MAX_FILE_SIZE_BYTES, upload_file
 
 router = APIRouter(prefix="/upload", tags=["upload"])
@@ -32,7 +33,9 @@ async def _read_with_size_limit(file: UploadFile) -> bytes:
 
 
 @router.post("/screenshot")
+@limiter.limit("20/minute")
 async def upload_screenshot(
+    request: Request,
     file: UploadFile,
     project: Project = Depends(validate_api_key),
 ) -> dict[str, str]:

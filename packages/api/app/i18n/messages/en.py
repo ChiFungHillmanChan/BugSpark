@@ -56,6 +56,7 @@ MESSAGES: dict[str, str] = {
     "team.cannot_remove_owner": "Cannot remove the project owner",
     "team.invite_sent": "Invitation sent",
     "team.invite_invalid": "Invalid or expired invite token",
+    "team.invite_email_mismatch": "This invitation was sent to a different email address",
     "team.invite_accepted": "Invitation accepted",
     "team.not_admin": "Must be project owner or admin member to manage team",
     # Plan limits

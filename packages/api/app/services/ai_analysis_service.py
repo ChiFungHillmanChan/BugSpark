@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import threading
 from collections.abc import AsyncGenerator
 from typing import Any
 
@@ -14,17 +15,20 @@ from app.utils.sanitize import sanitize_text
 logger = logging.getLogger(__name__)
 
 _anthropic_client: anthropic.AsyncAnthropic | None = None
+_client_lock = threading.Lock()
 
 
 def _get_anthropic_client() -> anthropic.AsyncAnthropic:
     global _anthropic_client
     if _anthropic_client is None:
-        settings = get_settings()
-        if not settings.ANTHROPIC_API_KEY:
-            raise ValueError("ANTHROPIC_API_KEY not configured")
-        _anthropic_client = anthropic.AsyncAnthropic(
-            api_key=settings.ANTHROPIC_API_KEY, timeout=30
-        )
+        with _client_lock:
+            if _anthropic_client is None:
+                settings = get_settings()
+                if not settings.ANTHROPIC_API_KEY:
+                    raise ValueError("ANTHROPIC_API_KEY not configured")
+                _anthropic_client = anthropic.AsyncAnthropic(
+                    api_key=settings.ANTHROPIC_API_KEY, timeout=30
+                )
     return _anthropic_client
 
 _SYSTEM_PROMPT = (

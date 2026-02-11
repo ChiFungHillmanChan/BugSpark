@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { AuthProvider, useAuth } from "@/providers/auth-provider";
@@ -42,14 +42,53 @@ function createWrapper() {
   };
 }
 
+let fakeCookie = "";
+const originalCookieDescriptor = Object.getOwnPropertyDescriptor(
+  Document.prototype,
+  "cookie",
+);
+
+function mockCookie(value: string) {
+  fakeCookie = value;
+}
+
 describe("AuthProvider", () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
+    fakeCookie = "";
+    Object.defineProperty(document, "cookie", {
+      get: () => fakeCookie,
+      set: (val: string) => { fakeCookie = val; },
+      configurable: true,
+    });
     mockGetMe.mockRejectedValue(new Error("Not authenticated"));
   });
 
+  afterEach(() => {
+    if (originalCookieDescriptor) {
+      Object.defineProperty(document, "cookie", originalCookieDescriptor);
+    }
+  });
+
   describe("initial state", () => {
+    it("skips getMeApi and resolves immediately when no access token cookie exists", async () => {
+      mockGetMe.mockResolvedValueOnce(testUser);
+
+      const { result } = renderHook(() => useAuth(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.user).toBeNull();
+      expect(mockGetMe).not.toHaveBeenCalled();
+    });
+
     it("isAuthenticated starts false and transitions to true after getMeApi resolves", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -66,6 +105,7 @@ describe("AuthProvider", () => {
     });
 
     it("isLoading starts true and becomes false after getMeApi resolves", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -80,6 +120,7 @@ describe("AuthProvider", () => {
     });
 
     it("isLoading becomes false even when getMeApi rejects", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockRejectedValueOnce(new Error("Unauthorized"));
 
       const { result } = renderHook(() => useAuth(), {
@@ -251,6 +292,7 @@ describe("AuthProvider", () => {
 
   describe("logout", () => {
     it("clears user even if logoutApi throws", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockResolvedValueOnce(testUser);
       mockLogout.mockRejectedValueOnce(new Error("Network error"));
 
@@ -277,6 +319,7 @@ describe("AuthProvider", () => {
 
   describe("isSuperadmin", () => {
     it("returns true when user role is superadmin", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockResolvedValueOnce(superadminUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -291,6 +334,7 @@ describe("AuthProvider", () => {
     });
 
     it("returns false when user role is not superadmin", async () => {
+      mockCookie("bugspark_access_token=fake_token");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {

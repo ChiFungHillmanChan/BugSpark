@@ -8,7 +8,7 @@ from httpx import HTTPStatusError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_accessible_project, get_accessible_project_ids, get_current_user, get_db, get_owned_project
+from app.dependencies import get_accessible_project, get_accessible_project_ids, get_active_user, get_db, get_owned_project
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.integration import Integration
@@ -52,6 +52,20 @@ def _decrypt_config(config: dict) -> dict:
 
 logger = logging.getLogger(__name__)
 
+_REQUIRED_CONFIG_KEYS: dict[str, set[str]] = {
+    "github": {"token", "owner", "repo"},
+    "linear": {"apiKey", "teamId"},
+}
+
+
+def _validate_merged_config(config: dict, provider: str) -> None:
+    """Validate that merged config still contains all required keys for the provider."""
+    required = _REQUIRED_CONFIG_KEYS.get(provider, set())
+    missing = required - set(config.keys())
+    if missing:
+        raise BadRequestException(f"{provider} config missing required keys: {', '.join(sorted(missing))}")
+
+
 router = APIRouter(tags=["integrations"])
 
 
@@ -63,7 +77,7 @@ router = APIRouter(tags=["integrations"])
 async def create_integration(
     project_id: uuid.UUID,
     body: IntegrationCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationResponse:
     project = await get_owned_project(project_id, current_user, db)
@@ -86,7 +100,7 @@ async def create_integration(
 )
 async def list_integrations(
     project_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[IntegrationResponse]:
     await get_accessible_project(project_id, current_user, db)
@@ -105,7 +119,7 @@ async def list_integrations(
 async def update_integration(
     integration_id: uuid.UUID,
     body: IntegrationUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationResponse:
     result = await db.execute(
@@ -120,11 +134,15 @@ async def update_integration(
     update_data = body.model_dump(exclude_unset=True)
     if "config" in update_data and update_data["config"] is not None:
         merged_config = {**integration.config, **_encrypt_config(update_data["config"])}
+        # Validate required keys per provider after merge
+        _validate_merged_config(merged_config, integration.provider)
         integration.config = merged_config
         del update_data["config"]
 
+    _INTEGRATION_UPDATABLE_FIELDS = {"is_active"}
     for field, value in update_data.items():
-        setattr(integration, field, value)
+        if field in _INTEGRATION_UPDATABLE_FIELDS:
+            setattr(integration, field, value)
 
     await db.commit()
     await db.refresh(integration)
@@ -135,7 +153,7 @@ async def update_integration(
 @router.delete("/integrations/{integration_id}", status_code=204)
 async def delete_integration(
     integration_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     result = await db.execute(
@@ -158,7 +176,7 @@ async def delete_integration(
 async def export_report_to_tracker(
     report_id: uuid.UUID,
     provider: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> ExportResponse:
     result = await db.execute(select(Report).where(Report.id == report_id))
@@ -210,13 +228,17 @@ async def export_report_to_tracker(
         config = _decrypt_config(integration.config)
         formatted = format_report_as_linear_issue(report)
 
-        issue_data = await create_linear_issue(
-            api_key=config["apiKey"],
-            team_id=config["teamId"],
-            title=formatted.title,
-            description=formatted.description,
-            priority=formatted.priority,
-        )
+        try:
+            issue_data = await create_linear_issue(
+                api_key=config["apiKey"],
+                team_id=config["teamId"],
+                title=formatted.title,
+                description=formatted.description,
+                priority=formatted.priority,
+            )
+        except Exception as exc:
+            logger.warning("Linear API error: %s", exc)
+            raise BadRequestException(f"Linear API error: {exc}")
 
         return ExportResponse(
             issue_url=issue_data["issue_url"],

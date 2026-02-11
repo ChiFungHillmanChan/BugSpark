@@ -11,6 +11,26 @@ let originalFetch: typeof window.fetch | null = null;
 let originalXhrOpen: ((method: string, url: string | URL, ...rest: unknown[]) => void) | null = null;
 let originalXhrSend: ((body?: Document | XMLHttpRequestBodyInit | null) => void) | null = null;
 
+const SENSITIVE_PARAMS = new Set([
+  'token', 'access_token', 'refresh_token', 'api_key', 'apikey',
+  'api-key', 'secret', 'password', 'key', 'auth', 'session',
+  'session_id', 'sessionid', 'jwt', 'bearer', 'credential',
+]);
+
+function sanitizeUrl(url: string): string {
+  try {
+    const parsed = new URL(url, window.location.origin);
+    for (const param of [...parsed.searchParams.keys()]) {
+      if (SENSITIVE_PARAMS.has(param.toLowerCase())) {
+        parsed.searchParams.set(param, '[REDACTED]');
+      }
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
 function isBugSparkRequest(url: string): boolean {
   return bugsparkEndpoint !== '' && url.startsWith(bugsparkEndpoint);
 }
@@ -76,11 +96,13 @@ function patchFetch(): void {
     const startTime = performance.now();
     const timestamp = Date.now();
 
+    const sanitizedUrl = sanitizeUrl(url);
+
     try {
       const response = await capturedFetch(input, init);
       pushEntry({
         method,
-        url,
+        url: sanitizedUrl,
         status: response.status,
         duration: Math.round(performance.now() - startTime),
         responseHeaders: parseHeaders(response.headers),
@@ -90,7 +112,7 @@ function patchFetch(): void {
     } catch (error) {
       pushEntry({
         method,
-        url,
+        url: sanitizedUrl,
         status: 0,
         duration: Math.round(performance.now() - startTime),
         timestamp,
@@ -138,10 +160,12 @@ function patchXhr(): void {
       metadata.startTime = performance.now();
       metadata.timestamp = Date.now();
 
+      const sanitizedUrl = sanitizeUrl(metadata.url);
+
       this.addEventListener('loadend', () => {
         pushEntry({
           method: metadata.method,
-          url: metadata.url,
+          url: sanitizedUrl,
           status: this.status,
           duration: Math.round(performance.now() - metadata.startTime),
           timestamp: metadata.timestamp,

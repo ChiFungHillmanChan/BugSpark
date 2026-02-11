@@ -7,8 +7,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_active_user, get_db
 from app.exceptions import ForbiddenException, NotFoundException
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.user import User
 from app.models.webhook import Webhook
@@ -22,10 +23,14 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 async def _verify_project_ownership(
     project_id: uuid.UUID, user: User, db: AsyncSession
 ) -> None:
-    result = await db.execute(select(Project).where(Project.id == project_id))
+    result = await db.execute(
+        select(Project).where(Project.id == project_id, Project.is_active.is_(True))
+    )
     project = result.scalar_one_or_none()
     if project is None:
         raise NotFoundException("Project not found")
+    if user.role == Role.SUPERADMIN:
+        return
     if project.owner_id != user.id:
         raise ForbiddenException("Not the project owner")
 
@@ -34,7 +39,7 @@ async def _verify_project_ownership(
 async def create_webhook(
     body: WebhookCreate,
     project_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> WebhookResponse:
     await _verify_project_ownership(project_id, current_user, db)
@@ -57,7 +62,7 @@ async def create_webhook(
 @router.get("", response_model=list[WebhookResponse])
 async def list_webhooks(
     project_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[WebhookResponse]:
     await _verify_project_ownership(project_id, current_user, db)
@@ -73,7 +78,7 @@ async def list_webhooks(
 async def update_webhook(
     webhook_id: uuid.UUID,
     body: WebhookUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> WebhookResponse:
     result = await db.execute(select(Webhook).where(Webhook.id == webhook_id))
@@ -84,11 +89,13 @@ async def update_webhook(
 
     await _verify_project_ownership(webhook.project_id, current_user, db)
 
+    _WEBHOOK_UPDATABLE_FIELDS = {"url", "events", "is_active"}
     update_data = body.model_dump(exclude_unset=True)
     if "url" in update_data:
         validate_webhook_url(update_data["url"])
     for field, value in update_data.items():
-        setattr(webhook, field, value)
+        if field in _WEBHOOK_UPDATABLE_FIELDS:
+            setattr(webhook, field, value)
 
     await db.commit()
     await db.refresh(webhook)
@@ -99,7 +106,7 @@ async def update_webhook(
 @router.delete("/{webhook_id}", status_code=204)
 async def delete_webhook(
     webhook_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     result = await db.execute(select(Webhook).where(Webhook.id == webhook_id))

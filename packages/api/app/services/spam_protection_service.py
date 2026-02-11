@@ -24,16 +24,20 @@ async def is_duplicate_report(
     db: AsyncSession,
     project_id: str,
     title: str,
+    description: str | None = None,
 ) -> bool:
-    """Returns True if a report with the same title exists for this project in the last 5 minutes."""
+    """Returns True if a report with the same title (and description, if provided) exists in the last 5 minutes."""
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=5)
+    conditions = [
+        Report.project_id == project_id,
+        Report.title == title,
+        Report.created_at >= cutoff,
+    ]
+    if description:
+        conditions.append(Report.description == description)
     result = await db.execute(
         select(Report.id)
-        .where(
-            Report.project_id == project_id,
-            Report.title == title,
-            Report.created_at >= cutoff,
-        )
+        .where(*conditions)
         .limit(1)
     )
     return result.scalar_one_or_none() is not None

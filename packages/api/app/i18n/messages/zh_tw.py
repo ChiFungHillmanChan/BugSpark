@@ -56,6 +56,7 @@ MESSAGES: dict[str, str] = {
     "team.cannot_remove_owner": "無法移除專案擁有者",
     "team.invite_sent": "邀請已發送",
     "team.invite_invalid": "邀請連結無效或已過期",
+    "team.invite_email_mismatch": "此邀請是發送至不同的電子郵件地址",
     "team.invite_accepted": "邀請已接受",
     "team.not_admin": "必須是專案擁有者或管理員成員才能管理團隊",
     # 方案限制

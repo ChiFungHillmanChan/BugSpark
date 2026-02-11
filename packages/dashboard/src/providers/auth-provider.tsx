@@ -37,12 +37,22 @@ function isSafeRedirect(path: string | undefined): path is string {
   return path.startsWith("/") && !path.startsWith("//");
 }
 
+function hasAccessTokenCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  return /(?:^|;\s*)bugspark_access_token=[^;]+/.test(document.cookie);
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
+    if (!hasAccessTokenCookie()) {
+      setUser(null);
+      setIsLoading(false);
+      return;
+    }
     getMeApi()
       .then((data) => setUser(data))
       .catch(() => setUser(null))

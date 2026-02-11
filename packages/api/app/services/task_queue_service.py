@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Coroutine
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 POLL_INTERVAL_SECONDS = 10
 BASE_RETRY_DELAY_SECONDS = 30
 TASK_TTL_DAYS = 7
+STUCK_TASK_TIMEOUT_SECONDS = 300
 
 TaskHandler = Callable[[dict], Coroutine[None, None, None]]
 
@@ -97,6 +98,18 @@ async def process_pending_tasks() -> int:
     processed = 0
 
     async with async_session() as db:
+        # Recovery: reset stuck tasks back to pending
+        stuck_cutoff = now - timedelta(seconds=STUCK_TASK_TIMEOUT_SECONDS)
+        await db.execute(
+            update(BackgroundTask)
+            .where(
+                BackgroundTask.status == "processing",
+                BackgroundTask.updated_at < stuck_cutoff,
+            )
+            .values(status="pending")
+        )
+        await db.commit()
+
         base_query = (
             select(BackgroundTask)
             .where(

@@ -44,6 +44,13 @@ class ReportCreate(BaseModel):
     def sanitize_fields(cls, value: str) -> str:
         return sanitize_text(value)
 
+    @field_validator("reporter_identifier")
+    @classmethod
+    def sanitize_reporter_identifier(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return sanitize_text(value)
+
     @field_validator("console_logs")
     @classmethod
     def validate_console_logs_size(cls, value: dict | list | None) -> dict | list | None:
@@ -66,8 +73,8 @@ class ReportCreate(BaseModel):
 
 
 class ReportUpdate(BaseModel):
-    title: str | None = None
-    description: str | None = None
+    title: str | None = Field(default=None, min_length=1, max_length=500)
+    description: str | None = Field(default=None, min_length=1, max_length=10000)
     severity: Literal["low", "medium", "high", "critical"] | None = None
     category: Literal["bug", "ui", "performance", "crash", "other"] | None = None
     status: Literal["new", "triaging", "in_progress", "resolved", "closed"] | None = None

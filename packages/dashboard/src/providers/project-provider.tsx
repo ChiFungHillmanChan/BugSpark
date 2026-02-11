@@ -20,18 +20,18 @@ interface ProjectContextValue {
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
+function getStoredProjectId(): string | null {
+  if (typeof window === "undefined") return null;
+  const stored = localStorage.getItem(SELECTED_PROJECT_KEY);
+  if (stored === ALL_PROJECTS_VALUE) return null;
+  return stored;
+}
+
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const { data: projects } = useProjects();
   const [selectedProjectId, setSelectedProjectIdState] = useState<string | null>(
-    null,
+    getStoredProjectId,
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = localStorage.getItem(SELECTED_PROJECT_KEY);
-    if (stored === ALL_PROJECTS_VALUE) setSelectedProjectIdState(null);
-    else if (stored) setSelectedProjectIdState(stored);
-  }, []);
 
   useEffect(() => {
     if (!projects || projects.length === 0) return;

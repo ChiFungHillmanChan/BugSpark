@@ -64,6 +64,16 @@ class WebhookUpdate(CamelModel):
             return _validate_webhook_url(value)
         return value
 
+    @field_validator("events")
+    @classmethod
+    def validate_events(cls, value: list[str] | None) -> list[str] | None:
+        if value is None:
+            return value
+        for event in value:
+            if not event or len(event) > 100:
+                raise ValueError("Each event name must be 1-100 characters")
+        return value
+
 
 class WebhookResponse(CamelModel):
     id: uuid.UUID

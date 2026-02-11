@@ -9,6 +9,7 @@ from app.dependencies import get_accessible_project, get_active_user, get_db
 from app.exceptions import ForbiddenException
 from app.rate_limiter import limiter
 from app.i18n import get_locale, translate
+from app.models.enums import Role
 from app.models.project import Project
 from app.models.user import User
 from app.schemas.team import (
@@ -50,6 +51,8 @@ async def _require_project_admin(
     locale: str,
 ) -> None:
     """Raise ForbiddenException if user is not the project owner or admin member."""
+    if user.role == Role.SUPERADMIN:
+        return
     is_admin = await is_project_admin(db, project, user)
     if not is_admin:
         raise ForbiddenException(translate("team.not_admin", locale))

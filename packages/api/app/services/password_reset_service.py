@@ -67,9 +67,12 @@ async def reset_password(
     Returns True on success, False if the token is invalid or expired.
     """
     hashed = hash_token(token)
-    result = await db.execute(
-        select(User).where(User.password_reset_token == hashed)
-    )
+    query = select(User).where(User.password_reset_token == hashed)
+    # Use FOR UPDATE on PostgreSQL to prevent race conditions with concurrent resets
+    dialect_name = db.bind.dialect.name if db.bind else ""
+    if dialect_name == "postgresql":
+        query = query.with_for_update()
+    result = await db.execute(query)
     user = result.scalar_one_or_none()
 
     if user is None:
@@ -84,6 +87,8 @@ async def reset_password(
     user.hashed_password = hash_password(new_password)
     user.password_reset_token = None
     user.password_reset_expires_at = None
+    # Invalidate all existing sessions by clearing the refresh token JTI
+    user.refresh_token_jti = None
     await db.commit()
 
     return True

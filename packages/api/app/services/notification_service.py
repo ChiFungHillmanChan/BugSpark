@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import logging
+from html import escape as html_escape
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import Project
 from app.models.user import User
-from app.services.email_service import send_email
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +17,11 @@ DEFAULT_NOTIFICATION_PREFERENCES: dict[str, bool] = {
 }
 
 NOTIFIABLE_SEVERITIES = {"critical", "high"}
+
+
+def _sanitize_subject(subject: str) -> str:
+    """Strip CR/LF characters to prevent email header injection."""
+    return subject.replace("\r", "").replace("\n", "")
 
 
 def _should_notify(preferences: dict | None, severity: str) -> bool:
@@ -68,15 +73,23 @@ async def notify_new_report(project_id: str, report_data: dict) -> None:
     tracking_id = report_data.get("tracking_id", "")
     severity_label = severity.upper()
 
+    safe_project = html_escape(project_name)
+    safe_title = html_escape(title)
+    safe_tracking = html_escape(tracking_id)
     html = (
-        f"<h2>[{severity_label}] New bug report in {project_name}</h2>"
-        f"<p><strong>{tracking_id}</strong>: {title}</p>"
+        f"<h2>[{severity_label}] New bug report in {safe_project}</h2>"
+        f"<p><strong>{safe_tracking}</strong>: {safe_title}</p>"
         f"<p>Severity: {severity_label}</p>"
         f"<p>Check your BugSpark dashboard for details.</p>"
     )
 
-    await send_email(
-        owner_email,
-        f"[{severity_label}] New bug report: {title}",
-        html,
-    )
+    from app.database import async_session as _async_session
+    from app.services.task_queue_service import enqueue
+
+    subject = _sanitize_subject(f"[{severity_label}] New bug report: {title}")
+    async with _async_session() as queue_db:
+        await enqueue(queue_db, "send_email", {
+            "to": owner_email,
+            "subject": subject,
+            "html": html,
+        })

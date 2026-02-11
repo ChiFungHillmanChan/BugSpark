@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.dependencies import get_accessible_project_ids, get_current_user, get_db
+from app.dependencies import get_accessible_project_ids, get_active_user, get_db
 from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
@@ -56,7 +56,7 @@ async def _verify_report_access(
 async def list_comments(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[CommentResponse]:
     locale = get_locale(request)
@@ -78,7 +78,7 @@ async def create_comment(
     report_id: uuid.UUID,
     body: CommentCreate,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> CommentResponse:
     locale = get_locale(request)
@@ -91,7 +91,7 @@ async def create_comment(
     )
     db.add(comment)
     await db.commit()
-    await db.refresh(comment)
+    await db.refresh(comment, attribute_names=["author"])
 
     return _build_comment_response(comment)
 
@@ -100,7 +100,7 @@ async def create_comment(
 async def delete_comment(
     comment_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     locale = get_locale(request)

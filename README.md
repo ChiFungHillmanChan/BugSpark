@@ -45,12 +45,16 @@ Universal embeddable bug reporting SDK with an admin dashboard. Drop a single `<
 ### API
 
 - JWT authentication with refresh tokens and CSRF protection
+- Security headers middleware (HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy)
+- Encryption at rest for integration secrets (Fernet symmetric encryption)
+- Production config validation (enforces ENCRYPTION_KEY, COOKIE_SECURE, remote S3)
 - Project management with generated API keys (`bsk_pub_...`)
 - Bug report ingestion with S3/MinIO screenshot storage
-- AI-powered bug analysis (via Anthropic Claude)
-- Webhook notifications and GitHub integration
+- AI-powered bug analysis (via Anthropic Claude — configurable model)
+- Webhook notifications, GitHub integration, and Linear integration
 - Rate limiting (100 req/min per API key or IP)
 - Admin panel with super-admin role
+- Transactional emails via Resend (optional)
 - i18n support (English, Traditional Chinese)
 
 ### Dashboard
@@ -61,8 +65,9 @@ Universal embeddable bug reporting SDK with an admin dashboard. Drop a single `<
 - Comments and team collaboration
 - Project management with API key generation
 - Dashboard analytics: bug trends, severity distribution, stats
-- Export bugs to GitHub Issues
+- Export bugs to GitHub Issues and Linear issues
 - Multi-language (English, Traditional Chinese) with theme toggle
+- Global error boundary and Sentry integration
 - MDX documentation pages built-in
 
 ### CLI (`bugspark`)
@@ -148,43 +153,40 @@ pnpm install
 
 ### 2. Set up environment variables
 
+Environment variables are split by package. The root `.env` only configures Docker Compose services.
+
 ```bash
+# Root — Docker Compose (PostgreSQL + MinIO)
 cp .env.example .env
+
+# API — all backend config
+cp packages/api/.env.example packages/api/.env
+
+# Dashboard — frontend config
+cp packages/dashboard/.env.example packages/dashboard/.env.local
 ```
 
-Edit `.env` and set a `JWT_SECRET` (any random string). The other defaults work out of the box with Docker:
+Edit `packages/api/.env` and set a `JWT_SECRET` (any random string). The other defaults work out of the box with Docker:
 
 ```env
-# Database
+ENVIRONMENT=development
 DATABASE_URL=postgresql+asyncpg://bugspark:bugspark_dev@localhost:5432/bugspark
-
-# JWT
 JWT_SECRET=your-random-secret-string-here
-JWT_ALGORITHM=HS256
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
-JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
-
-# MinIO / S3 (local)
 S3_ENDPOINT_URL=http://localhost:9000
 S3_ACCESS_KEY=bugspark
 S3_SECRET_KEY=bugspark_dev
 S3_BUCKET_NAME=bugspark-uploads
 S3_PUBLIC_URL=http://localhost:9000/bugspark-uploads
-
-# CORS
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
-
-# API
-API_BASE_URL=http://localhost:8000
-
-# Dashboard
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+FRONTEND_URL=http://localhost:3000
+COOKIE_SECURE=false
+COOKIE_SAMESITE=lax
 ```
 
-Also copy the API-specific env file:
+Edit `packages/dashboard/.env.local`:
 
-```bash
-cp packages/api/.env.example packages/api/.env
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 
 ### 3. Start infrastructure (PostgreSQL + MinIO)
@@ -392,7 +394,7 @@ All routes are under `/api/v1`. Interactive docs available at `GET /docs` (Swagg
 | **Stats** | `GET /stats/overview`, `GET /stats/trends`, `GET /stats/severity` |
 | **Analysis** | `POST /reports/:id/analyze` (AI-powered, requires `ANTHROPIC_API_KEY`) |
 | **Webhooks** | CRUD for project webhook configurations |
-| **Integrations** | `POST /integrations/github/export/:id` (export bug to GitHub Issue) |
+| **Integrations** | `POST /integrations/github/export/:id`, `POST /integrations/linear/export/:id` |
 | **Admin** | `GET /admin/users`, user management (super-admin only) |
 | **Health** | `GET /health` |
 
@@ -416,17 +418,28 @@ The project includes a `render.yaml` for one-click deploy:
 3. Set environment variables:
 
 ```
+ENVIRONMENT=production
 DATABASE_URL=postgresql+asyncpg://...@your-neon-host/neondb?sslmode=require
-JWT_SECRET=<random-string>
+JWT_SECRET=<random-string-min-32-chars>
+ENCRYPTION_KEY=<fernet-key>
 S3_ENDPOINT_URL=https://<account>.r2.cloudflarestorage.com
 S3_ACCESS_KEY=<r2-access-key>
 S3_SECRET_KEY=<r2-secret-key>
 S3_BUCKET_NAME=bug-spark
 S3_PUBLIC_URL=https://pub-<account>.r2.dev
 CORS_ORIGINS=https://your-dashboard.vercel.app
+CORS_ORIGIN_REGEX=^https://bugspark-[a-z0-9-]+\.vercel\.app$
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
 FRONTEND_URL=https://your-dashboard.vercel.app
+```
+
+Generate keys:
+```bash
+# JWT_SECRET
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+# ENCRYPTION_KEY
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
 4. Run migration from local (pointing to Neon):
@@ -440,7 +453,10 @@ DATABASE_URL="postgresql+asyncpg://...@your-neon-host/neondb?sslmode=require" al
 
 1. Import the repo on [vercel.com](https://vercel.com)
 2. Root directory: `packages/dashboard`
-3. Set environment variable: `NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api/v1`
+3. Set environment variables:
+   - `NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api/v1`
+   - `NEXT_PUBLIC_S3_HOSTNAME=pub-<account>.r2.dev` (for `next/image` remote patterns)
+   - `NEXT_PUBLIC_SENTRY_DSN=...` (optional)
 4. Deploy
 
 ### Render Cold-Start Workaround
@@ -471,8 +487,9 @@ BugSpark/
 ├── pnpm-workspace.yaml         # Monorepo workspace config
 ├── turbo.json                  # Turborepo pipeline
 ├── render.yaml                 # Render.com deployment config
-├── .env.example                # Environment variable template
+├── .env.example                # Docker Compose variables only
 ├── docs/                       # Documentation
+│   ├── deployment.md           # Production deployment guide
 │   ├── testing-guide.md        # Full testing walkthrough
 │   ├── future-plan.md          # Roadmap
 │   └── report-verification.md  # Architecture verification
@@ -483,12 +500,12 @@ BugSpark/
 │   │   ├── config.py           # Pydantic settings
 │   │   ├── database.py         # Async SQLAlchemy engine
 │   │   ├── models/             # SQLAlchemy models (User, Project, Report, Comment, Webhook, Integration)
-│   │   ├── routers/            # 10 API routers
+│   │   ├── routers/            # API routers (auth split: helpers, cli, email, password, beta)
 │   │   ├── schemas/            # Pydantic request/response schemas
-│   │   ├── services/           # Business logic (auth, storage, AI analysis, GitHub, webhooks, stats)
-│   │   ├── middleware/         # CSRF middleware
+│   │   ├── services/           # Business logic (auth, storage, AI, GitHub, Linear, webhooks, stats)
+│   │   ├── middleware/         # CSRF, security headers, widget CORS
 │   │   ├── i18n/               # Internationalization messages
-│   │   └── utils/              # Sanitization helpers
+│   │   └── utils/              # Sanitization, encryption helpers
 │   ├── migrations/             # Alembic migrations (9 versions)
 │   ├── scripts/                # seed.py, seed_superadmin.py
 │   ├── tests/                  # pytest test suite
@@ -518,10 +535,11 @@ BugSpark/
 ├── packages/widget/            # Embeddable JS widget
 │   ├── src/
 │   │   ├── index.ts            # Entry point, auto-init
+│   │   ├── widget-lifecycle.ts # Widget lifecycle (init, open, close, destroy)
 │   │   ├── core/               # Screenshot engine, console/network interceptors, session recorder
-│   │   ├── ui/                 # Shadow DOM components (button, modal, toast, annotation overlay)
+│   │   ├── ui/                 # Shadow DOM components, styles (base, modal, annotation, responsive)
 │   │   ├── api/                # Report composer (upload + submit)
-│   │   └── utils/              # DOM helpers, event emitter
+│   │   └── utils/              # DOM helpers
 │   ├── rollup.config.mjs       # Builds IIFE + ESM
 │   └── package.json
 │
@@ -551,27 +569,53 @@ BugSpark/
 
 ## Environment Variables
 
+### API (`packages/api/.env`)
+
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `ENVIRONMENT` | Yes | `development` | `development`, `staging`, or `production` |
+| `DATABASE_URL` | Yes | (local) | PostgreSQL connection string (asyncpg) |
+| `JWT_SECRET` | Yes | - | Secret key for JWT signing (min 32 chars in production) |
+| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | No | `60` | Access token TTL |
+| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | No | `30` | Refresh token TTL |
+| `ENCRYPTION_KEY` | Prod | - | Fernet key for encrypting integration secrets at rest |
+| `S3_ENDPOINT_URL` | Yes | (local) | S3/MinIO endpoint (must be remote in production) |
+| `S3_ACCESS_KEY` | Yes | - | S3/MinIO access key |
+| `S3_SECRET_KEY` | Yes | - | S3/MinIO secret key |
+| `S3_BUCKET_NAME` | No | `bugspark-uploads` | S3 bucket name |
+| `S3_PUBLIC_URL` | Yes | - | Public URL for serving screenshots |
+| `CORS_ORIGINS` | Yes | - | Comma-separated allowed origins |
+| `CORS_ORIGIN_REGEX` | No | - | Regex for dynamic origins (e.g. Vercel previews) |
+| `FRONTEND_URL` | Yes | - | Dashboard URL for redirects and email links |
+| `COOKIE_SECURE` | Prod | `false` | Must be `true` in production (HTTPS) |
+| `COOKIE_SAMESITE` | No | `lax` | `none` for cross-origin API/dashboard deployments |
+| `ANTHROPIC_API_KEY` | No | - | Enables AI bug analysis |
+| `AI_MODEL` | No | `claude-haiku-4-5-20251001` | Anthropic model ID for analysis |
+| `RESEND_API_KEY` | No | - | Enables transactional emails via Resend |
+| `EMAIL_FROM_ADDRESS` | No | `BugSpark <noreply@bugspark.dev>` | Sender address |
+| `SENTRY_DSN` | No | - | Enables Sentry error tracking |
+| `SUPERADMIN_EMAIL` | No | - | Auto-create superadmin on startup |
+| `SUPERADMIN_PASSWORD` | No | - | Superadmin password |
+
+### Dashboard (`packages/dashboard/.env.local`)
+
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string (asyncpg) |
-| `JWT_SECRET` | Yes | Secret key for JWT token signing |
-| `JWT_ALGORITHM` | No | Default: `HS256` |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | No | Default: `15` |
-| `JWT_REFRESH_TOKEN_EXPIRE_DAYS` | No | Default: `7` |
-| `S3_ENDPOINT_URL` | Yes | S3/MinIO endpoint |
-| `S3_ACCESS_KEY` | Yes | S3/MinIO access key |
-| `S3_SECRET_KEY` | Yes | S3/MinIO secret key |
-| `S3_BUCKET_NAME` | No | Default: `bugspark-uploads` |
-| `S3_PUBLIC_URL` | Yes | Public URL for serving screenshots |
-| `CORS_ORIGINS` | Yes | Comma-separated allowed origins |
-| `API_BASE_URL` | No | API base URL for internal use |
-| `NEXT_PUBLIC_API_URL` | Yes | API URL used by the dashboard |
-| `ANTHROPIC_API_KEY` | No | Enables AI bug analysis feature |
-| `FRONTEND_URL` | No | Dashboard URL (for CSRF/cookies in production) |
-| `COOKIE_SECURE` | No | Set to `true` in production |
-| `COOKIE_SAMESITE` | No | Set to `none` for cross-origin in production |
-| `SUPERADMIN_EMAIL` | No | Super admin account email |
-| `SUPERADMIN_PASSWORD` | No | Super admin account password |
+| `NEXT_PUBLIC_API_URL` | Yes | BugSpark API base URL (including `/api/v1`) |
+| `NEXT_PUBLIC_S3_HOSTNAME` | No | S3 hostname for `next/image` remote patterns |
+| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN for error tracking |
+| `NEXT_PUBLIC_BUGSPARK_API_KEY` | No | Embed BugSpark widget on the dashboard (dogfooding) |
+
+### Root (`.env` — Docker Compose only)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_USER` | `bugspark` | PostgreSQL user |
+| `POSTGRES_PASSWORD` | `bugspark_dev` | PostgreSQL password |
+| `POSTGRES_DB` | `bugspark` | PostgreSQL database name |
+| `MINIO_ROOT_USER` | `bugspark` | MinIO access key |
+| `MINIO_ROOT_PASSWORD` | `bugspark_dev` | MinIO secret key |
 
 ## What Each Bug Report Captures
 
@@ -608,6 +652,8 @@ pnpm test
 cd packages/widget
 pnpm test
 ```
+
+For a comprehensive production deployment guide (Render, Vercel, CORS/cookie configuration, database migrations, backup strategy, CI/CD pipeline), see [`docs/deployment.md`](docs/deployment.md).
 
 ## Troubleshooting
 

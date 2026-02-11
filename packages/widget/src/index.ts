@@ -13,6 +13,7 @@ import * as reportModal from './ui/report-modal';
 import * as annotationOverlay from './ui/annotation-overlay';
 import { showToast, dismiss as dismissToast } from './ui/toast';
 import { submitReport } from './api/report-composer';
+import { enableDrag, restorePosition } from './ui/button-drag-handler';
 
 let config: BugSparkConfig | null = null;
 let screenshotCanvas: HTMLCanvasElement | null = null;
@@ -20,6 +21,7 @@ let screenshotBlob: Blob | null = null;
 let annotatedBlob: Blob | null = null;
 let isInitialized = false;
 let lastSubmitTime = 0;
+let dragCleanup: (() => void) | null = null;
 const SUBMIT_COOLDOWN_MS = 30000;
 
 function canvasToBlob(canvas: HTMLCanvasElement): Promise<Blob> {
@@ -73,6 +75,22 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       }
       if (typeof data.ownerPlan === 'string') {
         config.ownerPlan = data.ownerPlan;
+
+        if (data.ownerPlan !== 'free') {
+          const buttonEl = floatingButton.getElement();
+          if (buttonEl) {
+            const isPositionRestored = restorePosition(currentConfig.projectKey, buttonEl);
+            if (isPositionRestored) {
+              buttonEl.className = buttonEl.className.replace(/bugspark-fab--\w+-\w+/, '');
+              buttonEl.classList.add('bugspark-fab--draggable');
+            }
+            dragCleanup = enableDrag({
+              button: buttonEl,
+              projectKey: currentConfig.projectKey,
+              shadowRoot: widgetContainer.getRoot(),
+            });
+          }
+        }
       }
       if (typeof data.primaryColor === 'string' && data.primaryColor.startsWith('#') && data.primaryColor !== config.primaryColor) {
         config.primaryColor = data.primaryColor;
@@ -118,6 +136,7 @@ async function open(): Promise<void> {
   const root = widgetContainer.getRoot();
 
   floatingButton.hide();
+  sessionRecorder.snapshot();
   annotatedBlob = null;
 
   consoleLogAllowed = await fetchConsoleLogQuota();
@@ -166,6 +185,7 @@ async function handleCapture(): Promise<void> {
 
 function close(): void {
   reportModal.unmount();
+  sessionRecorder.clearSnapshot();
   annotationOverlay.unmount();
   floatingButton.show();
   screenshotCanvas = null;
@@ -250,6 +270,11 @@ async function handleSubmit(formData: import('./ui/report-modal').ReportFormData
 
 function destroy(): void {
   if (!isInitialized) return;
+
+  if (dragCleanup) {
+    dragCleanup();
+    dragCleanup = null;
+  }
 
   dismissToast();
   consoleInterceptor.stop();

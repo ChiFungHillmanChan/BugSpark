@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 import createMDX from "@next/mdx";
 import createNextIntlPlugin from "next-intl/plugin";
 import remarkGfm from "remark-gfm";
@@ -34,4 +35,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(withMDX(nextConfig));
+export default withSentryConfig(withNextIntl(withMDX(nextConfig)), {
+  // Suppresses source map upload logs during build
+  silent: true,
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+});

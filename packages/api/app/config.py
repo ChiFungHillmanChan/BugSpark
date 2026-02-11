@@ -33,7 +33,12 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     COOKIE_SAMESITE: str = "lax"
 
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM_ADDRESS: str = "BugSpark <noreply@bugspark.dev>"
+
     ENCRYPTION_KEY: str = ""  # Fernet key for encrypting secrets at rest. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+
+    SENTRY_DSN: str = ""
 
     ENVIRONMENT: str = "development"
 

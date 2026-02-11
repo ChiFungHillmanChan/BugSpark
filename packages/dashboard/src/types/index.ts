@@ -9,6 +9,7 @@ export interface User {
   role: UserRole;
   plan: UserPlan;
   isActive: boolean;
+  isEmailVerified?: boolean;
   betaStatus?: BetaStatusType;
   createdAt: string;
 }
@@ -215,6 +216,19 @@ export interface ExportResult {
   issueUrl: string;
   issueNumber: number;
   issueIdentifier: string | null;
+}
+
+export type MemberRole = "viewer" | "editor" | "admin";
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string | null;
+  email: string;
+  role: MemberRole;
+  inviteAcceptedAt: string | null;
+  createdAt: string;
+  displayName: string | null;
 }
 
 export type Severity = "critical" | "high" | "medium" | "low";

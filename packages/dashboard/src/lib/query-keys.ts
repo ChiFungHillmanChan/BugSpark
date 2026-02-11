@@ -19,6 +19,9 @@ export const queryKeys = {
   integrations: {
     list: (projectId: string) => ["integrations", projectId] as const,
   },
+  team: {
+    members: (projectId: string) => ["team", "members", projectId] as const,
+  },
   stats: {
     overview: ["stats", "overview"] as const,
     project: (id: string) => ["stats", "project", id] as const,

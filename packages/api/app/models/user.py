@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, String, func
+from sqlalchemy import Boolean, DateTime, Enum as SAEnum, JSON, String, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -49,6 +49,17 @@ class User(Base):
         DateTime(timezone=True), nullable=True, default=None
     )
     beta_reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    is_email_verified: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
+    email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    notification_preferences: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True, default=None
+    )
     refresh_token_jti: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

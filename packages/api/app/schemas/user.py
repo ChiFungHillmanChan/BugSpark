@@ -15,13 +15,16 @@ class UserResponse(CamelModel):
     role: str
     plan: str
     is_active: bool
+    is_email_verified: bool = False
     beta_status: str = "none"
     plan_expires_at: datetime | None = None
+    notification_preferences: dict[str, bool] | None = None
     created_at: datetime
 
 
 class UserUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=255)
+    notification_preferences: dict[str, bool] | None = Field(default=None)
 
 
 class PasswordChange(BaseModel):

@@ -3,7 +3,7 @@ from __future__ import annotations
 import secrets
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +16,24 @@ from app.models.app_settings import AppSettings
 from app.models.enums import BetaStatus
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
-from app.schemas.auth import BetaRegisterRequest, BetaRegisterResponse, CLIAuthResponse, LoginRequest, RegisterRequest
+from app.schemas.auth import (
+    BetaRegisterRequest,
+    BetaRegisterResponse,
+    CLIAuthResponse,
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+)
+from app.services.email_verification_service import (
+    send_verification_email,
+    verify_email as do_verify_email,
+)
+from app.services.data_export_service import export_user_data
+from app.services.password_reset_service import (
+    request_password_reset,
+    reset_password as do_reset_password,
+)
 from app.schemas.user import PasswordChange, UserResponse, UserUpdate
 from app.services.auth_service import (
     create_access_token,
@@ -134,7 +151,11 @@ async def _issue_tokens(user: User, response: Response, db: AsyncSession) -> Non
 @router.post("/register")
 @limiter.limit("5/minute")
 async def register(
-    body: RegisterRequest, response: Response, request: Request, db: AsyncSession = Depends(get_db)
+    body: RegisterRequest,
+    response: Response,
+    request: Request,
+    background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(get_db),
 ) -> UserResponse | BetaRegisterResponse:
     locale = get_locale(request)
     existing = await db.execute(select(User).where(User.email == body.email))
@@ -163,6 +184,9 @@ async def register(
             message=translate("beta.registered", locale),
             beta_status="pending",
         )
+
+    settings = get_settings()
+    background_tasks.add_task(send_verification_email, db, user, settings.FRONTEND_URL)
 
     await _issue_tokens(user, response, db)
 
@@ -290,6 +314,100 @@ async def change_password(
     await db.commit()
 
     return {"detail": translate("auth.password_changed", locale)}
+
+
+@router.get("/me/export")
+@limiter.limit("3/minute")
+async def export_my_data(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Export all user data (GDPR data portability)."""
+    return await export_user_data(db, current_user.id)
+
+
+@router.delete("/me", status_code=200)
+@limiter.limit("3/minute")
+async def delete_my_account(
+    request: Request,
+    response: Response,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Soft-delete the current user account (GDPR right to erasure)."""
+    current_user.is_active = False
+    current_user.refresh_token_jti = None
+    await db.commit()
+
+    _clear_auth_cookies(response)
+    return {"detail": "Account has been deactivated."}
+
+
+# ── Password reset (public) ────────────────────────────────────────────────
+
+
+@router.post("/forgot-password")
+@limiter.limit("3/minute")
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Request a password reset email. Always returns 200 to avoid leaking email existence."""
+    settings = get_settings()
+    await request_password_reset(db, body.email, settings.FRONTEND_URL)
+    return {"detail": "If that email exists, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+@limiter.limit("3/minute")
+async def reset_password_endpoint(
+    body: ResetPasswordRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Reset password using a token from the reset email."""
+    locale = get_locale(request)
+    success = await do_reset_password(db, body.token, body.new_password)
+    if not success:
+        raise BadRequestException(translate("auth.invalid_reset_token", locale))
+    return {"detail": "Password has been reset successfully."}
+
+
+# ── Email verification ─────────────────────────────────────────────────────
+
+
+@router.post("/verify-email")
+@limiter.limit("5/minute")
+async def verify_email_endpoint(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+    token: str = "",
+) -> dict[str, str]:
+    """Verify user email using token from verification email."""
+    locale = get_locale(request)
+    if not token:
+        raise BadRequestException(translate("auth.invalid_verification_token", locale))
+    success = await do_verify_email(db, token)
+    if not success:
+        raise BadRequestException(translate("auth.invalid_verification_token", locale))
+    return {"detail": "Email verified successfully."}
+
+
+@router.post("/resend-verification")
+@limiter.limit("3/minute")
+async def resend_verification(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Resend verification email for the authenticated user."""
+    if current_user.is_email_verified:
+        return {"detail": "Email is already verified."}
+    settings = get_settings()
+    await send_verification_email(db, current_user, settings.FRONTEND_URL)
+    return {"detail": "Verification email sent."}
 
 
 # ── Beta registration (dashboard) ──────────────────────────────────────────

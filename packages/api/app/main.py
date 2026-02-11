@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+from typing import AsyncIterator
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -12,9 +17,12 @@ from app.config import get_settings
 from app.rate_limiter import limiter
 from app.exceptions import register_exception_handlers
 from app.middleware.csrf import CSRFMiddleware
+from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
-from app.routers import admin, analysis, auth, comments, device_auth, integrations, plans, projects, reports, stats, tokens, upload, webhooks
+from app.routers import admin, analysis, auth, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
+
+logger = logging.getLogger(__name__)
 
 settings = get_settings()
 
@@ -25,6 +33,34 @@ if settings.ENVIRONMENT != "development" and settings.JWT_SECRET == "change-me-i
         "Set a strong random secret via the JWT_SECRET environment variable."
     )
 
+# Sentry error tracking (optional — only active when SENTRY_DSN is configured)
+if settings.SENTRY_DSN:
+    try:
+        import sentry_sdk
+
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            send_default_pii=True,
+            enable_logs=True,
+            traces_sample_rate=1.0,
+            profile_session_sample_rate=1.0,
+            profile_lifecycle="trace",
+            environment=settings.ENVIRONMENT,
+        )
+        logger.info("Sentry error tracking initialized")
+    except ImportError:
+        logger.warning("sentry-sdk not installed — Sentry integration skipped")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Start background task processor on startup, cancel on shutdown."""
+    from app.services.task_queue_service import start_task_processor
+
+    task = asyncio.create_task(start_task_processor())
+    yield
+    task.cancel()
+
 
 app = FastAPI(
     title="BugSpark API",
@@ -32,6 +68,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs" if settings.ENVIRONMENT == "development" else None,
     redoc_url="/redoc" if settings.ENVIRONMENT == "development" else None,
+    lifespan=lifespan,
 )
 
 app.state.limiter = limiter
@@ -50,6 +87,7 @@ if settings.CORS_ORIGIN_REGEX:
     _cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
 app.add_middleware(CORSMiddleware, **_cors_kwargs)
 app.add_middleware(CSRFMiddleware)
+app.add_middleware(RequestIDMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
 # Widget endpoints are called from any customer site — must run before CORSMiddleware
 # (Starlette executes middlewares in reverse add-order, so adding last = runs first)
@@ -70,6 +108,7 @@ app.include_router(stats.router, prefix="/api/v1")
 app.include_router(analysis.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
+app.include_router(team.router, prefix="/api/v1")
 
 
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=None)

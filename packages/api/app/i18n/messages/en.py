@@ -15,6 +15,8 @@ MESSAGES: dict[str, str] = {
     "auth.token_expired": "Personal access token has expired",
     "auth.wrong_current_password": "Current password is incorrect",
     "auth.password_changed": "Password updated successfully",
+    "auth.invalid_reset_token": "Invalid or expired reset token",
+    "auth.invalid_verification_token": "Invalid or expired verification token",
     # Tokens
     "token.not_found": "Token not found",
     "token.not_owner": "Not the token owner",
@@ -47,6 +49,15 @@ MESSAGES: dict[str, str] = {
     "beta.not_found": "Beta user not found.",
     "beta.not_beta_user": "This user is not a beta applicant.",
     "beta.mode_updated": "Beta mode setting updated.",
+    # Team
+    "team.member_not_found": "Team member not found",
+    "team.already_member": "User is already a member of this project",
+    "team.invalid_role": "Invalid member role",
+    "team.cannot_remove_owner": "Cannot remove the project owner",
+    "team.invite_sent": "Invitation sent",
+    "team.invite_invalid": "Invalid or expired invite token",
+    "team.invite_accepted": "Invitation accepted",
+    "team.not_admin": "Must be project owner or admin member to manage team",
     # Plan limits
     "plan.project_limit": "Plan limit reached: your plan allows up to {limit} project(s). Please upgrade your plan.",
     "plan.report_per_project_limit": "Plan limit reached: your plan allows up to {limit} report(s) per project. Please upgrade your plan.",

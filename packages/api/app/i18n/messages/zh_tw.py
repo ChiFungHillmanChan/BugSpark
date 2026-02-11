@@ -15,6 +15,8 @@ MESSAGES: dict[str, str] = {
     "auth.token_expired": "個人存取權杖已過期",
     "auth.wrong_current_password": "目前密碼不正確",
     "auth.password_changed": "密碼更新成功",
+    "auth.invalid_reset_token": "重設密碼連結無效或已過期",
+    "auth.invalid_verification_token": "驗證連結無效或已過期",
     # Tokens
     "token.not_found": "找不到權杖",
     "token.not_owner": "非權杖擁有者",
@@ -47,6 +49,15 @@ MESSAGES: dict[str, str] = {
     "beta.not_found": "找不到 Beta 使用者。",
     "beta.not_beta_user": "此使用者不是 Beta 申請者。",
     "beta.mode_updated": "Beta 模式設定已更新。",
+    # 團隊
+    "team.member_not_found": "找不到團隊成員",
+    "team.already_member": "該使用者已是此專案成員",
+    "team.invalid_role": "無效的成員角色",
+    "team.cannot_remove_owner": "無法移除專案擁有者",
+    "team.invite_sent": "邀請已發送",
+    "team.invite_invalid": "邀請連結無效或已過期",
+    "team.invite_accepted": "邀請已接受",
+    "team.not_admin": "必須是專案擁有者或管理員成員才能管理團隊",
     # 方案限制
     "plan.project_limit": "已達方案上限：您的方案最多允許 {limit} 個專案。請升級方案。",
     "plan.report_per_project_limit": "已達方案上限：您的方案每個專案最多允許 {limit} 則回報。請升級方案。",

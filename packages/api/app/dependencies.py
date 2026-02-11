@@ -191,13 +191,27 @@ async def get_owned_project(
     db: AsyncSession,
     locale: str = "en",
 ) -> Project:
-    """Verify a project exists and belongs to the given user (or user is superadmin)."""
+    """Verify a project exists and belongs to the given user, a team member, or superadmin."""
     result = await db.execute(select(Project).where(Project.id == project_id))
     project = result.scalar_one_or_none()
 
     if project is None:
         raise NotFoundException(translate("project.not_found", locale))
-    if user.role != Role.SUPERADMIN and project.owner_id != user.id:
+
+    if user.role == Role.SUPERADMIN or project.owner_id == user.id:
+        return project
+
+    # Check if user is a team member of this project
+    from app.models.project_member import ProjectMember
+
+    member_result = await db.execute(
+        select(ProjectMember).where(
+            ProjectMember.project_id == project.id,
+            ProjectMember.user_id == user.id,
+        )
+    )
+    member = member_result.scalar_one_or_none()
+    if member is None:
         raise ForbiddenException(translate("project.not_owner", locale))
 
     return project

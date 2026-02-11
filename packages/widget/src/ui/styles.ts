@@ -44,6 +44,8 @@ export function getStyles(primaryColor: string, theme: 'light' | 'dark' | 'auto'
     .bugspark-fab--bottom-left { bottom: 24px; left: 24px; }
     .bugspark-fab--top-right { top: 24px; right: 24px; }
     .bugspark-fab--top-left { top: 24px; left: 24px; }
+    .bugspark-fab--draggable { transition: box-shadow 0.2s; cursor: grab; touch-action: none; user-select: none; }
+    .bugspark-fab--dragging { cursor: grabbing; box-shadow: 0 8px 24px rgba(0,0,0,0.35); }
 
     .bugspark-overlay {
       position: fixed; inset: 0; background: ${overlayBg};

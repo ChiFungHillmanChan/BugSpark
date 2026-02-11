@@ -58,7 +58,8 @@
     "resetPasswordFailed": "Failed to reset password. The link may be invalid or expired.",
     "passwordResetSuccess": "Password reset",
     "passwordResetSuccessDesc": "Your password has been reset successfully. You can now sign in with your new password.",
-    "goToLogin": "Go to login"
+    "goToLogin": "Go to login",
+    "forgotPasswordLink": "Forgot password?"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -164,7 +165,13 @@
     "deleteBug": "Delete Bug",
     "deleteBugConfirm": "Are you sure you want to delete this bug report? This action cannot be undone.",
     "dangerZone": "Danger Zone",
-    "markResolved": "Mark Resolved"
+    "markResolved": "Mark Resolved",
+    "noLogsToDisplay": "No logs to display",
+    "noNetworkRequests": "No network requests captured",
+    "noDeviceMetadata": "No device metadata",
+    "requestHeaders": "Request Headers",
+    "responseHeaders": "Response Headers",
+    "noHeaders": "No headers"
   },
   "projects": {
     "title": "Projects",
@@ -268,7 +275,9 @@
     "deleteAccountWarning": "Are you sure you want to delete your account? This action will deactivate your account and you will be logged out.",
     "deleteAccountConfirm": "Yes, delete my account",
     "deleting": "Deleting...",
-    "deleteCancel": "Cancel"
+    "deleteCancel": "Cancel",
+    "exportFailed": "Failed to export data. Please try again.",
+    "deleteAccountFailed": "Failed to delete account. Please try again."
   },
   "team": {
     "title": "Team Members",
@@ -357,7 +366,9 @@
     "revokeConfirm": "Are you sure you want to revoke this token? It will stop working immediately.",
     "installCli": "Install the CLI",
     "installCliHint": "npm install -g @bugspark/cli",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "createFailed": "Failed to create token. Please try again.",
+    "revokeFailed": "Failed to revoke token. Please try again."
   },
   "integrations": {
     "title": "Integrations",
@@ -710,7 +721,8 @@
     "planFree": "FREE",
     "planPro": "PRO",
     "planEnterprise": "ENT",
-    "planSuperadmin": "SA"
+    "planSuperadmin": "SA",
+    "tryAgain": "Try again"
   },
   "beta": {
     "title": "Join Beta Testing",

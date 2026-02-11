@@ -2,6 +2,7 @@
 
 import { Loader2, Sparkles, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { isAxiosError } from "axios";
 import { cn } from "@/lib/utils";
 import { useAnalyzeReport } from "@/hooks/use-analysis";
 import type { AnalysisResponse } from "@/types";
@@ -11,18 +12,18 @@ interface AiAnalysisPanelProps {
 }
 
 const CATEGORY_STYLES: Record<string, string> = {
-  bug: "bg-red-100 text-red-700",
-  ui: "bg-blue-100 text-blue-700",
-  performance: "bg-yellow-100 text-yellow-700",
-  crash: "bg-purple-100 text-purple-700",
-  other: "bg-gray-100 text-gray-700",
+  bug: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  ui: "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400",
+  performance: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+  crash: "bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400",
+  other: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
 };
 
 const SEVERITY_STYLES: Record<string, string> = {
-  critical: "bg-red-100 text-red-700",
-  high: "bg-orange-100 text-orange-700",
-  medium: "bg-yellow-100 text-yellow-700",
-  low: "bg-green-100 text-green-700",
+  critical: "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400",
+  high: "bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400",
+  medium: "bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400",
+  low: "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400",
 };
 
 function Badge({ label, value, styles }: {
@@ -36,7 +37,7 @@ function Badge({ label, value, styles }: {
       <span
         className={cn(
           "ml-2 inline-block px-2 py-0.5 rounded text-xs font-medium capitalize",
-          styles[value] ?? "bg-gray-100 text-gray-700",
+          styles[value] ?? "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
         )}
       >
         {value}
@@ -52,7 +53,7 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
     <div className="space-y-4">
       <div>
         <h4 className="text-xs text-gray-400 font-medium mb-1">{t("aiSummary")}</h4>
-        <p className="text-sm text-gray-900">{data.summary}</p>
+        <p className="text-sm text-gray-900 dark:text-gray-100">{data.summary}</p>
       </div>
 
       <div className="flex gap-4">
@@ -75,7 +76,7 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
           </h4>
           <ol className="list-decimal list-inside space-y-1">
             {data.reproductionSteps.map((step, index) => (
-              <li key={index} className="text-sm text-gray-900">
+              <li key={index} className="text-sm text-gray-900 dark:text-gray-100">
                 {step}
               </li>
             ))}
@@ -88,7 +89,7 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
           <h4 className="text-xs text-gray-400 font-medium mb-1">
             {t("aiRootCause")}
           </h4>
-          <p className="text-sm text-gray-900">{data.rootCause}</p>
+          <p className="text-sm text-gray-900 dark:text-gray-100">{data.rootCause}</p>
         </div>
       )}
 
@@ -97,7 +98,7 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
           <h4 className="text-xs text-gray-400 font-medium mb-1">
             {t("aiAffectedArea")}
           </h4>
-          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700">
+          <span className="inline-block px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-400">
             {data.affectedArea}
           </span>
         </div>
@@ -132,10 +133,9 @@ export function AiAnalysisPanel({ reportId }: AiAnalysisPanelProps) {
 
   const isApiKeyError =
     isError &&
-    error instanceof Error &&
-    (error.message.includes("ANTHROPIC_API_KEY") ||
-      (error as { response?: { data?: { detail?: string } } }).response?.data
-        ?.detail?.includes("ANTHROPIC_API_KEY"));
+    ((error instanceof Error && error.message.includes("ANTHROPIC_API_KEY")) ||
+      (isAxiosError<{ detail?: string }>(error) &&
+        error.response?.data?.detail?.includes("ANTHROPIC_API_KEY")));
 
   return (
     <div>

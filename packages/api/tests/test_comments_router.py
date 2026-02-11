@@ -36,9 +36,10 @@ async def test_create_comment(
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     response = await client.post(
         f"/api/v1/reports/{report.id}/comments",
         json={"body": "This is a comment"},
@@ -56,10 +57,11 @@ async def test_list_comments(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
     test_user: User,
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     comment = Comment(
         id=uuid.uuid4(),
         report_id=report.id,
@@ -86,10 +88,11 @@ async def test_delete_own_comment(
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
     test_user: User,
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     comment = Comment(
         id=uuid.uuid4(),
         report_id=report.id,
@@ -111,9 +114,10 @@ async def test_delete_own_comment(
 async def test_comment_requires_auth(
     client: AsyncClient,
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     response = await client.post(
         f"/api/v1/reports/{report.id}/comments",
         json={"body": "No auth"},

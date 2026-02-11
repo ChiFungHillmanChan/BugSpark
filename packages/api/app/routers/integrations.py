@@ -8,7 +8,7 @@ from httpx import HTTPStatusError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_accessible_project, get_current_user, get_db, get_owned_project
+from app.dependencies import get_accessible_project, get_accessible_project_ids, get_current_user, get_db, get_owned_project
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.integration import Integration
@@ -166,15 +166,10 @@ async def export_report_to_tracker(
     if report is None:
         raise NotFoundException("Report not found")
 
-    user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-    project_check = await db.execute(
-        select(Project.id).where(
-            Project.id == report.project_id,
-            Project.id.in_(user_project_ids),
-        )
-    )
-    if project_check.scalar_one_or_none() is None:
-        raise ForbiddenException("Not authorized to export this report")
+    if current_user.role != Role.SUPERADMIN:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
+            raise ForbiddenException("Not authorized to export this report")
 
     integration_result = await db.execute(
         select(Integration).where(

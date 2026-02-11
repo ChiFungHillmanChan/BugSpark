@@ -1,16 +1,10 @@
 import chalk from "chalk";
+import { confirm } from "@inquirer/prompts";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
-
-interface ProjectResponse {
-  id: string;
-  name: string;
-  domain: string;
-  apiKey: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import { validateId } from "../lib/validate.js";
+import type { ProjectResponse } from "../types.js";
 
 export async function listProjectsCommand(): Promise<void> {
   const { client } = await getAuthenticatedClientOrExit();
@@ -61,7 +55,7 @@ export async function createProjectCommand(
     console.log(`  ${chalk.bold("Project ID:")}  ${project.id}`);
     console.log(`  ${chalk.bold("API Key:")}     ${chalk.yellow(project.apiKey)}`);
     console.log();
-    console.log(chalk.dim("  ⚠  Save this API key — it won't be shown again."));
+    console.log(chalk.dim("  Save this API key — it won't be shown again."));
     console.log();
     console.log(chalk.bold("  Install the widget:"));
     console.log();
@@ -79,12 +73,28 @@ export async function createProjectCommand(
   }
 }
 
-export async function deleteProjectCommand(projectId: string): Promise<void> {
+export async function deleteProjectCommand(
+  projectId: string,
+  options: { force?: boolean }
+): Promise<void> {
+  const safeId = validateId(projectId);
   const { client } = await getAuthenticatedClientOrExit();
 
+  if (!options.force) {
+    const confirmed = await confirm({
+      message: `Are you sure you want to delete project ${safeId}? This cannot be undone.`,
+      default: false,
+    });
+
+    if (!confirmed) {
+      console.log("Aborted.");
+      return;
+    }
+  }
+
   try {
-    await client.delete(`/projects/${projectId}`);
-    success(`Project ${projectId} deleted.`);
+    await client.delete(`/projects/${safeId}`);
+    success(`Project ${safeId} deleted.`);
   } catch (err) {
     error(formatError(err));
     process.exit(1);

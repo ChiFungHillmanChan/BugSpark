@@ -46,6 +46,9 @@ def decrypt_value(ciphertext: str) -> str:
     If no encryption key is configured in development, returns the value unchanged.
     In production, raises RuntimeError to prevent reading unencrypted secrets.
     If decryption fails (e.g. plaintext stored before encryption was enabled), returns as-is.
+
+    Note: After rotating ENCRYPTION_KEY, previously encrypted values will fail to decrypt
+    and be returned as-is. Monitor logs for warnings to identify values needing re-encryption.
     """
     fernet = _get_fernet()
     if fernet is None:
@@ -59,5 +62,5 @@ def decrypt_value(ciphertext: str) -> str:
         return fernet.decrypt(ciphertext.encode("utf-8")).decode("utf-8")
     except InvalidToken:
         # Gracefully handle values stored before encryption was enabled
-        logger.debug("Failed to decrypt value — returning as-is (may be plaintext)")
+        logger.warning("Failed to decrypt value — returning as-is (may be plaintext or encrypted with a rotated key)")
         return ciphertext

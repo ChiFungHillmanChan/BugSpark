@@ -5,8 +5,6 @@ import uuid
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,14 +14,13 @@ from app.models.enums import Plan, Role
 from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
+from app.rate_limiter import limiter
 from app.schemas.analysis import AnalysisResponse
 from app.services.ai_analysis_service import analyze_bug_report, analyze_bug_report_stream
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/reports", tags=["analysis"])
-
-_analysis_limiter = Limiter(key_func=get_remote_address)
 
 
 async def _get_authorized_report(
@@ -55,7 +52,7 @@ async def _get_authorized_report(
 
 
 @router.post("/{report_id}/analyze", response_model=AnalysisResponse)
-@_analysis_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def analyze_report(
     report_id: uuid.UUID,
     request: Request,
@@ -80,7 +77,7 @@ async def analyze_report(
 
 
 @router.post("/{report_id}/analyze/stream")
-@_analysis_limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def analyze_report_stream(
     report_id: uuid.UUID,
     request: Request,

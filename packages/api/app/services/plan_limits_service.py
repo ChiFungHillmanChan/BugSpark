@@ -84,7 +84,15 @@ async def check_project_limit(db: AsyncSession, user: User) -> None:
 
 async def check_report_limit(db: AsyncSession, project: Project) -> None:
     """Raise ForbiddenException if the project or its owner has hit a report limit."""
-    owner: User = project.owner  # type: ignore[assignment]  -- loaded via selectin
+    # Ensure owner is loaded — prefer eager-loaded relation, fall back to explicit query
+    owner: User | None = getattr(project, "owner", None)
+    if owner is None:
+        owner_result = await db.execute(
+            select(User).where(User.id == project.owner_id)
+        )
+        owner = owner_result.scalar_one_or_none()
+    if owner is None:
+        raise ForbiddenException("Project owner not found")
     if owner.role == Role.SUPERADMIN:
         return
 

@@ -9,23 +9,8 @@ import {
 } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success, warn } from "../lib/output.js";
-
-interface CLIAuthResponse {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  plan: string;
-  token: string;
-}
-
-interface UserResponse {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  plan: string;
-}
+import { validateApiUrl } from "../lib/validate.js";
+import type { CLIAuthResponse, UserResponse } from "../types.js";
 
 interface DeviceCodeResponse {
   device_code: string;
@@ -60,6 +45,8 @@ export async function loginCommand(options?: {
       message: "BugSpark API URL",
       default: DEFAULT_API_URL,
     });
+
+    validateApiUrl(apiUrl);
 
     // 2. Choose authentication method (default: browser / device flow)
     const method = options?.method ?? await pickMethod();

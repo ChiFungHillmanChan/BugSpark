@@ -16,11 +16,12 @@ from app.models.user import User
 
 @pytest.fixture()
 async def test_integration(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ) -> Integration:
+    project, _ = test_project
     integration = Integration(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         provider="github",
         config={"token": "ghp_test", "owner": "testowner", "repo": "testrepo"},
         is_active=True,
@@ -34,11 +35,12 @@ async def test_integration(
 
 @pytest.fixture()
 async def test_report(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ) -> Report:
+    project, _ = test_project
     report = Report(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         tracking_id="BUG-001",
         title="Test Bug",
         description="Something broke",
@@ -59,10 +61,11 @@ async def test_create_integration(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ) -> None:
+    project, _ = test_project
     response = await client.post(
-        f"/api/v1/projects/{test_project.id}/integrations",
+        f"/api/v1/projects/{project.id}/integrations",
         json={
             "provider": "github",
             "config": {"token": "ghp_abc", "owner": "myorg", "repo": "myrepo"},
@@ -82,10 +85,11 @@ async def test_create_integration_invalid_provider(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ) -> None:
+    project, _ = test_project
     response = await client.post(
-        f"/api/v1/projects/{test_project.id}/integrations",
+        f"/api/v1/projects/{project.id}/integrations",
         json={
             "provider": "jira",
             "config": {},
@@ -101,10 +105,11 @@ async def test_create_integration_missing_config_keys(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ) -> None:
+    project, _ = test_project
     response = await client.post(
-        f"/api/v1/projects/{test_project.id}/integrations",
+        f"/api/v1/projects/{project.id}/integrations",
         json={
             "provider": "github",
             "config": {"token": "ghp_abc"},
@@ -119,11 +124,12 @@ async def test_create_integration_missing_config_keys(
 async def test_list_integrations(
     client: AsyncClient,
     auth_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     test_integration: Integration,
 ) -> None:
+    project, _ = test_project
     response = await client.get(
-        f"/api/v1/projects/{test_project.id}/integrations",
+        f"/api/v1/projects/{project.id}/integrations",
         cookies=auth_cookies,
     )
     assert response.status_code == 200

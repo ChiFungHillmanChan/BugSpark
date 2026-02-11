@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -69,8 +69,16 @@ async def test_tracking_id_included_in_email(
         "tracking_id": "BUG-0042",
     }
 
-    with patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send:
-        await notify_new_report(db_session, str(notify_project.id), report_data)
+    with (
+        patch("app.database.async_session") as mock_session_factory,
+        patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send,
+    ):
+        mock_ctx = MagicMock()
+        mock_ctx.__aenter__ = AsyncMock(return_value=db_session)
+        mock_ctx.__aexit__ = AsyncMock(return_value=False)
+        mock_session_factory.return_value = mock_ctx
+
+        await notify_new_report(str(notify_project.id), report_data)
         mock_send.assert_called_once()
         html_body = mock_send.call_args[1].get("html") or mock_send.call_args[0][2]
         assert "BUG-0042" in html_body
@@ -88,8 +96,16 @@ async def test_tracking_id_camelcase_not_read(
         "trackingId": "BUG-OLD",
     }
 
-    with patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send:
-        await notify_new_report(db_session, str(notify_project.id), report_data)
+    with (
+        patch("app.database.async_session") as mock_session_factory,
+        patch("app.services.notification_service.send_email", new_callable=AsyncMock) as mock_send,
+    ):
+        mock_ctx = MagicMock()
+        mock_ctx.__aenter__ = AsyncMock(return_value=db_session)
+        mock_ctx.__aexit__ = AsyncMock(return_value=False)
+        mock_session_factory.return_value = mock_ctx
+
+        await notify_new_report(str(notify_project.id), report_data)
         mock_send.assert_called_once()
         html_body = mock_send.call_args[1].get("html") or mock_send.call_args[0][2]
         assert "BUG-OLD" not in html_body

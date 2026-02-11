@@ -20,7 +20,7 @@ from app.middleware.csrf import CSRFMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
-from app.routers import admin, analysis, auth, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
+from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_password, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
 
 logger = logging.getLogger(__name__)
 
@@ -33,19 +33,34 @@ if settings.ENVIRONMENT != "development" and settings.JWT_SECRET == "change-me-i
         "Set a strong random secret via the JWT_SECRET environment variable."
     )
 
+def _sentry_before_send(event: dict, hint: dict) -> dict | None:
+    """Strip PII from Sentry events while keeping useful debugging context."""
+    request_info = event.get("request", {})
+    # Remove cookies and authorization headers
+    headers = request_info.get("headers", {})
+    for sensitive_key in ("cookie", "authorization", "x-csrf-token"):
+        headers.pop(sensitive_key, None)
+    # Remove user IP
+    user = event.get("user", {})
+    user.pop("ip_address", None)
+    return event
+
+
 # Sentry error tracking (optional — only active when SENTRY_DSN is configured)
 if settings.SENTRY_DSN:
     try:
         import sentry_sdk
 
+        _is_dev = settings.ENVIRONMENT == "development"
         sentry_sdk.init(
             dsn=settings.SENTRY_DSN,
-            send_default_pii=True,
+            send_default_pii=False,
             enable_logs=True,
-            traces_sample_rate=1.0,
-            profile_session_sample_rate=1.0,
+            traces_sample_rate=0.1 if _is_dev else 0.2,
+            profile_session_sample_rate=0.1,
             profile_lifecycle="trace",
             environment=settings.ENVIRONMENT,
+            before_send=_sentry_before_send,
         )
         logger.info("Sentry error tracking initialized")
     except ImportError:
@@ -96,6 +111,10 @@ app.add_middleware(WidgetCORSMiddleware)
 register_exception_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(auth_password.router, prefix="/api/v1")
+app.include_router(auth_email.router, prefix="/api/v1")
+app.include_router(auth_beta.router, prefix="/api/v1")
+app.include_router(auth_cli.router, prefix="/api/v1")
 app.include_router(device_auth.router, prefix="/api/v1")
 app.include_router(tokens.router, prefix="/api/v1")
 app.include_router(admin.router, prefix="/api/v1")
@@ -111,12 +130,12 @@ app.include_router(plans.router, prefix="/api/v1")
 app.include_router(team.router, prefix="/api/v1")
 
 
-@app.get("/debug-sentry", include_in_schema=False)
-async def debug_sentry() -> None:
-    """Trigger a test error for Sentry. Only available in development."""
-    if settings.ENVIRONMENT != "development":
-        return JSONResponse(status_code=404, content={"detail": "Not found"})
-    raise RuntimeError("BugSpark Sentry test — this error is intentional!")
+if settings.ENVIRONMENT == "development":
+
+    @app.get("/debug-sentry", include_in_schema=False)
+    async def debug_sentry() -> None:
+        """Trigger a test error for Sentry. Only available in development."""
+        raise RuntimeError("BugSpark Sentry test — this error is intentional!")
 
 
 @app.api_route("/health", methods=["GET", "HEAD"], response_model=None)

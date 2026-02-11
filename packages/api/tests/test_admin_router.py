@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 from httpx import AsyncClient
 
+from app.models.project import Project
 from app.models.user import User
 
 
@@ -262,9 +263,10 @@ async def test_list_all_projects_as_superadmin(
     client: AsyncClient,
     superadmin_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project,
+    test_project: tuple[Project, str],
     test_superadmin: User,
 ) -> None:
+    project, _ = test_project
     resp = await client.get(
         "/api/v1/admin/projects",
         cookies=superadmin_cookies,

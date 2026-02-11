@@ -4,6 +4,7 @@ import { createUnauthClient } from "../lib/api-client.js";
 import { DEFAULT_API_URL } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
+import { validateApiUrl } from "../lib/validate.js";
 
 interface BetaRegisterResponse {
   message: string;
@@ -27,6 +28,8 @@ export async function registerBetaCommand(): Promise<void> {
       message: "BugSpark API URL",
       default: DEFAULT_API_URL,
     });
+
+    validateApiUrl(apiUrl);
 
     const name = await input({
       message: "Your name",

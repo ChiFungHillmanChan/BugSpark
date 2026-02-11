@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn, formatDuration } from "@/lib/utils";
 import type { NetworkRequest } from "@/types";
 
@@ -25,12 +26,13 @@ function statusCodeColor(code: number): string {
 }
 
 export function NetworkWaterfall({ requests }: NetworkWaterfallProps) {
+  const t = useTranslations("bugs");
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
 
   if (!requests || requests.length === 0) {
     return (
       <p className="text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
-        No network requests captured
+        {t("noNetworkRequests")}
       </p>
     );
   }
@@ -91,10 +93,12 @@ export function NetworkWaterfall({ requests }: NetworkWaterfallProps) {
 }
 
 function NetworkRequestDetail({ request }: { request: NetworkRequest }) {
+  const t = useTranslations("bugs");
+
   return (
     <div className="border-t border-gray-100 dark:border-white/[0.06] px-3 py-2 bg-gray-50 dark:bg-white/[0.02] text-xs">
       <div className="mb-3">
-        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Request Headers</h4>
+        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">{t("requestHeaders")}</h4>
         <div className="space-y-0.5 font-mono">
           {Object.entries(request.requestHeaders ?? {}).map(([key, value]) => (
             <div key={key}>
@@ -103,12 +107,12 @@ function NetworkRequestDetail({ request }: { request: NetworkRequest }) {
             </div>
           ))}
           {Object.keys(request.requestHeaders ?? {}).length === 0 && (
-            <span className="text-gray-400 dark:text-gray-500">No headers</span>
+            <span className="text-gray-400 dark:text-gray-500">{t("noHeaders")}</span>
           )}
         </div>
       </div>
       <div>
-        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">Response Headers</h4>
+        <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-1">{t("responseHeaders")}</h4>
         <div className="space-y-0.5 font-mono">
           {Object.entries(request.responseHeaders ?? {}).map(([key, value]) => (
             <div key={key}>
@@ -117,7 +121,7 @@ function NetworkRequestDetail({ request }: { request: NetworkRequest }) {
             </div>
           ))}
           {Object.keys(request.responseHeaders ?? {}).length === 0 && (
-            <span className="text-gray-400 dark:text-gray-500">No headers</span>
+            <span className="text-gray-400 dark:text-gray-500">{t("noHeaders")}</span>
           )}
         </div>
       </div>

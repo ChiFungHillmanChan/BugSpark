@@ -58,7 +58,8 @@
     "resetPasswordFailed": "密碼重設失敗。連結可能無效或已過期。",
     "passwordResetSuccess": "密碼已重設",
     "passwordResetSuccessDesc": "您的密碼已成功重設。您現在可以使用新密碼登入。",
-    "goToLogin": "前往登入"
+    "goToLogin": "前往登入",
+    "forgotPasswordLink": "忘記密碼？"
   },
   "dashboard": {
     "title": "儀表板",
@@ -164,7 +165,13 @@
     "deleteBug": "刪除錯誤回報",
     "deleteBugConfirm": "確定要刪除此錯誤回報嗎？此操作無法復原。",
     "dangerZone": "危險區域",
-    "markResolved": "標記為已解決"
+    "markResolved": "標記為已解決",
+    "noLogsToDisplay": "沒有日誌可顯示",
+    "noNetworkRequests": "沒有擷取到網路請求",
+    "noDeviceMetadata": "沒有裝置中繼資料",
+    "requestHeaders": "請求標頭",
+    "responseHeaders": "回應標頭",
+    "noHeaders": "沒有標頭"
   },
   "projects": {
     "title": "專案",
@@ -268,7 +275,9 @@
     "deleteAccountWarning": "確定要刪除您的帳戶嗎？此操作將停用您的帳戶並將您登出。",
     "deleteAccountConfirm": "是的，刪除我的帳戶",
     "deleting": "刪除中...",
-    "deleteCancel": "取消"
+    "deleteCancel": "取消",
+    "exportFailed": "匯出資料失敗，請重試。",
+    "deleteAccountFailed": "刪除帳戶失敗，請重試。"
   },
   "team": {
     "title": "團隊成員",
@@ -357,7 +366,9 @@
     "revokeConfirm": "確定要撤銷此權杖嗎？它將立即失效。",
     "installCli": "安裝 CLI",
     "installCliHint": "npm install -g @bugspark/cli",
-    "loading": "載入中..."
+    "loading": "載入中...",
+    "createFailed": "建立權杖失敗，請重試。",
+    "revokeFailed": "撤銷權杖失敗，請重試。"
   },
   "integrations": {
     "title": "整合",
@@ -710,7 +721,8 @@
     "planFree": "免費",
     "planPro": "專業",
     "planEnterprise": "企業",
-    "planSuperadmin": "超管"
+    "planSuperadmin": "超管",
+    "tryAgain": "重試"
   },
   "beta": {
     "title": "加入 Beta 測試",

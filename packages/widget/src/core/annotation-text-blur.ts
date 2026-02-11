@@ -156,18 +156,6 @@ export function renderShape(
 /** Cached blurred ImageData keyed by shape reference. */
 const blurCache = new WeakMap<AnnotationShape, { x: number; y: number; imageData: ImageData }>();
 
-/**
- * Clear the blur cache. Call this when the shape list changes
- * (undo / redo / new shape pushed) so stale entries are freed.
- */
-export function clearBlurCache(): void {
-  // WeakMap entries are GC'd automatically when keys are no longer referenced,
-  // but we expose this so callers can force a fresh computation if needed.
-  // Since WeakMap has no .clear(), we simply re-assign.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // No-op: WeakMap handles cleanup when shapes are GC'd after undo/redo.
-}
-
 function applyBlur(ctx: CanvasRenderingContext2D, shape: AnnotationShape): void {
   const x = Math.min(shape.startX ?? 0, shape.endX ?? 0);
   const y = Math.min(shape.startY ?? 0, shape.endY ?? 0);

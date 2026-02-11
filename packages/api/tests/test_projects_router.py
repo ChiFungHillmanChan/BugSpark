@@ -30,39 +30,42 @@ async def test_create_project(
 async def test_list_projects(
     client: AsyncClient,
     auth_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     response = await client.get(BASE, cookies=auth_cookies)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
     assert len(data) >= 1
     project_names = [p["name"] for p in data]
-    assert test_project.name in project_names
+    assert project.name in project_names
 
 
 async def test_get_project_detail(
     client: AsyncClient,
     auth_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     response = await client.get(
-        f"{BASE}/{test_project.id}", cookies=auth_cookies
+        f"{BASE}/{project.id}", cookies=auth_cookies
     )
     assert response.status_code == 200
     data = response.json()
-    assert data["name"] == test_project.name
-    assert data["domain"] == test_project.domain
+    assert data["name"] == project.name
+    assert data["domain"] == project.domain
 
 
 async def test_update_project(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     response = await client.patch(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         json={"name": "Updated Name"},
         cookies=auth_cookies,
         headers=csrf_headers,
@@ -75,28 +78,30 @@ async def test_delete_project(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     response = await client.delete(
-        f"{BASE}/{test_project.id}", cookies=auth_cookies, headers=csrf_headers
+        f"{BASE}/{project.id}", cookies=auth_cookies, headers=csrf_headers
     )
     assert response.status_code == 204
 
     # Verify soft-delete: project should no longer appear in list
     list_response = await client.get(BASE, cookies=auth_cookies)
     project_ids = [p["id"] for p in list_response.json()]
-    assert str(test_project.id) not in project_ids
+    assert str(project.id) not in project_ids
 
 
 async def test_rotate_api_key(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    original_prefix = test_project.api_key_prefix
+    project, _ = test_project
+    original_prefix = project.api_key_prefix
     response = await client.post(
-        f"{BASE}/{test_project.id}/rotate-key", cookies=auth_cookies, headers=csrf_headers
+        f"{BASE}/{project.id}/rotate-key", cookies=auth_cookies, headers=csrf_headers
     )
     assert response.status_code == 200
     data = response.json()

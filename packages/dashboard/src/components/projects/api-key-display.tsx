@@ -8,9 +8,10 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 interface ApiKeyDisplayProps {
   apiKey: string;
   onRotate: () => void;
+  isRotating?: boolean;
 }
 
-export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
+export function ApiKeyDisplay({ apiKey, onRotate, isRotating }: ApiKeyDisplayProps) {
   const t = useTranslations("projects");
   const [isRevealed, setIsRevealed] = useState(false);
   const [hasCopied, setHasCopied] = useState(false);
@@ -57,10 +58,11 @@ export function ApiKeyDisplay({ apiKey, onRotate }: ApiKeyDisplayProps) {
         </button>
         <button
           onClick={() => setIsConfirmOpen(true)}
-          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-navy-700 rounded-lg"
+          disabled={isRotating}
+          className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 border border-gray-200 dark:border-navy-700 rounded-lg disabled:opacity-50"
           title="Rotate key"
         >
-          <RefreshCw className="w-4 h-4" />
+          <RefreshCw className={`w-4 h-4${isRotating ? " animate-spin" : ""}`} />
         </button>
       </div>
 

@@ -33,11 +33,12 @@ class TestCheckHoneypot:
 class TestIsDuplicateReport:
     @pytest.mark.asyncio
     async def test_returns_true_for_duplicate_title(
-        self, db_session: AsyncSession, test_project: Project
+        self, db_session: AsyncSession, test_project: tuple[Project, str]
     ) -> None:
+        project, _ = test_project
         report = Report(
             id=uuid.uuid4(),
-            project_id=test_project.id,
+            project_id=project.id,
             tracking_id="TST-1",
             title="Crash on login",
             description="App crashes when clicking login",
@@ -51,17 +52,18 @@ class TestIsDuplicateReport:
         await db_session.commit()
 
         result = await is_duplicate_report(
-            db_session, str(test_project.id), "Crash on login"
+            db_session, str(project.id), "Crash on login"
         )
         assert result is True
 
     @pytest.mark.asyncio
     async def test_returns_false_for_different_title(
-        self, db_session: AsyncSession, test_project: Project
+        self, db_session: AsyncSession, test_project: tuple[Project, str]
     ) -> None:
+        project, _ = test_project
         report = Report(
             id=uuid.uuid4(),
-            project_id=test_project.id,
+            project_id=project.id,
             tracking_id="TST-2",
             title="Crash on login",
             description="App crashes when clicking login",
@@ -75,18 +77,19 @@ class TestIsDuplicateReport:
         await db_session.commit()
 
         result = await is_duplicate_report(
-            db_session, str(test_project.id), "Completely different bug"
+            db_session, str(project.id), "Completely different bug"
         )
         assert result is False
 
     @pytest.mark.asyncio
     async def test_returns_false_for_different_project(
-        self, db_session: AsyncSession, test_project: Project
+        self, db_session: AsyncSession, test_project: tuple[Project, str]
     ) -> None:
+        project, _ = test_project
         other_project_id = uuid.uuid4()
         report = Report(
             id=uuid.uuid4(),
-            project_id=test_project.id,
+            project_id=project.id,
             tracking_id="TST-3",
             title="Crash on login",
             description="App crashes when clicking login",

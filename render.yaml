@@ -6,7 +6,7 @@ services:
     rootDir: packages/api
     healthCheckPath: /health
     buildCommand: pip install . && alembic upgrade head
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 2 --loop uvloop --http httptools
     envVars:
       - key: ENVIRONMENT
         value: production

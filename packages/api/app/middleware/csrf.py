@@ -18,6 +18,11 @@ CSRF_EXEMPT_PATHS = {
     "/api/v1/auth/refresh",
     "/api/v1/auth/cli/login",
     "/api/v1/auth/cli/register",
+    "/api/v1/auth/cli/register/beta",
+    "/api/v1/auth/register/beta",
+    "/api/v1/auth/forgot-password",
+    "/api/v1/auth/reset-password",
+    "/api/v1/auth/verify-email",
 }
 
 

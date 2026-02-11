@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { ConsoleLogEntry } from "@/types";
 
@@ -28,6 +29,7 @@ const LEVEL_LABELS: Record<ConsoleLogEntry["level"], string> = {
 type LogLevel = ConsoleLogEntry["level"];
 
 export function ConsoleLogViewer({ logs }: ConsoleLogViewerProps) {
+  const t = useTranslations("bugs");
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(
     new Set(),
   );
@@ -77,7 +79,7 @@ export function ConsoleLogViewer({ logs }: ConsoleLogViewerProps) {
       <div className="space-y-1 max-h-96 overflow-y-auto font-mono text-xs">
         {filteredLogs.length === 0 && (
           <p className="text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
-            No logs to display
+            {t("noLogsToDisplay")}
           </p>
         )}
         {filteredLogs.map((log, index) => (

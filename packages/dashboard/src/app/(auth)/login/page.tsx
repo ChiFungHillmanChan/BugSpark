@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, Clock, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { isAxiosError } from "axios";
 import { useAuth } from "@/providers/auth-provider";
 
 type BetaState = "none" | "waiting_list" | "rejected";
@@ -31,13 +32,16 @@ export default function LoginPage() {
       const redirectTo = searchParams.get("redirect") ?? undefined;
       await login(email, password, redirectTo);
     } catch (err: unknown) {
-      const axiosError = err as { response?: { status?: number; data?: { code?: string } } };
-      const code = axiosError.response?.data?.code;
+      if (isAxiosError<{ code?: string }>(err)) {
+        const code = err.response?.data?.code;
 
-      if (axiosError.response?.status === 403 && code === "beta.waiting_list") {
-        setBetaState("waiting_list");
-      } else if (axiosError.response?.status === 403 && code === "beta.rejected") {
-        setBetaState("rejected");
+        if (err.response?.status === 403 && code === "beta.waiting_list") {
+          setBetaState("waiting_list");
+        } else if (err.response?.status === 403 && code === "beta.rejected") {
+          setBetaState("rejected");
+        } else {
+          setError(t("invalidCredentials"));
+        }
       } else {
         setError(t("invalidCredentials"));
       }
@@ -163,7 +167,7 @@ export default function LoginPage() {
             </div>
             <div className="mt-1.5 text-right">
               <Link href="/forgot-password" className="text-sm text-accent hover:underline font-medium">
-                Forgot password?
+                {t("forgotPasswordLink")}
               </Link>
             </div>
           </div>

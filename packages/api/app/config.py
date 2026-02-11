@@ -48,6 +48,9 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_production_settings(self) -> Settings:
+        import logging
+        import warnings
+
         if self.ENVIRONMENT != "development":
             if self.JWT_SECRET == "change-me-in-production":
                 raise ValueError(
@@ -56,6 +59,28 @@ class Settings(BaseSettings):
             if len(self.JWT_SECRET) < 32:
                 raise ValueError(
                     "JWT_SECRET must be at least 32 characters in non-development environments"
+                )
+            if not self.ENCRYPTION_KEY:
+                raise ValueError(
+                    "ENCRYPTION_KEY is required in non-development environments"
+                )
+            if not self.S3_ENDPOINT_URL or "localhost" in self.S3_ENDPOINT_URL:
+                raise ValueError(
+                    "S3_ENDPOINT_URL must be a remote URL in non-development environments"
+                )
+            if not self.COOKIE_SECURE:
+                raise ValueError(
+                    "COOKIE_SECURE must be True in non-development environments (HTTPS required)"
+                )
+            if self.COOKIE_SAMESITE.lower() == "none":
+                _logger = logging.getLogger(__name__)
+                _logger.warning(
+                    "COOKIE_SAMESITE is set to 'none' — this allows cross-site cookie sending. "
+                    "Consider using 'lax' or 'strict' for better security."
+                )
+                warnings.warn(
+                    "COOKIE_SAMESITE='none' is insecure for production",
+                    stacklevel=1,
                 )
         return self
 

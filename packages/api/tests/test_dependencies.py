@@ -58,16 +58,16 @@ async def test_get_current_user_missing_cookie(db_session: AsyncSession):
 
 
 async def test_validate_api_key_valid(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, raw_key = test_project
     request = _mock_request()
-    raw_key = test_project._raw_api_key  # type: ignore[attr-defined]
-    project = await validate_api_key(
+    validated = await validate_api_key(
         request=request,
         x_api_key=raw_key,
         db=db_session,
     )
-    assert project.id == test_project.id
+    assert validated.id == project.id
 
 
 async def test_validate_api_key_invalid(db_session: AsyncSession):

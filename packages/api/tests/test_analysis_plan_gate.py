@@ -66,9 +66,10 @@ async def _create_user_with_plan(
 
 @pytest.mark.asyncio
 async def test_free_plan_blocked_from_analysis(
-    client: AsyncClient, db_session: AsyncSession, test_project: Project
+    client: AsyncClient, db_session: AsyncSession, test_project: tuple[Project, str]
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     free_user = await _create_user_with_plan(db_session, Plan.FREE, "free@example.com")
     cookies = _cookies_for(free_user)
     headers = {"X-CSRF-Token": CSRF_TOKEN}
@@ -82,9 +83,10 @@ async def test_free_plan_blocked_from_analysis(
 
 @pytest.mark.asyncio
 async def test_pro_plan_blocked_from_analysis(
-    client: AsyncClient, db_session: AsyncSession, test_project: Project
+    client: AsyncClient, db_session: AsyncSession, test_project: tuple[Project, str]
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     pro_user = await _create_user_with_plan(db_session, Plan.PRO, "pro@example.com")
     cookies = _cookies_for(pro_user)
     headers = {"X-CSRF-Token": CSRF_TOKEN}
@@ -98,9 +100,10 @@ async def test_pro_plan_blocked_from_analysis(
 
 @pytest.mark.asyncio
 async def test_free_plan_blocked_from_stream(
-    client: AsyncClient, db_session: AsyncSession, test_project: Project
+    client: AsyncClient, db_session: AsyncSession, test_project: tuple[Project, str]
 ):
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
     free_user = await _create_user_with_plan(db_session, Plan.FREE, "free2@example.com")
     cookies = _cookies_for(free_user)
     headers = {"X-CSRF-Token": CSRF_TOKEN}
@@ -116,13 +119,14 @@ async def test_free_plan_blocked_from_stream(
 async def test_superadmin_bypasses_plan_gate(
     client: AsyncClient,
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
     test_superadmin: User,
     superadmin_cookies: dict[str, str],
     csrf_headers: dict[str, str],
 ):
     """Superadmin can access analysis regardless of plan."""
-    report = await _create_report(db_session, test_project)
+    project, _ = test_project
+    report = await _create_report(db_session, project)
 
     resp = await client.post(
         f"{BASE}/{report.id}/analyze",

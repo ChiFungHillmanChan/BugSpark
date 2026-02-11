@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithIntl } from '../test-utils';
 import { ConsoleLogViewer } from '@/components/bug-detail/console-log-viewer';
 import type { ConsoleLogEntry } from '@/types';
 
@@ -14,14 +15,14 @@ const sampleLogs: ConsoleLogEntry[] = [
 
 describe('ConsoleLogViewer', () => {
   it('renders log entries', () => {
-    render(<ConsoleLogViewer logs={sampleLogs} />);
+    renderWithIntl(<ConsoleLogViewer logs={sampleLogs} />);
     expect(screen.getByText('Something failed')).toBeInTheDocument();
     expect(screen.getByText('Deprecation warning')).toBeInTheDocument();
     expect(screen.getByText('App started')).toBeInTheDocument();
   });
 
   it('color-codes by level', () => {
-    const { container } = render(
+    const { container } = renderWithIntl(
       <ConsoleLogViewer logs={[sampleLogs[0]]} />,
     );
     const logEntry = container.querySelector('.text-red-600');
@@ -29,7 +30,7 @@ describe('ConsoleLogViewer', () => {
   });
 
   it('filter buttons toggle levels', async () => {
-    const { container } = render(<ConsoleLogViewer logs={sampleLogs} />);
+    const { container } = renderWithIntl(<ConsoleLogViewer logs={sampleLogs} />);
 
     expect(screen.getByText('Something failed')).toBeInTheDocument();
 
@@ -42,7 +43,7 @@ describe('ConsoleLogViewer', () => {
   });
 
   it('expandable stack traces', async () => {
-    render(<ConsoleLogViewer logs={sampleLogs} />);
+    renderWithIntl(<ConsoleLogViewer logs={sampleLogs} />);
 
     expect(screen.queryByText('Error: at line 42')).not.toBeInTheDocument();
 
@@ -55,12 +56,12 @@ describe('ConsoleLogViewer', () => {
   });
 
   it('shows empty state for no logs', () => {
-    render(<ConsoleLogViewer logs={[]} />);
+    renderWithIntl(<ConsoleLogViewer logs={[]} />);
     expect(screen.getByText('No logs to display')).toBeInTheDocument();
   });
 
   it('handles null logs prop', () => {
-    render(<ConsoleLogViewer logs={null} />);
+    renderWithIntl(<ConsoleLogViewer logs={null} />);
     expect(screen.getByText('No logs to display')).toBeInTheDocument();
   });
 });

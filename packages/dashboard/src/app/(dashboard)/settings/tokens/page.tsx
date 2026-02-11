@@ -48,6 +48,7 @@ export default function TokensPage() {
 
   // Revoke confirm dialog
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTokens = useCallback(async () => {
     setIsLoading(true);
@@ -62,23 +63,29 @@ export default function TokensPage() {
 
   async function handleCreate() {
     setIsCreating(true);
-    const body: { name: string; expiresInDays?: number } = {
-      name: tokenName,
-    };
-    if (expiresIn) {
-      body.expiresInDays = Number(expiresIn);
-    }
+    setError(null);
+    try {
+      const body: { name: string; expiresInDays?: number } = {
+        name: tokenName,
+      };
+      if (expiresIn) {
+        body.expiresInDays = Number(expiresIn);
+      }
 
-    const resp = await apiClient.post<TokenCreateResponse>(
-      "/auth/tokens",
-      body
-    );
-    setNewToken(resp.data.token);
-    setShowCreate(false);
-    setTokenName("");
-    setExpiresIn("");
-    setIsCreating(false);
-    fetchTokens();
+      const resp = await apiClient.post<TokenCreateResponse>(
+        "/auth/tokens",
+        body
+      );
+      setNewToken(resp.data.token);
+      setShowCreate(false);
+      setTokenName("");
+      setExpiresIn("");
+      fetchTokens();
+    } catch {
+      setError(t("createFailed"));
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   function handleRevoke(id: string) {
@@ -87,9 +94,15 @@ export default function TokensPage() {
 
   async function confirmRevoke() {
     if (!revokeTarget) return;
-    await apiClient.delete(`/auth/tokens/${revokeTarget}`);
-    setRevokeTarget(null);
-    fetchTokens();
+    setError(null);
+    try {
+      await apiClient.delete(`/auth/tokens/${revokeTarget}`);
+      setRevokeTarget(null);
+      fetchTokens();
+    } catch {
+      setError(t("revokeFailed"));
+      setRevokeTarget(null);
+    }
   }
 
   function handleCopy() {
@@ -117,6 +130,12 @@ export default function TokensPage() {
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         {t("description")}
       </p>
+
+      {error && (
+        <div className="mb-6 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">
+          {error}
+        </div>
+      )}
 
       {/* CLI install hint */}
       <div className="flex items-center gap-3 mb-6 px-4 py-3 bg-gray-50 dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg">

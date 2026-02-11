@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Callable, Coroutine
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import async_session
@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_SECONDS = 10
 BASE_RETRY_DELAY_SECONDS = 30
+TASK_TTL_DAYS = 7
 
 TaskHandler = Callable[[dict], Coroutine[None, None, None]]
 
@@ -87,12 +88,16 @@ async def _process_single_task(db: AsyncSession, task: BackgroundTask) -> bool:
 
 
 async def process_pending_tasks() -> int:
-    """Find and process all pending tasks that are ready. Returns count processed."""
+    """Find and process all pending tasks that are ready. Returns count processed.
+
+    Uses FOR UPDATE SKIP LOCKED (on PostgreSQL) to prevent duplicate processing
+    across multiple workers. Falls back to simple SELECT on SQLite (tests).
+    """
     now = datetime.now(timezone.utc)
     processed = 0
 
     async with async_session() as db:
-        result = await db.execute(
+        base_query = (
             select(BackgroundTask)
             .where(
                 BackgroundTask.status == "pending",
@@ -104,6 +109,13 @@ async def process_pending_tasks() -> int:
             .order_by(BackgroundTask.created_at)
             .limit(20)
         )
+
+        # Use FOR UPDATE SKIP LOCKED on PostgreSQL to prevent race conditions
+        dialect_name = db.bind.dialect.name if db.bind else ""
+        if dialect_name == "postgresql":
+            base_query = base_query.with_for_update(skip_locked=True)
+
+        result = await db.execute(base_query)
         tasks = result.scalars().all()
 
         for task in tasks:
@@ -117,14 +129,38 @@ async def process_pending_tasks() -> int:
     return processed
 
 
+async def cleanup_old_tasks() -> int:
+    """Delete completed/failed tasks older than TASK_TTL_DAYS. Returns count deleted."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=TASK_TTL_DAYS)
+
+    async with async_session() as db:
+        result = await db.execute(
+            delete(BackgroundTask).where(
+                BackgroundTask.status.in_(["completed", "failed"]),
+                BackgroundTask.created_at < cutoff,
+            )
+        )
+        await db.commit()
+        return result.rowcount
+
+
 async def start_task_processor() -> None:
     """Infinite polling loop that processes pending background tasks."""
     logger.info("Background task processor started (polling every %ds)", POLL_INTERVAL_SECONDS)
+    cleanup_counter = 0
     while True:
         try:
             count = await process_pending_tasks()
             if count > 0:
                 logger.info("Processed %d background tasks", count)
+
+            # Run cleanup every ~100 iterations (~17 minutes at 10s intervals)
+            cleanup_counter += 1
+            if cleanup_counter >= 100:
+                cleanup_counter = 0
+                deleted = await cleanup_old_tasks()
+                if deleted > 0:
+                    logger.info("Cleaned up %d old tasks", deleted)
         except Exception as exc:
             logger.error("Task processor error: %s", exc)
         await asyncio.sleep(POLL_INTERVAL_SECONDS)

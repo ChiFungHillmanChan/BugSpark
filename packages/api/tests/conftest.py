@@ -153,12 +153,17 @@ async def client(db_engine) -> AsyncGenerator[AsyncClient, None]:
             yield session
 
     from app.main import app
+    import app.database as db_module
 
     app.dependency_overrides[get_db] = _override_get_db
+    # Override the global async_session so background tasks use the test DB
+    original_session = db_module.async_session
+    db_module.async_session = session_factory
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
     app.dependency_overrides.clear()
+    db_module.async_session = original_session
 
 
 @pytest.fixture()
@@ -226,7 +231,7 @@ def csrf_headers() -> dict[str, str]:
 
 
 @pytest.fixture()
-async def test_project(db_session: AsyncSession, test_user: User) -> Project:
+async def test_project(db_session: AsyncSession, test_user: User) -> tuple[Project, str]:
     raw_key = _generate_api_key()
     project = Project(
         id=uuid.uuid4(),
@@ -239,14 +244,10 @@ async def test_project(db_session: AsyncSession, test_user: User) -> Project:
         is_active=True,
         created_at=datetime.now(timezone.utc),
     )
-    # Stash the raw key on the object for tests that need it (e.g. X-API-Key header)
-    project._raw_api_key = raw_key  # type: ignore[attr-defined]
     db_session.add(project)
     await db_session.commit()
     await db_session.refresh(project)
-    # Re-attach after refresh since SQLAlchemy may clear transient attrs
-    project._raw_api_key = raw_key  # type: ignore[attr-defined]
-    return project
+    return project, raw_key
 
 
 @pytest.fixture()

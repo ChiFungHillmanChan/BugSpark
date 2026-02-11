@@ -4,15 +4,8 @@ import { createUnauthClient } from "../lib/api-client.js";
 import { DEFAULT_API_URL, DEFAULT_DASHBOARD_URL, saveConfig } from "../lib/config.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
-
-interface CLIAuthResponse {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  plan: string;
-  token: string;
-}
+import { validateApiUrl } from "../lib/validate.js";
+import type { CLIAuthResponse } from "../types.js";
 
 export async function registerCommand(): Promise<void> {
   console.log();
@@ -24,6 +17,8 @@ export async function registerCommand(): Promise<void> {
       message: "BugSpark API URL",
       default: DEFAULT_API_URL,
     });
+
+    validateApiUrl(apiUrl);
 
     const name = await input({
       message: "Your name",

@@ -69,7 +69,7 @@ def _is_widget_request(request: Request) -> bool:
 class WidgetCORSMiddleware(BaseHTTPMiddleware):
     """Allow any origin for widget-facing endpoints."""
 
-    async def dispatch(self, request: Request, call_next) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next) -> Response:
         if not _is_widget_request(request):
             return await call_next(request)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
@@ -10,8 +10,9 @@ import { useRouter } from "next/navigation";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { StatusBadge } from "@/components/bugs/status-badge";
 import { formatDate } from "@/lib/utils";
-import { SkeletonTableRow } from "@/components/shared/skeleton-loader";
+import { SkeletonTableRow, SkeletonCard } from "@/components/shared/skeleton-loader";
 import { useDebouncedValue } from "@/hooks/use-debounce";
+import { FolderKanban, Bug, ArrowLeft, ChevronRight } from "lucide-react";
 
 export default function AdminReportsPage() {
   const t = useTranslations("admin");
@@ -19,21 +20,17 @@ export default function AdminReportsPage() {
   const locale = useLocale();
   const { isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 300);
   const [page, setPage] = useState(1);
 
-  const { data: projects } = useProjects();
-  const projectMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    projects?.forEach((p) => {
-      map[p.id] = p.name;
-    });
-    return map;
-  }, [projects]);
+  const { data: projects, isLoading: isProjectsLoading } = useProjects();
 
   const { data, isLoading } = useAdminReports({
     search: debouncedSearch || undefined,
+    projectId: selectedProjectId ?? undefined,
     page,
     pageSize: 20,
   });
@@ -50,11 +47,84 @@ export default function AdminReportsPage() {
 
   const totalPages = data ? Math.ceil(data.total / (data.pageSize || 20)) : 0;
 
+  const selectedProject = projects?.find((p) => p.id === selectedProjectId);
+
+  /* ── Project selection view ──────────────────────────────────────────── */
+  if (!selectedProjectId) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-2 dark:text-white">
+          {t("bugReports")}
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          {t("selectProjectToViewReports")}
+        </p>
+
+        {isProjectsLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        ) : !projects || projects.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+            <FolderKanban className="w-12 h-12 mb-3" />
+            <p className="text-sm">{t("noProjectsFound")}</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projects.map((project) => (
+              <button
+                key={project.id}
+                onClick={() => {
+                  setSelectedProjectId(project.id);
+                  setSearch("");
+                  setPage(1);
+                }}
+                className="flex items-center gap-4 p-4 bg-white dark:bg-navy-800 rounded-xl border border-gray-200 dark:border-navy-700 hover:border-accent/50 dark:hover:border-accent/40 hover:shadow-md transition-all text-left group"
+              >
+                <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                  <FolderKanban className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                    {project.name}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {project.id.slice(0, 8)}…
+                  </p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-accent transition-colors shrink-0" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  /* ── Bug reports view for selected project ───────────────────────────── */
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 dark:text-white">
-        {t("bugReports")}
-      </h1>
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => {
+            setSelectedProjectId(null);
+            setSearch("");
+            setPage(1);
+          }}
+          className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-navy-800 transition-colors"
+          title={t("backToProjects")}
+        >
+          <ArrowLeft className="w-5 h-5 text-gray-500 dark:text-gray-300" />
+        </button>
+        <div className="flex items-center gap-2">
+          <Bug className="w-5 h-5 text-accent" />
+          <h1 className="text-2xl font-bold dark:text-white">
+            {selectedProject?.name ?? t("bugReports")}
+          </h1>
+        </div>
+      </div>
 
       <div className="mb-4">
         <input
@@ -75,9 +145,6 @@ export default function AdminReportsPage() {
             <tr className="border-b border-gray-200 dark:border-navy-700 bg-gray-50 dark:bg-navy-900">
               <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("trackingId")}
-              </th>
-              <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
-                {t("project")}
               </th>
               <th className="text-left py-3 px-4 text-xs font-semibold uppercase text-gray-600 dark:text-gray-200">
                 {tBugs("bugTitle")}
@@ -101,7 +168,7 @@ export default function AdminReportsPage() {
             ) : data?.items.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={5}
                   className="py-8 text-center text-gray-500 dark:text-gray-400"
                 >
                   {t("noReportsFound")}
@@ -120,10 +187,6 @@ export default function AdminReportsPage() {
                     >
                       {report.trackingId}
                     </Link>
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-600 dark:text-gray-300 truncate max-w-[120px]">
-                    {projectMap[report.projectId] ??
-                      report.projectId.slice(0, 8)}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-white max-w-[250px] truncate">
                     <Link

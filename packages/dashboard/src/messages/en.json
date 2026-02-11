@@ -297,6 +297,7 @@
     "noMembers": "No team members yet.",
     "noMembersHint": "Invite someone to collaborate on this project.",
     "remove": "Remove",
+    "removeTitle": "Remove member",
     "removeConfirm": "Remove this member from the project?",
     "owner": "Owner",
     "inviteSent": "Invitation sent successfully.",

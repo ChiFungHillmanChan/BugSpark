@@ -297,6 +297,7 @@
     "noMembers": "尚無團隊成員。",
     "noMembersHint": "邀請他人一起協作此專案。",
     "remove": "移除",
+    "removeTitle": "移除成員",
     "removeConfirm": "確定要移除此成員？",
     "owner": "擁有者",
     "inviteSent": "邀請已成功發送。",

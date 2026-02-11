@@ -3,6 +3,7 @@ import { LOCALE_COOKIE_NAME, defaultLocale, locales } from "@/i18n/config";
 import type { Locale } from "@/i18n/config";
 
 const DASHBOARD_ROUTES = [
+  "/dashboard",
   "/bugs",
   "/projects",
   "/settings",

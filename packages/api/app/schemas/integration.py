@@ -58,13 +58,14 @@ class IntegrationResponse(CamelModel):
     @classmethod
     def from_integration(cls, integration: IntegrationModel) -> IntegrationResponse:
         config = integration.config or {}
+        has_token = bool(config.get("token") or config.get("apiKey"))
         return cls(
             id=integration.id,
             project_id=integration.project_id,
             provider=integration.provider,
             is_active=integration.is_active,
             created_at=integration.created_at,
-            has_token=bool(config.get("token")),
+            has_token=has_token,
         )
 
 

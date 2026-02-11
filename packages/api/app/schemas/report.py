@@ -44,6 +44,13 @@ class ReportCreate(BaseModel):
     def sanitize_fields(cls, value: str) -> str:
         return sanitize_text(value)
 
+    @field_validator("reporter_identifier")
+    @classmethod
+    def sanitize_reporter_identifier(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return sanitize_text(value)
+
     @field_validator("console_logs")
     @classmethod
     def validate_console_logs_size(cls, value: dict | list | None) -> dict | list | None:

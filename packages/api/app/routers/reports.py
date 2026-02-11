@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.dependencies import get_accessible_project_ids, get_current_user, get_db, validate_api_key
+from app.dependencies import get_accessible_project_ids, get_active_user, get_db, validate_api_key
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.rate_limiter import limiter
 from app.i18n import get_locale, translate
@@ -89,7 +89,7 @@ async def create_report(
     if not validate_origin(request, project):
         raise BadRequestException("Invalid origin")
 
-    if await is_duplicate_report(db, str(project.id), body.title):
+    if await is_duplicate_report(db, str(project.id), body.title, body.description):
         raise BadRequestException("Duplicate report detected")
 
     await check_report_limit(db, project)
@@ -156,7 +156,7 @@ async def create_report(
 
 @router.get("", response_model=ReportListResponse)
 async def list_reports(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
     project_id: uuid.UUID | None = Query(None),
     status: str | None = Query(None),
@@ -210,7 +210,7 @@ async def list_reports(
 async def get_report(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
     locale = get_locale(request)
@@ -236,7 +236,7 @@ async def update_report(
     body: ReportUpdate,
     request: Request,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportResponse:
     locale = get_locale(request)
@@ -251,6 +251,7 @@ async def update_report(
         if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_update", locale))
 
+    _REPORT_UPDATABLE_FIELDS = {"title", "description", "severity", "category", "status", "assignee_id"}
     update_data = body.model_dump(exclude_unset=True)
     if "severity" in update_data and update_data["severity"] is not None:
         update_data["severity"] = Severity(update_data["severity"])
@@ -260,7 +261,8 @@ async def update_report(
         update_data["status"] = Status(update_data["status"])
 
     for field, value in update_data.items():
-        setattr(report, field, value)
+        if field in _REPORT_UPDATABLE_FIELDS:
+            setattr(report, field, value)
 
     await db.commit()
     await db.refresh(report)
@@ -277,7 +279,7 @@ async def update_report(
 async def delete_report(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     locale = get_locale(request)
@@ -307,7 +309,7 @@ async def delete_report(
 async def get_similar_reports(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
     threshold: float = Query(0.3, ge=0.0, le=1.0),
     limit: int = Query(5, ge=1, le=20),

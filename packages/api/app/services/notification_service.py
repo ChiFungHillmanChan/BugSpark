@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from html import escape as html_escape
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -68,9 +69,12 @@ async def notify_new_report(project_id: str, report_data: dict) -> None:
     tracking_id = report_data.get("tracking_id", "")
     severity_label = severity.upper()
 
+    safe_project = html_escape(project_name)
+    safe_title = html_escape(title)
+    safe_tracking = html_escape(tracking_id)
     html = (
-        f"<h2>[{severity_label}] New bug report in {project_name}</h2>"
-        f"<p><strong>{tracking_id}</strong>: {title}</p>"
+        f"<h2>[{severity_label}] New bug report in {safe_project}</h2>"
+        f"<p><strong>{safe_tracking}</strong>: {safe_title}</p>"
         f"<p>Severity: {severity_label}</p>"
         f"<p>Check your BugSpark dashboard for details.</p>"
     )

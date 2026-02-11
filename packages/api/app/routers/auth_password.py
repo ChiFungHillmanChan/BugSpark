@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_active_user, get_db
 from app.exceptions import BadRequestException
 from app.i18n import get_locale, translate
 from app.models.user import User
@@ -26,7 +26,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 async def change_password(
     body: PasswordChange,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     locale = get_locale(request)
@@ -35,6 +35,8 @@ async def change_password(
         raise BadRequestException(translate("auth.wrong_current_password", locale))
 
     current_user.hashed_password = hash_password(body.new_password)
+    # Invalidate all existing sessions by clearing the refresh token JTI
+    current_user.refresh_token_jti = None
     await db.commit()
 
     return {"detail": translate("auth.password_changed", locale)}

@@ -8,10 +8,9 @@ from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_accessible_project_ids, get_active_user, get_db
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Plan, Role
-from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
 from app.rate_limiter import limiter
@@ -38,14 +37,8 @@ async def _get_authorized_report(
         raise NotFoundException("Report not found")
 
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        project_check = await db.execute(
-            select(Project.id).where(
-                Project.id == report.project_id,
-                Project.id.in_(user_project_ids),
-            )
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException("Not authorized to analyze this report")
 
     return report
@@ -56,7 +49,7 @@ async def _get_authorized_report(
 async def analyze_report(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> AnalysisResponse:
     report = await _get_authorized_report(report_id, current_user, db)
@@ -81,7 +74,7 @@ async def analyze_report(
 async def analyze_report_stream(
     report_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> StreamingResponse:
     """Stream AI analysis as Server-Sent Events for real-time display."""

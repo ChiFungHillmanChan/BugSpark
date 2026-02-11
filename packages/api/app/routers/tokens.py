@@ -4,16 +4,18 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
-from app.exceptions import ForbiddenException, NotFoundException
+from app.dependencies import get_active_user, get_db
+from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
 from app.schemas.token import TokenCreateRequest, TokenCreateResponse, TokenResponse
 from app.services.auth_service import PAT_PREFIX, PAT_PREFIX_LEN
+
+MAX_PATS_PER_USER = 25
 
 router = APIRouter(prefix="/auth/tokens", tags=["tokens"])
 
@@ -48,9 +50,19 @@ def _generate_and_create_pat(
 @router.post("", response_model=TokenCreateResponse, status_code=201)
 async def create_token(
     body: TokenCreateRequest,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> TokenCreateResponse:
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(PersonalAccessToken)
+        .where(PersonalAccessToken.user_id == current_user.id)
+    )
+    if (count_result.scalar() or 0) >= MAX_PATS_PER_USER:
+        raise BadRequestException(
+            f"Maximum of {MAX_PATS_PER_USER} personal access tokens allowed"
+        )
+
     raw_token, pat = _generate_and_create_pat(
         current_user.id, body.name, body.expires_in_days
     )
@@ -69,7 +81,7 @@ async def create_token(
 
 @router.get("", response_model=list[TokenResponse])
 async def list_tokens(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[TokenResponse]:
     result = await db.execute(
@@ -96,7 +108,7 @@ async def list_tokens(
 async def revoke_token(
     token_id: uuid.UUID,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     locale = get_locale(request)

@@ -8,7 +8,7 @@ from httpx import HTTPStatusError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_accessible_project, get_accessible_project_ids, get_current_user, get_db, get_owned_project
+from app.dependencies import get_accessible_project, get_accessible_project_ids, get_active_user, get_db, get_owned_project
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.integration import Integration
@@ -63,7 +63,7 @@ router = APIRouter(tags=["integrations"])
 async def create_integration(
     project_id: uuid.UUID,
     body: IntegrationCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationResponse:
     project = await get_owned_project(project_id, current_user, db)
@@ -86,7 +86,7 @@ async def create_integration(
 )
 async def list_integrations(
     project_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> list[IntegrationResponse]:
     await get_accessible_project(project_id, current_user, db)
@@ -105,7 +105,7 @@ async def list_integrations(
 async def update_integration(
     integration_id: uuid.UUID,
     body: IntegrationUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> IntegrationResponse:
     result = await db.execute(
@@ -123,8 +123,10 @@ async def update_integration(
         integration.config = merged_config
         del update_data["config"]
 
+    _INTEGRATION_UPDATABLE_FIELDS = {"is_active"}
     for field, value in update_data.items():
-        setattr(integration, field, value)
+        if field in _INTEGRATION_UPDATABLE_FIELDS:
+            setattr(integration, field, value)
 
     await db.commit()
     await db.refresh(integration)
@@ -135,7 +137,7 @@ async def update_integration(
 @router.delete("/integrations/{integration_id}", status_code=204)
 async def delete_integration(
     integration_id: uuid.UUID,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> None:
     result = await db.execute(
@@ -158,7 +160,7 @@ async def delete_integration(
 async def export_report_to_tracker(
     report_id: uuid.UUID,
     provider: str,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> ExportResponse:
     result = await db.execute(select(Report).where(Report.id == report_id))

@@ -22,19 +22,25 @@ def _send_email_sync(from_address: str, to: str, subject: str, html: str) -> Non
     )
 
 
+_resend_initialized = False
+
+
 async def send_email(to: str, subject: str, html: str) -> bool:
     """Send an email via Resend. Returns True on success, False on failure.
 
     Skips silently if RESEND_API_KEY is not configured (dev mode).
     Uses asyncio.to_thread to avoid blocking the event loop.
     """
+    global _resend_initialized
     settings = get_settings()
 
     if not settings.RESEND_API_KEY:
         logger.info("RESEND_API_KEY not set — skipping email to %s", to)
         return False
 
-    resend.api_key = settings.RESEND_API_KEY
+    if not _resend_initialized:
+        resend.api_key = settings.RESEND_API_KEY
+        _resend_initialized = True
 
     try:
         await asyncio.to_thread(

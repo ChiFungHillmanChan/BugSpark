@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 import secrets
 from datetime import datetime, timezone
+from html import escape as html_escape
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,13 +78,16 @@ async def invite_member(
     # Send invitation email
     settings = get_settings()
     invite_url = f"{settings.FRONTEND_URL}/accept-invite?token={token}"
+    safe_inviter = html_escape(inviter.name)
+    safe_project = html_escape(project.name)
+    safe_role = html_escape(role)
     await send_email(
         to=email,
         subject=f"{inviter.name} invited you to {project.name} on BugSpark",
         html=(
             f"<p>Hi,</p>"
-            f"<p><strong>{inviter.name}</strong> has invited you to join "
-            f"<strong>{project.name}</strong> as a <strong>{role}</strong> on BugSpark.</p>"
+            f"<p><strong>{safe_inviter}</strong> has invited you to join "
+            f"<strong>{safe_project}</strong> as a <strong>{safe_role}</strong> on BugSpark.</p>"
             f'<p><a href="{invite_url}">Accept Invitation</a></p>'
             f"<p>If you did not expect this invitation, you can ignore this email.</p>"
         ),
@@ -114,6 +118,10 @@ async def accept_invite(
 
     if member is None:
         raise BadRequestException(translate("team.invite_invalid", locale))
+
+    # Verify the accepting user's email matches the invited email
+    if member.email and user.email.lower() != member.email.lower():
+        raise BadRequestException(translate("team.invite_email_mismatch", locale))
 
     member.user_id = user.id
     member.invite_token = None

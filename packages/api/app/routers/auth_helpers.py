@@ -64,7 +64,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         httponly=True,
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
-        path="/",
+        path="/api/v1/auth/refresh",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
         domain=domain,
     )
@@ -93,7 +93,7 @@ def clear_auth_cookies(response: Response) -> None:
     )
     response.delete_cookie(
         key="bugspark_refresh_token",
-        path="/",
+        path="/api/v1/auth/refresh",
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
         domain=domain,

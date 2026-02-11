@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_active_user, get_current_user, get_db
 from app.exceptions import BadRequestException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.enums import BetaStatus
@@ -171,12 +171,14 @@ async def get_me(
 async def update_me(
     body: UserUpdate,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> UserResponse:
+    _USER_UPDATABLE_FIELDS = {"name", "notification_preferences"}
     update_data = body.model_dump(exclude_unset=True)
     for field, value in update_data.items():
-        setattr(current_user, field, value)
+        if field in _USER_UPDATABLE_FIELDS:
+            setattr(current_user, field, value)
 
     await db.commit()
     await db.refresh(current_user)

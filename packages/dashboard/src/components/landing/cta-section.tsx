@@ -18,7 +18,7 @@ export function CtaSection() {
         </p>
         <div className="mt-10">
           <Link
-            href="/register"
+            href="/register/beta"
             className="inline-flex items-center gap-2 px-10 py-4 gradient-btn rounded-full text-sm font-medium transition-all group"
           >
             {t("ctaButton")}

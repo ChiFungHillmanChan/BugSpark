@@ -76,7 +76,7 @@ export function LandingNavbar() {
                 {t("login")}
               </Link>
               <Link
-                href="/register"
+                href="/register/beta"
                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium transition-colors dark:gradient-btn dark:rounded-full"
               >
                 {t("signUp")}
@@ -149,7 +149,7 @@ export function LandingNavbar() {
                   {t("login")}
                 </Link>
                 <Link
-                  href="/register"
+                  href="/register/beta"
                   className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium transition-colors"
                 >
                   {t("signUp")}

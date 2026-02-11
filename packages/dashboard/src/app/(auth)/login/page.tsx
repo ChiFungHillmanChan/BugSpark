@@ -109,11 +109,7 @@ export default function LoginPage() {
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
           {t("noAccount")}{" "}
           <Link
-            href={
-              searchParams.get("redirect")
-                ? `/register?redirect=${encodeURIComponent(searchParams.get("redirect")!)}`
-                : "/register"
-            }
+            href="/register/beta"
             className="text-accent hover:underline font-medium"
           >
             {t("createOne")}

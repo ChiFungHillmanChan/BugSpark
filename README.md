@@ -35,9 +35,9 @@ Universal embeddable bug reporting SDK with an admin dashboard. Drop a single `<
 ### Widget (`@bugspark/widget`)
 
 - Auto screenshot via html2canvas with annotation tools (pen, arrow, rectangle, circle, text, blur)
-- Last 100 console log entries (log, warn, error with stack traces)
-- Last 50 network requests (method, URL, status, duration)
-- Last 30 seconds of user actions (clicks, scrolls, navigation with CSS selectors)
+- Last 50 console log entries (log, warn, error with stack traces)
+- Last 30 network requests (method, URL, status, duration)
+- Last 60 seconds of user actions (clicks, scrolls, navigation with CSS selectors)
 - Device metadata (browser, OS, viewport, locale, timezone, connection type, Web Vitals)
 - Shadow DOM — zero CSS conflicts with your site
 - Works with any website: HTML, React, Next.js, Vue, Django, WordPress, PHP, etc.
@@ -307,9 +307,9 @@ BugSpark.init({
   theme: 'light',                    // light | dark | auto
   primaryColor: '#e94560',           // brand color
   enableScreenshot: true,            // auto screenshot on open
-  enableConsoleLogs: true,           // capture last 100 console entries
-  enableNetworkLogs: true,           // capture last 50 network requests
-  enableSessionRecording: true,      // capture last 30s of user actions
+  enableConsoleLogs: true,           // capture last 50 console entries
+  enableNetworkLogs: true,           // capture last 30 network requests
+  enableSessionRecording: true,      // capture last 60s of user actions
   user: {                            // optional: identify the reporter
     id: 'user-123',
     email: 'user@example.com',
@@ -397,6 +397,97 @@ All routes are under `/api/v1`. Interactive docs available at `GET /docs` (Swagg
 | **Integrations** | `POST /integrations/github/export/:id`, `POST /integrations/linear/export/:id` |
 | **Admin** | `GET /admin/users`, user management (super-admin only) |
 | **Health** | `GET /health` |
+
+## Webhook Setup
+
+Webhooks notify your external services whenever events occur in BugSpark (e.g. a new bug report is submitted). Webhooks are currently configured via API only (no dashboard UI yet).
+
+### Create a Webhook
+
+```bash
+curl -X POST "https://your-api.onrender.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: bugspark_access_token=YOUR_JWT" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -d '{
+    "url": "https://your-server.com/webhook",
+    "events": ["report.created"]
+  }'
+```
+
+The response includes the webhook `id`. The secret is auto-generated (64-char hex, encrypted at rest).
+
+### Available Events
+
+| Event | Trigger |
+|-------|---------|
+| `report.created` | A new bug report is submitted via the widget |
+
+### Webhook Payload
+
+When an event fires, BugSpark sends a `POST` request to your URL:
+
+```
+POST https://your-server.com/webhook
+Content-Type: application/json
+X-BugSpark-Signature: <hmac-sha256-hex-digest>
+X-BugSpark-Event: report.created
+
+{
+  "event": "report.created",
+  "data": { /* full report object */ }
+}
+```
+
+### Verify the Signature
+
+The `X-BugSpark-Signature` header contains an HMAC-SHA256 hex digest signed with your webhook secret. Verify it server-side to ensure the request is authentic:
+
+**Python**
+```python
+import hmac, hashlib
+
+def verify_signature(payload_bytes: bytes, secret: str, signature: str) -> bool:
+    expected = hmac.new(secret.encode(), payload_bytes, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+**Node.js**
+```javascript
+const crypto = require('crypto');
+
+function verifySignature(payloadBuffer, secret, signature) {
+  const expected = crypto.createHmac('sha256', secret).update(payloadBuffer).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
+}
+```
+
+### Manage Webhooks
+
+```bash
+# List all webhooks for a project
+curl "https://your-api.onrender.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
+  -H "Cookie: bugspark_access_token=YOUR_JWT"
+
+# Update a webhook (change URL, events, or disable)
+curl -X PATCH "https://your-api.onrender.com/api/v1/webhooks/WEBHOOK_ID" \
+  -H "Content-Type: application/json" \
+  -H "Cookie: bugspark_access_token=YOUR_JWT" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
+  -d '{ "is_active": false }'
+
+# Delete a webhook
+curl -X DELETE "https://your-api.onrender.com/api/v1/webhooks/WEBHOOK_ID" \
+  -H "Cookie: bugspark_access_token=YOUR_JWT" \
+  -H "X-CSRF-Token: YOUR_CSRF_TOKEN"
+```
+
+### Webhook Behavior
+
+- **Timeout:** 5 seconds per delivery attempt
+- **Retries:** Enqueued via background task queue; retries on 5xx responses
+- **Security:** URL validated against private/loopback addresses (SSRF protection)
+- **Signature:** HMAC-SHA256 with auto-generated 64-char hex secret (encrypted at rest)
 
 ## Cloud Deployment
 
@@ -622,9 +713,9 @@ BugSpark/
 | Data Type | Details | Value |
 |-----------|---------|-------|
 | Screenshot | Full-page via html2canvas + annotation tools | Visual proof of the UI state |
-| Console Logs | Last 100 entries with stack traces | Identify JS errors without DevTools |
-| Network Requests | Last 50 fetch/XHR with status and timing | Spot failed or slow API calls |
-| User Actions | Last 30s of clicks, scrolls, navigation | Reproduce the exact steps |
+| Console Logs | Last 50 entries with stack traces | Identify JS errors without DevTools |
+| Network Requests | Last 30 fetch/XHR with status and timing | Spot failed or slow API calls |
+| User Actions | Last 60s of clicks, scrolls, navigation | Reproduce the exact steps |
 | Error Stack Traces | Uncaught exceptions + unhandled rejections | Pinpoint the failing line of code |
 | Device Info | Browser, OS, viewport, screen, locale, timezone, connection | Debug device-specific issues |
 | Reporter Identity | ID, email, name (if `identify()` was called) | Know who reported the bug |

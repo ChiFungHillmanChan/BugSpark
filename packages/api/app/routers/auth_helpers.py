@@ -46,6 +46,7 @@ def check_beta_status(user: User, locale: str) -> None:
 def set_auth_cookies(response: Response, access_token: str, refresh_token: str) -> None:
     settings = get_settings()
     csrf_token = secrets.token_hex(32)
+    domain = settings.COOKIE_DOMAIN or None
 
     response.set_cookie(
         key="bugspark_access_token",
@@ -55,6 +56,7 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         samesite=settings.COOKIE_SAMESITE,
         path="/",
         max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        domain=domain,
     )
     response.set_cookie(
         key="bugspark_refresh_token",
@@ -62,8 +64,9 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         httponly=True,
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
-        path="/api/v1/auth/refresh",
+        path="/",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        domain=domain,
     )
     response.set_cookie(
         key="bugspark_csrf_token",
@@ -73,29 +76,34 @@ def set_auth_cookies(response: Response, access_token: str, refresh_token: str) 
         samesite=settings.COOKIE_SAMESITE,
         path="/",
         max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 86400,
+        domain=domain,
     )
     response.headers["X-CSRF-Token"] = csrf_token
 
 
 def clear_auth_cookies(response: Response) -> None:
     settings = get_settings()
+    domain = settings.COOKIE_DOMAIN or None
     response.delete_cookie(
         key="bugspark_access_token",
         path="/",
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
+        domain=domain,
     )
     response.delete_cookie(
         key="bugspark_refresh_token",
-        path="/api/v1/auth/refresh",
+        path="/",
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
+        domain=domain,
     )
     response.delete_cookie(
         key="bugspark_csrf_token",
         path="/",
         secure=settings.COOKIE_SECURE,
         samesite=settings.COOKIE_SAMESITE,
+        domain=domain,
     )
 
 

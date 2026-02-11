@@ -32,6 +32,7 @@ class Settings(BaseSettings):
 
     COOKIE_SECURE: bool = False
     COOKIE_SAMESITE: str = "lax"
+    COOKIE_DOMAIN: str = ""  # e.g. ".hillmanchan.com" to share cookies across subdomains
 
     RESEND_API_KEY: str = ""
     EMAIL_FROM_ADDRESS: str = "BugSpark <noreply@bugspark.dev>"

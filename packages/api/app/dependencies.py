@@ -185,6 +185,32 @@ async def validate_api_key(
     raise UnauthorizedException(translate("auth.invalid_api_key", locale))
 
 
+async def get_accessible_project_ids(
+    user: User,
+    db: AsyncSession,
+) -> list[uuid.UUID]:
+    """Return project IDs where user is owner OR has an accepted ProjectMember entry."""
+    from app.models.project_member import ProjectMember
+
+    # Owner projects
+    owner_result = await db.execute(
+        select(Project.id).where(Project.owner_id == user.id)
+    )
+    owner_ids = [row[0] for row in owner_result.all()]
+
+    # Team member projects (accepted invites only)
+    member_result = await db.execute(
+        select(ProjectMember.project_id).where(
+            ProjectMember.user_id == user.id,
+            ProjectMember.invite_accepted_at.is_not(None),
+        )
+    )
+    member_ids = [row[0] for row in member_result.all()]
+
+    # Combine and deduplicate
+    return list(set(owner_ids + member_ids))
+
+
 async def get_owned_project(
     project_id: uuid.UUID,
     user: User,

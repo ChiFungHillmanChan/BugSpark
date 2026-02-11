@@ -7,13 +7,12 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_accessible_project_ids, get_current_user, get_db
 from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
 from app.models.comment import Comment
 from app.models.enums import Role
-from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentResponse
@@ -46,13 +45,8 @@ async def _verify_report_access(
         raise NotFoundException(translate("report.not_found", locale))
 
     if user.role != Role.SUPERADMIN:
-        project_check = await db.execute(
-            select(Project.id).where(
-                Project.id == report.project_id,
-                Project.owner_id == user.id,
-            )
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     return report

@@ -1,3 +1,7 @@
+"use client";
+
+import { useTranslations } from "next-intl";
+
 interface MetadataPanelProps {
   metadata: Record<string, unknown> | null;
 }
@@ -28,10 +32,12 @@ function formatValue(value: unknown): string {
 }
 
 export function MetadataPanel({ metadata }: MetadataPanelProps) {
+  const t = useTranslations("bugs");
+
   if (!metadata) {
     return (
-      <p className="text-gray-400 text-sm py-4 text-center">
-        No device metadata
+      <p className="text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
+        {t("noDeviceMetadata")}
       </p>
     );
   }
@@ -71,7 +77,7 @@ export function MetadataPanel({ metadata }: MetadataPanelProps) {
       ))}
       {allKeys.size === 0 && (
         <p className="col-span-2 text-gray-400 dark:text-gray-500 text-sm py-4 text-center">
-          No device metadata
+          {t("noDeviceMetadata")}
         </p>
       )}
     </div>

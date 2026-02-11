@@ -55,12 +55,13 @@ def csrf_headers() -> dict[str, str]:
 
 @pytest.fixture()
 async def accepted_admin_member(
-    db_session: AsyncSession, test_project: Project, other_user: User
+    db_session: AsyncSession, test_project: tuple[Project, str], other_user: User
 ) -> ProjectMember:
     """An accepted admin member (non-owner) of the test project."""
+    project, _ = test_project
     member = ProjectMember(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         user_id=other_user.id,
         email=other_user.email,
         role="admin",
@@ -75,12 +76,13 @@ async def accepted_admin_member(
 
 @pytest.fixture()
 async def unaccepted_member(
-    db_session: AsyncSession, test_project: Project, other_user: User
+    db_session: AsyncSession, test_project: tuple[Project, str], other_user: User
 ) -> ProjectMember:
     """An invited but unaccepted member (user_id set but invite_accepted_at=None)."""
+    project, _ = test_project
     member = ProjectMember(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         user_id=other_user.id,
         email=other_user.email,
         role="admin",
@@ -100,11 +102,12 @@ async def test_owner_can_update_project(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
     """Owner can update project."""
+    project, _ = test_project
     response = await client.patch(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         json={"name": "Owner Updated"},
         cookies=auth_cookies,
         headers=csrf_headers,
@@ -117,12 +120,13 @@ async def test_admin_member_cannot_update_project(
     client: AsyncClient,
     other_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Admin member cannot update project (owner-only route)."""
+    project, _ = test_project
     response = await client.patch(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         json={"name": "Hacked Name"},
         cookies=other_cookies,
         headers=csrf_headers,
@@ -134,12 +138,13 @@ async def test_admin_member_cannot_delete_project(
     client: AsyncClient,
     other_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Admin member cannot delete project (owner-only route)."""
+    project, _ = test_project
     response = await client.delete(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         cookies=other_cookies,
         headers=csrf_headers,
     )
@@ -150,12 +155,13 @@ async def test_admin_member_cannot_rotate_key(
     client: AsyncClient,
     other_cookies: dict[str, str],
     csrf_headers: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Admin member cannot rotate API key (owner-only route)."""
+    project, _ = test_project
     response = await client.post(
-        f"{BASE}/{test_project.id}/rotate-key",
+        f"{BASE}/{project.id}/rotate-key",
         cookies=other_cookies,
         headers=csrf_headers,
     )
@@ -165,16 +171,17 @@ async def test_admin_member_cannot_rotate_key(
 async def test_admin_member_can_view_project(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Accepted admin member can view project detail (read-only route)."""
+    project, _ = test_project
     response = await client.get(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         cookies=other_cookies,
     )
     assert response.status_code == 200
-    assert response.json()["name"] == test_project.name
+    assert response.json()["name"] == project.name
 
 
 # ---- Fix 2: Invite acceptance bypass ----
@@ -183,12 +190,13 @@ async def test_admin_member_can_view_project(
 async def test_unaccepted_member_cannot_view_project(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     unaccepted_member: ProjectMember,
 ):
     """User invited but not accepted cannot access project."""
+    project, _ = test_project
     response = await client.get(
-        f"{BASE}/{test_project.id}",
+        f"{BASE}/{project.id}",
         cookies=other_cookies,
     )
     assert response.status_code == 403
@@ -197,12 +205,13 @@ async def test_unaccepted_member_cannot_view_project(
 async def test_unaccepted_member_cannot_list_team(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     unaccepted_member: ProjectMember,
 ):
     """User invited but not accepted cannot list team members."""
+    project, _ = test_project
     response = await client.get(
-        f"{BASE}/{test_project.id}/members",
+        f"{BASE}/{project.id}/members",
         cookies=other_cookies,
     )
     assert response.status_code == 403
@@ -211,12 +220,13 @@ async def test_unaccepted_member_cannot_list_team(
 async def test_accepted_member_can_list_team(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Accepted admin member can list team members."""
+    project, _ = test_project
     response = await client.get(
-        f"{BASE}/{test_project.id}/members",
+        f"{BASE}/{project.id}/members",
         cookies=other_cookies,
     )
     assert response.status_code == 200
@@ -228,46 +238,49 @@ async def test_accepted_member_can_list_team(
 async def test_manageable_includes_admin_member_projects(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """manageable=true returns projects where user is an accepted admin member."""
+    project, _ = test_project
     response = await client.get(
         f"{BASE}?manageable=true",
         cookies=other_cookies,
     )
     assert response.status_code == 200
     ids = [p["id"] for p in response.json()]
-    assert str(test_project.id) in ids
+    assert str(project.id) in ids
 
 
 async def test_manageable_excludes_unaccepted(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     unaccepted_member: ProjectMember,
 ):
     """manageable=true does not return projects for unaccepted invites."""
+    project, _ = test_project
     response = await client.get(
         f"{BASE}?manageable=true",
         cookies=other_cookies,
     )
     assert response.status_code == 200
     ids = [p["id"] for p in response.json()]
-    assert str(test_project.id) not in ids
+    assert str(project.id) not in ids
 
 
 async def test_default_list_only_owned(
     client: AsyncClient,
     other_cookies: dict[str, str],
-    test_project: Project,
+    test_project: tuple[Project, str],
     accepted_admin_member: ProjectMember,
 ):
     """Default list (no manageable flag) only returns owned projects."""
+    project, _ = test_project
     response = await client.get(
         BASE,
         cookies=other_cookies,
     )
     assert response.status_code == 200
     ids = [p["id"] for p in response.json()]
-    assert str(test_project.id) not in ids
+    assert str(project.id) not in ids

@@ -4,21 +4,13 @@ import type { ApiClient } from "../lib/api-client.js";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
-
-interface ProjectResponse {
-  id: string;
-  name: string;
-  domain: string;
-  apiKey: string;
-  isActive: boolean;
-  createdAt: string;
-}
+import type { ProjectResponse } from "../types.js";
 
 export async function initCommand(): Promise<void> {
   const { config, client } = await getAuthenticatedClientOrExit();
 
   console.log();
-  console.log(chalk.bold("  🐛⚡ BugSpark Project Setup"));
+  console.log(chalk.bold("  BugSpark Project Setup"));
   console.log();
 
   try {
@@ -33,15 +25,20 @@ export async function initCommand(): Promise<void> {
         { name: chalk.green("+ Create new project"), value: "__new__" },
       ];
 
-      const selected_value = await select({
+      const selectedValue = await select({
         message: "Select a project or create a new one",
         choices,
       });
 
-      if (selected_value === "__new__") {
-        project = await createNewProject(client, config.apiUrl);
+      if (selectedValue === "__new__") {
+        project = await createNewProject(client);
       } else {
-        project = projects.find((p) => p.id === selected_value)!;
+        const found = projects.find((p) => p.id === selectedValue);
+        if (!found) {
+          error("Selected project not found.");
+          process.exit(1);
+        }
+        project = found;
         info(`Using existing project: ${chalk.bold(project.name)}`);
         info(`API key (masked): ${project.apiKey}`);
         console.log();
@@ -53,7 +50,7 @@ export async function initCommand(): Promise<void> {
       }
     } else {
       info("No projects found. Let's create one!");
-      project = await createNewProject(client, config.apiUrl);
+      project = await createNewProject(client);
     }
 
     // Detect masked API keys from existing projects
@@ -61,13 +58,13 @@ export async function initCommand(): Promise<void> {
     const keyForSnippet = isMaskedKey ? "YOUR_API_KEY_HERE" : project.apiKey;
 
     // Show installation instructions
-    console.log(chalk.bold("  📋 Installation Instructions"));
+    console.log(chalk.bold("  Installation Instructions"));
     console.log();
 
     if (isMaskedKey) {
       console.log(
         chalk.yellow(
-          "  ⚠  The API key below is a placeholder — existing keys are masked for security."
+          "  The API key below is a placeholder — existing keys are masked for security."
         )
       );
       console.log(
@@ -108,8 +105,7 @@ export async function initCommand(): Promise<void> {
 }
 
 async function createNewProject(
-  client: ApiClient,
-  apiUrl: string
+  client: ApiClient
 ): Promise<ProjectResponse> {
   const name = await input({
     message: "Project name",
@@ -130,7 +126,7 @@ async function createNewProject(
   success(`Project "${project.name}" created!`);
   console.log();
   console.log(`  ${chalk.bold("API Key:")} ${chalk.yellow(project.apiKey)}`);
-  console.log(chalk.dim("  ⚠  Save this API key — it won't be shown again."));
+  console.log(chalk.dim("  Save this API key — it won't be shown again."));
   console.log();
 
   return project;

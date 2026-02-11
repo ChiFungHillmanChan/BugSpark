@@ -22,9 +22,9 @@ const METRIC_CONFIGS: MetricConfig[] = [
 ];
 
 const RATING_COLORS: Record<Rating, { bg: string; text: string; dot: string }> = {
-  "good": { bg: "bg-green-50", text: "text-green-700", dot: "bg-green-500" },
-  "needs-improvement": { bg: "bg-amber-50", text: "text-amber-700", dot: "bg-amber-500" },
-  "poor": { bg: "bg-red-50", text: "text-red-700", dot: "bg-red-500" },
+  "good": { bg: "bg-green-50 dark:bg-green-950/30", text: "text-green-700 dark:text-green-400", dot: "bg-green-500" },
+  "needs-improvement": { bg: "bg-amber-50 dark:bg-amber-950/30", text: "text-amber-700 dark:text-amber-400", dot: "bg-amber-500" },
+  "poor": { bg: "bg-red-50 dark:bg-red-950/30", text: "text-red-700 dark:text-red-400", dot: "bg-red-500" },
 };
 
 const RATING_LABEL_KEYS: Record<Rating, string> = {
@@ -89,7 +89,7 @@ export function PerformanceMetricsPanel({ performance }: PerformanceMetricsPanel
           >
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${colors.dot}`} />
-              <span className="text-sm font-medium text-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 {config.label}
               </span>
             </div>

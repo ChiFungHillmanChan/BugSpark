@@ -16,11 +16,15 @@ def _create_engine():
     return create_async_engine(
         url,
         echo=False,
-        connect_args={"statement_cache_size": 0},
+        connect_args={
+            "statement_cache_size": 0,
+            "command_timeout": 30,
+        },
         pool_pre_ping=True,
         pool_recycle=300,
-        pool_size=5,
-        max_overflow=10,
+        pool_size=3,
+        max_overflow=7,
+        pool_timeout=30,
     )
 
 

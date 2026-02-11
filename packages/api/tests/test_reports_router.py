@@ -15,8 +15,8 @@ from app.models.user import User
 BASE = "/api/v1/reports"
 
 
-def _api_key_headers(project: Project) -> dict[str, str]:
-    return {"X-API-Key": project._raw_api_key}  # type: ignore[attr-defined]
+def _api_key_headers(raw_key: str) -> dict[str, str]:
+    return {"X-API-Key": raw_key}
 
 
 async def _create_report_in_db(
@@ -41,8 +41,9 @@ async def _create_report_in_db(
 
 
 async def test_create_report_with_api_key(
-    client: AsyncClient, test_project: Project
+    client: AsyncClient, test_project: tuple[Project, str]
 ):
+    project, raw_key = test_project
     response = await client.post(
         BASE,
         json={
@@ -52,7 +53,7 @@ async def test_create_report_with_api_key(
             "category": "bug",
             "metadata": {"browser": "chrome"},
         },
-        headers=_api_key_headers(test_project),
+        headers=_api_key_headers(raw_key),
     )
     assert response.status_code == 201
     data = response.json()
@@ -79,9 +80,10 @@ async def test_list_reports(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    await _create_report_in_db(db_session, test_project)
+    project, raw_key = test_project
+    await _create_report_in_db(db_session, project)
     response = await client.get(BASE, cookies=auth_cookies)
     assert response.status_code == 200
     data = response.json()
@@ -94,9 +96,10 @@ async def test_list_reports_with_filters(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    await _create_report_in_db(db_session, test_project)
+    project, raw_key = test_project
+    await _create_report_in_db(db_session, project)
     response = await client.get(
         BASE,
         params={"severity": "medium", "status": "new"},
@@ -113,9 +116,10 @@ async def test_get_report_detail(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    report = await _create_report_in_db(db_session, test_project)
+    project, raw_key = test_project
+    report = await _create_report_in_db(db_session, project)
     response = await client.get(
         f"{BASE}/{report.id}", cookies=auth_cookies
     )
@@ -130,9 +134,10 @@ async def test_update_report_status(
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    report = await _create_report_in_db(db_session, test_project)
+    project, raw_key = test_project
+    report = await _create_report_in_db(db_session, project)
     response = await client.patch(
         f"{BASE}/{report.id}",
         json={"status": "in_progress"},
@@ -148,9 +153,10 @@ async def test_delete_report(
     auth_cookies: dict[str, str],
     csrf_headers: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
-    report = await _create_report_in_db(db_session, test_project)
+    project, raw_key = test_project
+    report = await _create_report_in_db(db_session, project)
     response = await client.delete(
         f"{BASE}/{report.id}", cookies=auth_cookies, headers=csrf_headers
     )
@@ -167,14 +173,15 @@ async def test_list_reports_csv_multi_value_filter(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
     """CSV multi-value filters (e.g. severity=low,medium) should work with .in_()."""
+    project, raw_key = test_project
     # Create reports with different severities
     for sev, tid in [(Severity.LOW, "BUG-0010"), (Severity.HIGH, "BUG-0011"), (Severity.MEDIUM, "BUG-0012")]:
         report = Report(
             id=uuid.uuid4(),
-            project_id=test_project.id,
+            project_id=project.id,
             tracking_id=tid,
             title=f"Bug {sev.value}",
             description="test",
@@ -204,12 +211,13 @@ async def test_list_reports_csv_multi_status_filter(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
     """CSV multi-value status filter (e.g. status=new,in_progress) should work."""
+    project, raw_key = test_project
     report1 = Report(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         tracking_id="BUG-0020",
         title="New bug",
         description="test",
@@ -222,7 +230,7 @@ async def test_list_reports_csv_multi_status_filter(
     )
     report2 = Report(
         id=uuid.uuid4(),
-        project_id=test_project.id,
+        project_id=project.id,
         tracking_id="BUG-0021",
         title="In progress bug",
         description="test",
@@ -249,8 +257,9 @@ async def test_list_reports_csv_multi_status_filter(
 
 
 async def test_report_gets_tracking_id(
-    client: AsyncClient, test_project: Project
+    client: AsyncClient, test_project: tuple[Project, str]
 ):
+    project, raw_key = test_project
     response = await client.post(
         BASE,
         json={
@@ -260,7 +269,7 @@ async def test_report_gets_tracking_id(
             "category": "ui",
             "metadata": {"source": "test"},
         },
-        headers=_api_key_headers(test_project),
+        headers=_api_key_headers(raw_key),
     )
     assert response.status_code == 201
     assert response.json()["trackingId"] == "BUG-0001"
@@ -274,7 +283,7 @@ async def test_report_gets_tracking_id(
             "category": "bug",
             "metadata": {"source": "test"},
         },
-        headers=_api_key_headers(test_project),
+        headers=_api_key_headers(raw_key),
     )
     assert response2.status_code == 201
     assert response2.json()["trackingId"] == "BUG-0002"

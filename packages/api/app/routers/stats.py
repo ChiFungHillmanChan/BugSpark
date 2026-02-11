@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_accessible_project_ids, get_current_user, get_db
 from app.exceptions import ForbiddenException, NotFoundException
 from app.models.enums import Role
 from app.models.project import Project
@@ -47,7 +47,9 @@ async def project_stats(
 
     if project is None:
         raise NotFoundException("Project not found")
-    if current_user.role != Role.SUPERADMIN and project.owner_id != current_user.id:
-        raise ForbiddenException("Not the project owner")
+    if current_user.role != Role.SUPERADMIN:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if project.id not in accessible_ids:
+            raise ForbiddenException("Not the project owner")
 
     return await get_project_stats(db, str(project.id))

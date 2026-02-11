@@ -1,4 +1,6 @@
 import type { BugSparkBranding, ConsoleLogEntry } from '../types';
+import { createField, createCameraButton } from './report-modal-fields';
+import { createConsoleLogSection } from './report-modal-console';
 
 export interface ReportFormData {
   title: string;
@@ -76,150 +78,6 @@ function createHeader(onClose: () => void, branding?: BugSparkBranding): HTMLDiv
   return header;
 }
 
-function createField(
-  labelText: string,
-  inputType: 'input' | 'textarea' | 'select',
-  name: string,
-  options?: Array<{ value: string; label: string }>,
-): HTMLDivElement {
-  const field = document.createElement('div');
-  field.className = 'bugspark-field';
-
-  const label = document.createElement('label');
-  label.textContent = labelText;
-  label.setAttribute('for', `bugspark-${name}`);
-  field.appendChild(label);
-
-  if (inputType === 'select' && options) {
-    const select = document.createElement('select');
-    select.id = `bugspark-${name}`;
-    select.setAttribute('data-name', name);
-    for (const opt of options) {
-      const option = document.createElement('option');
-      option.value = opt.value;
-      option.textContent = opt.label;
-      select.appendChild(option);
-    }
-    field.appendChild(select);
-  } else if (inputType === 'textarea') {
-    const textarea = document.createElement('textarea');
-    textarea.id = `bugspark-${name}`;
-    textarea.setAttribute('data-name', name);
-    textarea.placeholder = 'Describe the issue in detail...';
-    textarea.rows = 4;
-    field.appendChild(textarea);
-  } else {
-    const input = document.createElement('input');
-    input.id = `bugspark-${name}`;
-    input.type = 'text';
-    input.setAttribute('data-name', name);
-    if (name === 'email') {
-      input.type = 'email';
-      input.placeholder = 'your@email.com (optional)';
-    } else {
-      input.placeholder = 'Brief summary of the issue';
-    }
-    field.appendChild(input);
-  }
-
-  return field;
-}
-
-function createCameraButton(onCapture: () => void): HTMLDivElement {
-  const container = document.createElement('div');
-  container.className = 'bugspark-screenshot-capture';
-  container.addEventListener('click', onCapture);
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '2');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
-  const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path1.setAttribute('d', 'M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z');
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('cx', '12');
-  circle.setAttribute('cy', '13');
-  circle.setAttribute('r', '4');
-  svg.appendChild(path1);
-  svg.appendChild(circle);
-  container.appendChild(svg);
-
-  const label = document.createElement('span');
-  label.textContent = 'Capture Screen';
-  container.appendChild(label);
-
-  return container;
-}
-
-function formatConsoleEntries(entries: ConsoleLogEntry[]): string {
-  if (entries.length === 0) return 'No console errors captured.';
-  return entries
-    .filter((e) => e.level === 'error' || e.level === 'warn')
-    .map((e) => {
-      const time = new Date(e.timestamp).toLocaleTimeString();
-      const tag = e.level.toUpperCase();
-      return `[${tag}] ${time} — ${e.message}`;
-    })
-    .join('\n') || 'No console errors captured.';
-}
-
-function createConsoleLogSection(): HTMLDivElement {
-  const section = document.createElement('div');
-  section.className = 'bugspark-field';
-
-  const consoleLogs = currentOptions.consoleLogs ?? [];
-  const allowed = currentOptions.consoleLogAllowed !== false;
-  const errorWarnEntries = consoleLogs.filter((e) => e.level === 'error' || e.level === 'warn');
-  const hasEntries = errorWarnEntries.length > 0;
-
-  const headerRow = document.createElement('div');
-  headerRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;';
-
-  const label = document.createElement('label');
-  label.textContent = 'Console Log Check';
-  label.style.cssText = 'margin-bottom:0;';
-  headerRow.appendChild(label);
-
-  if (hasEntries && allowed) {
-    const toggleLabel = document.createElement('label');
-    toggleLabel.style.cssText = 'display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;margin-bottom:0;';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = true;
-    checkbox.setAttribute('data-name', 'include-console-logs');
-    checkbox.style.cssText = 'margin:0;';
-    toggleLabel.appendChild(checkbox);
-    toggleLabel.appendChild(document.createTextNode('Include in report'));
-    headerRow.appendChild(toggleLabel);
-  }
-
-  section.appendChild(headerRow);
-
-  const textarea = document.createElement('textarea');
-  textarea.readOnly = true;
-  textarea.rows = 4;
-  textarea.style.cssText = 'font-family:monospace;font-size:11px;background:#f5f5f5;color:#333;resize:vertical;cursor:default;opacity:' + (allowed ? '1' : '0.5') + ';';
-  textarea.value = formatConsoleEntries(consoleLogs);
-  section.appendChild(textarea);
-
-  if (!allowed) {
-    const notice = document.createElement('div');
-    notice.style.cssText = 'font-size:11px;color:#e94560;margin-top:4px;';
-    notice.textContent = 'Daily limit reached (5/day). Console logs will not be included.';
-    section.appendChild(notice);
-  } else if (!hasEntries) {
-    const notice = document.createElement('div');
-    notice.style.cssText = 'font-size:11px;color:#888;margin-top:4px;';
-    notice.textContent = 'No console errors or warnings detected.';
-    section.appendChild(notice);
-  }
-
-  return section;
-}
-
 function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding): HTMLDivElement {
   const body = document.createElement('div');
   body.className = 'bugspark-modal__body';
@@ -268,8 +126,7 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
   body.appendChild(createField('Title *', 'input', 'title'));
   body.appendChild(createField('Description', 'textarea', 'description'));
 
-  // Console Log Check section
-  body.appendChild(createConsoleLogSection());
+  body.appendChild(createConsoleLogSection(currentOptions));
 
   const row = document.createElement('div');
   row.className = 'bugspark-field__row';

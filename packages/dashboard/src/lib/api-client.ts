@@ -29,13 +29,23 @@ function getCsrfToken(): string | null {
   const match = document.cookie.match(
     /(?:^|;\s*)bugspark_csrf_token=([^;]*)/,
   );
-  return match ? decodeURIComponent(match[1]) : null;
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
 }
 
 function getLocale(): string {
   if (typeof document === "undefined") return "en";
   const match = document.cookie.match(/(?:^|;\s*)bugspark_locale=([^;]*)/);
-  return match ? decodeURIComponent(match[1]) : "en";
+  if (!match) return "en";
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return "en";
+  }
 }
 
 const apiClient = axios.create({

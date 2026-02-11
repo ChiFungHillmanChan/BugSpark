@@ -123,7 +123,7 @@ async def upload_file(
         logger.error("Failed to upload file to S3/R2: %s - %s", error_code, error_message)
         raise BadRequestException("Failed to upload file to storage")
     except Exception as e:
-        logger.exception(f"Unexpected error uploading file to S3/R2: {e}")
+        logger.exception("Unexpected error uploading file to S3/R2: %s", e)
         raise BadRequestException("Failed to upload file to storage")
 
     return object_key
@@ -162,9 +162,9 @@ async def delete_file(key: str) -> None:
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(f"Failed to delete file from R2: {error_code} - {error_message}. Key: {key}")
+        logger.error("Failed to delete file from R2: %s - %s. Key: %s", error_code, error_message, key)
     except Exception as e:
-        logger.exception(f"Unexpected error deleting file from R2: {e}")
+        logger.exception("Unexpected error deleting file from R2: %s", e)
 
 
 async def delete_files(keys: list[str]) -> None:
@@ -184,16 +184,16 @@ async def delete_files(keys: list[str]) -> None:
             Bucket=settings.S3_BUCKET_NAME,
             Delete={"Objects": objects, "Quiet": True},
         )
-        logger.info(f"Batch deleted {len(valid_keys)} files from R2")
+        logger.info("Batch deleted %d files from R2", len(valid_keys))
     except ClientError as e:
         error_code = e.response.get("Error", {}).get("Code", "Unknown")
         error_message = e.response.get("Error", {}).get("Message", str(e))
-        logger.error(f"Failed to batch delete from R2: {error_code} - {error_message}")
+        logger.error("Failed to batch delete from R2: %s - %s", error_code, error_message)
         # Fall back to individual deletes
         for key in valid_keys:
             await delete_file(key)
     except Exception as e:
-        logger.exception(f"Unexpected error batch deleting from R2: {e}")
+        logger.exception("Unexpected error batch deleting from R2: %s", e)
         for key in valid_keys:
             await delete_file(key)
 
@@ -216,5 +216,5 @@ async def generate_presigned_url(key: str, expires_in: int = 900) -> str:
         logger.error("Failed to generate presigned URL: %s - %s", error_code, error_message)
         raise BadRequestException("Failed to generate file URL")
     except Exception as e:
-        logger.exception(f"Unexpected error generating presigned URL: {e}")
+        logger.exception("Unexpected error generating presigned URL: %s", e)
         raise BadRequestException("Failed to generate file URL")

@@ -69,12 +69,12 @@ pnpm dev              # Rollup watch mode
 ## Architecture
 
 ### API Structure
-- **Routers:** `app/routers/` — auth, tokens, projects, reports, upload, comments, webhooks, stats, analysis, integrations, admin
+- **Routers:** `app/routers/` — auth (split into auth_helpers, auth_email, auth_password, auth_cli, auth_beta), tokens, projects, reports, upload, comments, webhooks, stats, analysis, integrations, admin, device_auth
 - **Models:** `app/models/` — SQLAlchemy ORM models (User, Project, Report, Comment, Webhook, Integration, PersonalAccessToken) with enums (Role, Plan)
 - **Schemas:** `app/schemas/` — Pydantic request/response models with `CamelModel` base for camelCase serialization (auth, user, token, project, report, comment, webhook, integration, analysis, stats, admin, similarity)
 - **Rate Limiter:** `app/rate_limiter.py` — Shared slowapi `Limiter` instance with API-key-aware key function (extracted from main.py to avoid circular imports)
-- **Services:** `app/services/` — Business logic (auth, storage, tracking IDs, webhooks, AI analysis, GitHub, Linear, spam protection, similarity, stats)
-- **Middleware:** `app/middleware/csrf.py` — CSRF double-submit cookie validation
+- **Services:** `app/services/` — Business logic (auth, storage, tracking IDs, webhooks, AI analysis, GitHub, Linear, spam protection, similarity, stats, team, email, email verification, password reset, report formatter, plan limits, task queue, notification)
+- **Middleware:** `app/middleware/` — CSRF double-submit cookie validation (`csrf.py`), security headers (`security_headers.py`), widget CORS (`widget_cors.py`)
 - **Dependencies:** `app/dependencies.py` — FastAPI `Depends` for DB sessions, auth (`get_current_user`, `get_active_user`), role guards (`require_admin`, `require_superadmin`), API key validation (`validate_api_key`), PAT authentication
 - **Exceptions:** `app/exceptions.py` — Custom exception hierarchy (NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException) with i18n support
 - **i18n:** `app/i18n/` — Server-side locale detection and message catalogs (English, Traditional Chinese)
@@ -87,7 +87,9 @@ pnpm dev              # Rollup watch mode
 - **Widget (API Key):** `X-API-Key: bsk_pub_...` header, SHA256-hashed in DB with prefix lookup
 - **CSRF:** Double-submit cookie pattern (`X-CSRF-Token` header vs `bugspark_csrf_token` cookie), exempts API key/Bearer/safe methods
 - **Roles:** `user`, `admin`, `superadmin` — enforced via `require_admin()` and `require_superadmin()` dependencies
-- **Dashboard auth:** `src/providers/auth-provider.tsx` (context) + `src/middleware.ts` (locale cookie init)
+- **Device auth:** OAuth-style device code flow for CLI (`/device/code`, `/device/token`, `/device/approve`) with polling and expiry
+- **Team/project members:** Invite-based team membership with role assignment per project
+- **Dashboard auth:** `src/providers/auth-provider.tsx` (context with safe redirect validation) + `src/middleware.ts` (route guards for `/dashboard`, `/bugs`, `/projects`, `/settings`, `/admin` + locale cookie init)
 
 ### Database
 - PostgreSQL in production, SQLite in tests (with type compatibility shims in `tests/conftest.py`)
@@ -98,10 +100,10 @@ pnpm dev              # Rollup watch mode
 
 ### Dashboard Patterns
 - App Router with three route groups: `(public)` (landing, docs), `(auth)` (login, register), `(dashboard)` (protected app)
-- Dashboard pages: overview, bugs (list + detail), projects (list + detail), settings (profile, integrations, tokens), admin (overview, users)
-- `src/lib/api-client.ts` — Axios instance with CSRF token injection, Accept-Language header, and 401 auto-refresh interceptor
+- Dashboard pages: overview, bugs (list + detail), projects (list + detail), settings (profile, integrations, tokens, team), admin (overview, users, reports, beta)
+- `src/lib/api-client.ts` — Axios instance with CSRF token injection (try-catch safe `decodeURIComponent`), Accept-Language header, and 401 auto-refresh interceptor
 - `src/lib/query-keys.ts` — Factory pattern for TanStack Query cache key management
-- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-similar-bugs
+- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-similar-bugs, use-team, use-debounce
 - `src/types/index.ts` — Shared TypeScript interfaces (User, Project, BugReport, Comment, Webhook, Integration, AnalysisResponse with rootCause/fixSuggestions/affectedArea, ExportResult with issueIdentifier, etc.)
 - `src/providers/` — AuthProvider (login/register/logout context), ThemeProvider (light/dark/system with localStorage), QueryProvider
 - `src/i18n/` + `src/messages/` — next-intl for English and Traditional Chinese (cookie-based `bugspark_locale`, no URL prefix)
@@ -124,7 +126,8 @@ pnpm dev              # Rollup watch mode
 
 ### Widget Architecture
 - Shadow DOM host for CSS isolation, auto-initializes from `<script>` data attributes (`data-api-key`, `data-endpoint`, `data-position`, `data-theme`, `data-watermark`)
-- **Core modules:** console interceptor (100 entries), network interceptor (50 requests, filters sensitive headers), error tracker, screenshot engine (html2canvas), metadata collector, performance collector (Web Vitals: LCP, CLS, FID, INP, TTFB), session recorder (30-second sliding window)
+- **Core modules:** console interceptor (50 entries default), network interceptor (30 requests default, filters sensitive headers), error tracker, screenshot engine (html2canvas), metadata collector, performance collector (Web Vitals: LCP, CLS, FID, INP, TTFB), session recorder (30-second sliding window)
+- **Remote config:** `widget-lifecycle.ts` fetches project config from API on init, can override `enableScreenshot`, `showWatermark`, `ownerPlan`, `primaryColor`, `buttonText`, `modalTitle`, `logo`
 - **Annotation tools:** pen, arrow, rectangle, circle, text, blur — with undo/redo history and color picker
 - **UI:** floating button (4 position options, optional `buttonText` label), report modal (title, description, severity, category, email, screenshot preview, hidden honeypot field), annotation overlay, toast notifications, "Powered by BugSpark" watermark (default on, togglable via `branding.showWatermark`)
 - **Branding:** `BugSparkBranding` interface — `showWatermark`, `customColors` (background/text/border), `buttonText`, `modalTitle`, `logo`; colors applied via `getStyles(theme, branding)` with theme fallbacks
@@ -148,7 +151,7 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 - **GitHub** (`app/services/github_integration.py`): Creates GitHub Issues via REST API. Config requires `token`, `owner`, `repo`.
 - **Linear** (`app/services/linear_integration.py`): Creates Linear issues via GraphQL API (`https://api.linear.app/graphql`). Config requires `apiKey`, `teamId`. Uses `SEVERITY_TO_PRIORITY` mapping (critical=1, high=2, medium=3, low=4). Returns `issue_url`, `issue_identifier` (e.g. "ENG-123"), `issue_id`.
 - **Schema validation** (`app/schemas/integration.py`): `SUPPORTED_PROVIDERS = {"github", "linear"}`, validates required config keys per provider. `ExportResponse` includes `issue_identifier: str | None` for Linear.
-- **Dashboard**: Integrations settings page supports both GitHub and Linear forms. Bug detail page shows "Export to GitHub" and "Export to Linear" buttons.
+- **Dashboard**: Integrations settings page split into orchestrator (`page.tsx`) + `settings/components/github-integration-form.tsx`, `linear-integration-form.tsx`, `integration-list.tsx`. Bug detail page shows "Export to GitHub" and "Export to Linear" buttons.
 
 ### AI Analysis
 - **Service** (`app/services/ai_analysis_service.py`): Sends structured prompt to Anthropic API requesting 6 fields: `summary`, `suggestedCategory`, `suggestedSeverity`, `reproductionSteps`, `rootCause`, `fixSuggestions`, `affectedArea`
@@ -169,16 +172,19 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 - `conftest.py` provides fixtures: `db_session`, `client` (httpx AsyncClient), `test_user`, `test_project`, `auth_cookies`
 - Tests use SQLite in-memory with shims for PostgreSQL types (UUID → String, JSONB → JSON, ARRAY → JSON)
 - Auth-protected endpoints need `cookies=auth_cookies` on the client
-- 18 test files covering: auth router/service, projects, reports, comments, admin, integrations, dependencies, storage, similarity, GitHub integration, spam protection, webhooks, config, schemas, tracking IDs
+- 25+ test files covering: auth router/service, projects, reports, comments, admin, integrations, dependencies, storage, similarity, GitHub/Linear integration, spam protection, webhooks, CSRF middleware, security headers, widget CORS, encryption, URL validator, SQL helpers, sanitize, plan limits, task queue, data export, notification service
 
 ### Dashboard Tests
 - Vitest + React Testing Library with jsdom environment
-- Tests in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
+- 35 test files (261 tests) in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
 - Use `renderWithIntl` from `tests/test-utils.tsx` for components that use `useTranslations()` (wraps with NextIntlClientProvider)
+- **lib tests:** middleware (route guards, locale cookies), auth-provider (auth flow, safe redirect), api-client (baseURL, CSRF handling, malformed cookie safety), auth (login/register/logout APIs), query-keys, utils
+- **component tests:** error-boundary, confirm-dialog, severity-badge, status-badge, stat-card, skeleton-loader, empty-state, page-header, metadata-panel, console-log-viewer, session-timeline, tokens-page, api-key-display, export-to-tracker, ai-analysis-panel, network-waterfall, performance-metrics, team-page, admin-beta-page
+- **hook tests:** use-bugs, use-projects, use-analysis, use-team, use-integrations, use-comments, use-stats, use-admin, use-similar-bugs
 
 ### Widget Tests
 - Vitest with jsdom environment
-- 11 test files in `packages/widget/tests/` covering: config, index, annotation history, console/network interceptors, DOM helpers, error tracker, event emitter, metadata collector, report composer, session recorder
+- 15 test files in `packages/widget/tests/` covering: config, index (lifecycle), annotation history, annotation canvas, console/network interceptors, DOM helpers, error tracker, metadata collector, report composer, report modal, session recorder, performance collector, button drag handler
 
 ## Key Enums and Types
 
@@ -241,3 +247,33 @@ Key variables (see `app/config.py`):
 
 ### Conventional Commits
 Format: `feat(api):`, `fix(dashboard):`, scopes are `api`, `dashboard`, `widget`, `cli`, `db`
+
+## Known Issues & Tech Debt
+
+### Security (fix before production)
+- **Mass assignment pattern:** `setattr` loop in `auth.py:177`, `reports.py:262`, `webhooks.py:90`, `integrations.py:126` relies solely on Pydantic schema filtering. Add explicit field allowlists.
+- **Team invite email mismatch:** `team_service.py:99-125` — `accept_invite` does not verify the accepting user's email matches the invited email. Any authenticated user with the token can join.
+- **HTML injection in emails:** `team_service.py:83-89` and `notification_service.py:71-76` interpolate user/project names into HTML without escaping.
+- **Widget URL data exposure:** Network interceptor captures full request URLs including query parameters that may contain auth tokens. No URL sanitization.
+
+### PostgreSQL/SQLite Test Compatibility
+- `tracking_id_service.py` uses raw SQL `RETURNING` clause (PostgreSQL-only)
+- `stats_service.py:46` uses `func.extract("epoch", ...)` (PostgreSQL-only)
+- `Webhook.events` uses `ARRAY(String)` (PostgreSQL-only, shimmed in tests)
+
+### File Size Violations (300-line limit)
+- `app/routers/reports.py` (353 lines) — split report CRUD from export/analysis endpoints
+- `widget/annotation-overlay.ts` (317 lines) — extract `createToolbar()` into separate file
+- `tests/conftest.py` (337 lines) — borderline, test fixtures are inherently verbose
+
+### Test Coverage Gaps
+- **Dashboard:** 35 test files covering lib, hooks, and components. Remaining gaps: project detail page, settings profile page, dashboard overview page, docs pages.
+- **API:** No tests for `stats_service.py`, `ai_analysis_service.py`, `report_formatter.py`, `email_verification_service.py`, `password_reset_service.py` (direct).
+- **Widget:** No tests for `annotation-overlay.ts`, `annotation-text-blur.ts`, `toast.ts`, `floating-button.ts`, `widget-container.ts`.
+
+### Other Tech Debt
+- **CLI:** `STATUS_COLORS` map has stale `open` key instead of `new`/`triaging`; inline response types should consolidate into `types.ts`; unused `ora` dependency
+- **Widget:** Module-level mutable state prevents clean re-initialization after `destroy()`; `destroy()` doesn't call `consoleInterceptor.clear()`; `_lineWidth` unused parameter in `annotation-text-blur.ts`
+- **API:** `device_auth.py` defines 6 Pydantic schemas inline instead of in `schemas/`; `main.py` contains ~107-line inline HTML landing page; `IntegrationResponse.has_token` only checks `token` key (misses Linear's `apiKey`)
+- **Dashboard:** Hardcoded English strings in session-timeline, project-settings-form
+- **Infra:** Deploy smoke test uses fixed `sleep 120`; `render.yaml` missing `ANTHROPIC_API_KEY`/`RESEND_API_KEY` entries; Docker Compose binds ports to `0.0.0.0`

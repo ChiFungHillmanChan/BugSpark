@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_accessible_project, get_active_user, get_db
 from app.exceptions import ForbiddenException
+from app.rate_limiter import limiter
 from app.i18n import get_locale, translate
 from app.models.project import Project
 from app.models.user import User
@@ -131,6 +132,7 @@ async def remove(
     "/auth/accept-invite",
     response_model=ProjectMemberResponse,
 )
+@limiter.limit("10/minute")
 async def accept(
     body: AcceptInviteRequest,
     request: Request,

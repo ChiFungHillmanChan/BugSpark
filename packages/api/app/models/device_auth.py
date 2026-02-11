@@ -17,7 +17,7 @@ class DeviceAuthSession(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     device_code: Mapped[str] = mapped_column(
-        String(40), unique=True, index=True, nullable=False
+        String(64), unique=True, index=True, nullable=False
     )
     user_code: Mapped[str] = mapped_column(
         String(9), unique=True, index=True, nullable=False

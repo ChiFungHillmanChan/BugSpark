@@ -16,9 +16,7 @@ const DEFAULT_API_URL = "https://bugspark-api.onrender.com/api/v1";
 const DEFAULT_DASHBOARD_URL = "https://bugspark.hillmanchan.com";
 
 function ensureDir(): void {
-  if (!fs.existsSync(CONFIG_DIR)) {
-    fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
-  }
+  fs.mkdirSync(CONFIG_DIR, { recursive: true, mode: 0o700 });
 }
 
 export function loadConfig(): BugSparkConfig | null {

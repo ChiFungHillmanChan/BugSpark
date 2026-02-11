@@ -45,7 +45,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto p-6">
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <ErrorBoundary
+            errorTitle={t("error")}
+            errorDescription={t("errorDescription")}
+            retryLabel={t("tryAgain")}
+          >
+            {children}
+          </ErrorBoundary>
         </main>
       </div>
     </div>

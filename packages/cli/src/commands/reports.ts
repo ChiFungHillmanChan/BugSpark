@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
+import { validateId } from "../lib/validate.js";
 
 interface ReportResponse {
   id: string;
@@ -88,6 +89,7 @@ export async function listReportsCommand(options: {
 }
 
 export async function viewReportCommand(reportId: string): Promise<void> {
+  const safeId = validateId(reportId);
   const { client } = await getAuthenticatedClientOrExit();
 
   try {
@@ -97,7 +99,7 @@ export async function viewReportCommand(reportId: string): Promise<void> {
       reporterIdentifier?: string;
       consoleLogs?: unknown[];
       networkLogs?: unknown[];
-    }>(`/reports/${reportId}`);
+    }>(`/reports/${safeId}`);
 
     const sevColor = SEVERITY_COLORS[r.severity] || chalk.white;
     const statColor = STATUS_COLORS[r.status] || chalk.white;
@@ -138,6 +140,7 @@ export async function updateReportCommand(
   reportId: string,
   options: { status?: string; severity?: string }
 ): Promise<void> {
+  const safeId = validateId(reportId);
   const { client } = await getAuthenticatedClientOrExit();
 
   const body: Record<string, string> = {};
@@ -150,8 +153,8 @@ export async function updateReportCommand(
   }
 
   try {
-    await client.patch(`/reports/${reportId}`, body);
-    success(`Report ${reportId} updated.`);
+    await client.patch(`/reports/${safeId}`, body);
+    success(`Report ${safeId} updated.`);
   } catch (err) {
     error(formatError(err));
     process.exit(1);

@@ -13,6 +13,7 @@ from app.models.project import Project
 from app.models.user import User
 from app.models.webhook import Webhook
 from app.schemas.webhook import WebhookCreate, WebhookResponse, WebhookUpdate
+from app.utils.encryption import encrypt_value
 from app.utils.url_validator import validate_webhook_url
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
@@ -44,7 +45,7 @@ async def create_webhook(
         project_id=project_id,
         url=body.url,
         events=body.events,
-        secret=secrets.token_hex(32),
+        secret=encrypt_value(secrets.token_hex(32)),
     )
     db.add(webhook)
     await db.commit()

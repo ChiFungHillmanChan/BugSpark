@@ -29,29 +29,39 @@ def _should_notify(preferences: dict | None, severity: str) -> bool:
     return False
 
 
-async def notify_new_report(
-    db: AsyncSession, project_id: str, report_data: dict
-) -> None:
-    """Send email notification to the project owner for critical/high severity reports."""
+async def notify_new_report(project_id: str, report_data: dict) -> None:
+    """Send email notification to the project owner for critical/high severity reports.
+
+    Creates its own DB session so it can safely run in a background task
+    after the originating request's session has been closed.
+    """
+    from app.database import async_session
+
     severity = report_data.get("severity", "")
     if severity not in NOTIFIABLE_SEVERITIES:
         return
 
-    result = await db.execute(
-        select(Project).where(Project.id == project_id)
-    )
-    project = result.scalar_one_or_none()
-    if project is None:
-        return
+    async with async_session() as db:
+        result = await db.execute(
+            select(Project).where(Project.id == project_id)
+        )
+        project = result.scalar_one_or_none()
+        if project is None:
+            return
 
-    user_result = await db.execute(
-        select(User).where(User.id == project.owner_id)
-    )
-    owner = user_result.scalar_one_or_none()
-    if owner is None:
-        return
+        user_result = await db.execute(
+            select(User).where(User.id == project.owner_id)
+        )
+        owner = user_result.scalar_one_or_none()
+        if owner is None:
+            return
 
-    if not _should_notify(owner.notification_preferences, severity):
+        # Read ORM attributes while session is still open
+        owner_email = owner.email
+        notification_prefs = owner.notification_preferences
+        project_name = project.name
+
+    if not _should_notify(notification_prefs, severity):
         return
 
     title = report_data.get("title", "Untitled")
@@ -59,14 +69,14 @@ async def notify_new_report(
     severity_label = severity.upper()
 
     html = (
-        f"<h2>[{severity_label}] New bug report in {project.name}</h2>"
+        f"<h2>[{severity_label}] New bug report in {project_name}</h2>"
         f"<p><strong>{tracking_id}</strong>: {title}</p>"
         f"<p>Severity: {severity_label}</p>"
         f"<p>Check your BugSpark dashboard for details.</p>"
     )
 
     await send_email(
-        owner.email,
+        owner_email,
         f"[{severity_label}] New bug report: {title}",
         html,
     )

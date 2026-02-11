@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useManageableProjects } from "@/hooks/use-projects";
 import {
   useTeamMembers,
@@ -26,15 +27,19 @@ function MemberRow({
 }) {
   const removeMutation = useRemoveMember(projectId);
   const updateRoleMutation = useUpdateMemberRole(projectId);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   function handleRoleChange(newRole: MemberRole) {
     updateRoleMutation.mutate({ memberId: member.id, role: newRole });
   }
 
   function handleRemove() {
-    if (window.confirm(t("removeConfirm"))) {
-      removeMutation.mutate(member.id);
-    }
+    setIsConfirmOpen(true);
+  }
+
+  function confirmRemove() {
+    removeMutation.mutate(member.id);
+    setIsConfirmOpen(false);
   }
 
   const isPending = !member.inviteAcceptedAt;
@@ -88,6 +93,15 @@ function MemberRow({
         >
           <Trash2 className="w-4 h-4" />
         </button>
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          title={t("removeTitle")}
+          message={t("removeConfirm")}
+          confirmLabel={t("remove")}
+          isDestructive
+          onConfirm={confirmRemove}
+          onCancel={() => setIsConfirmOpen(false)}
+        />
       </td>
     </tr>
   );

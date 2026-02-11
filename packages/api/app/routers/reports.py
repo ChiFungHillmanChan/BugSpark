@@ -9,7 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.dependencies import get_current_user, get_db, validate_api_key
+from app.dependencies import get_accessible_project_ids, get_current_user, get_db, validate_api_key
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.rate_limiter import limiter
 from app.i18n import get_locale, translate
@@ -29,6 +29,8 @@ from app.services.notification_service import notify_new_report
 from app.services.webhook_service import dispatch_webhooks
 
 router = APIRouter(prefix="/reports", tags=["reports"])
+
+DAILY_CONSOLE_LOG_LIMIT = 5
 
 
 async def _resolve_screenshot_url(key_or_url: str | None) -> str | None:
@@ -114,7 +116,7 @@ async def create_report(
             )
         )
         used = count_result.scalar() or 0
-        if used >= 5:
+        if used >= DAILY_CONSOLE_LOG_LIMIT:
             # Strip console logs — daily limit exceeded
             body.console_logs = None
         else:
@@ -145,9 +147,9 @@ async def create_report(
         db, background_tasks, str(project.id), "report.created", response.model_dump(mode="json")
     )
 
-    background_tasks.add_task(
-        notify_new_report, db, str(project.id), response.model_dump(mode="json")
-    )
+    report_data = response.model_dump(mode="json")
+    project_id_str = str(project.id)
+    background_tasks.add_task(notify_new_report, project_id_str, report_data)
 
     return response
 
@@ -165,8 +167,8 @@ async def list_reports(
 ) -> ReportListResponse:
     query = select(Report)
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        query = query.where(Report.project_id.in_(user_project_ids))
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        query = query.where(Report.project_id.in_(accessible_ids))
 
     if project_id is not None:
         query = query.where(Report.project_id == project_id)
@@ -221,11 +223,8 @@ async def get_report(
         raise NotFoundException(translate("report.not_found", locale))
 
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        project_check = await db.execute(
-            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     return await _report_to_response(report)
@@ -248,11 +247,8 @@ async def update_report(
         raise NotFoundException(translate("report.not_found", locale))
 
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        project_check = await db.execute(
-            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_update", locale))
 
     update_data = body.model_dump(exclude_unset=True)
@@ -292,11 +288,8 @@ async def delete_report(
         raise NotFoundException(translate("report.not_found", locale))
 
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        project_check = await db.execute(
-            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_delete", locale))
 
     # Clean up screenshots from R2/S3 before deleting the DB record
@@ -310,6 +303,7 @@ async def delete_report(
 
 
 @router.get("/{report_id}/similar", response_model=SimilarReportsResponse)
+@limiter.limit("10/minute")
 async def get_similar_reports(
     report_id: uuid.UUID,
     request: Request,
@@ -326,11 +320,8 @@ async def get_similar_reports(
         raise NotFoundException(translate("report.not_found", locale))
 
     if current_user.role != Role.SUPERADMIN:
-        user_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
-        project_check = await db.execute(
-            select(Project.id).where(Project.id == report.project_id, Project.id.in_(user_project_ids))
-        )
-        if project_check.scalar_one_or_none() is None:
+        accessible_ids = await get_accessible_project_ids(current_user, db)
+        if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_view", locale))
 
     similar = await find_similar_reports(

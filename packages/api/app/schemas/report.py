@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import uuid
 from datetime import datetime
 from typing import Literal
@@ -8,6 +9,20 @@ from pydantic import BaseModel, Field, field_validator
 
 from app.schemas import CamelModel
 from app.utils.sanitize import sanitize_text
+
+MAX_LOGS_JSON_SIZE = 512 * 1024  # 512 KB
+MAX_METADATA_JSON_SIZE = 64 * 1024  # 64 KB
+
+
+def _validate_json_size(value: dict | list | None, max_size: int, field_name: str) -> dict | list | None:
+    """Validate serialized JSON size of a field."""
+    if value is None:
+        return value
+    serialized = json.dumps(value, default=str)
+    if len(serialized) > max_size:
+        msg = f"{field_name} exceeds maximum size of {max_size // 1024}KB"
+        raise ValueError(msg)
+    return value
 
 
 class ReportCreate(BaseModel):
@@ -28,6 +43,26 @@ class ReportCreate(BaseModel):
     @classmethod
     def sanitize_fields(cls, value: str) -> str:
         return sanitize_text(value)
+
+    @field_validator("console_logs")
+    @classmethod
+    def validate_console_logs_size(cls, value: dict | list | None) -> dict | list | None:
+        return _validate_json_size(value, MAX_LOGS_JSON_SIZE, "console_logs")
+
+    @field_validator("network_logs")
+    @classmethod
+    def validate_network_logs_size(cls, value: dict | list | None) -> dict | list | None:
+        return _validate_json_size(value, MAX_LOGS_JSON_SIZE, "network_logs")
+
+    @field_validator("user_actions")
+    @classmethod
+    def validate_user_actions_size(cls, value: dict | list | None) -> dict | list | None:
+        return _validate_json_size(value, MAX_LOGS_JSON_SIZE, "user_actions")
+
+    @field_validator("metadata")
+    @classmethod
+    def validate_metadata_size(cls, value: dict | None) -> dict | None:
+        return _validate_json_size(value, MAX_METADATA_JSON_SIZE, "metadata")
 
 
 class ReportUpdate(BaseModel):

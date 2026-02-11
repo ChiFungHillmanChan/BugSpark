@@ -2,6 +2,7 @@ import chalk from "chalk";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
+import { validateId } from "../lib/validate.js";
 
 interface TokenResponse {
   id: string;
@@ -101,13 +102,14 @@ export async function createTokenCommand(
 }
 
 export async function revokeTokenCommand(tokenId: string): Promise<void> {
+  const safeId = validateId(tokenId);
   const { client } = await getAuthenticatedClientOrExit();
 
   try {
-    await client.delete(`/auth/tokens/${tokenId}`);
+    await client.delete(`/auth/tokens/${safeId}`);
 
     console.log();
-    success(`Token ${chalk.dim(tokenId)} revoked.`);
+    success(`Token ${chalk.dim(safeId)} revoked.`);
     console.log();
   } catch (err) {
     error(`Failed to revoke token: ${formatError(err)}`);

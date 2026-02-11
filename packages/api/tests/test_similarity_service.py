@@ -42,25 +42,26 @@ async def _create_report(
 
 
 async def test_find_similar_reports_returns_matches(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, _ = test_project
     source = await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button is broken on Chrome",
         description="The login button does not respond to clicks on Chrome browser",
         tracking_id="BUG-0001",
     )
     await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button broken on Firefox",
         description="The login button is not clickable in Firefox browser",
         tracking_id="BUG-0002",
     )
     await _create_report(
         db_session,
-        test_project,
+        project,
         title="Dashboard charts not loading",
         description="The analytics dashboard charts show a spinner indefinitely",
         tracking_id="BUG-0003",
@@ -76,11 +77,12 @@ async def test_find_similar_reports_returns_matches(
 
 
 async def test_find_similar_reports_excludes_source(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, _ = test_project
     source = await _create_report(
         db_session,
-        test_project,
+        project,
         title="Button click issue",
         description="Some description",
         tracking_id="BUG-0001",
@@ -95,11 +97,12 @@ async def test_find_similar_reports_excludes_source(
 
 
 async def test_find_similar_reports_empty_when_no_matches(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, _ = test_project
     source = await _create_report(
         db_session,
-        test_project,
+        project,
         title="Unique issue xyz",
         description="This is completely unrelated abc",
         tracking_id="BUG-0001",
@@ -113,20 +116,22 @@ async def test_find_similar_reports_empty_when_no_matches(
 
 
 async def test_find_similar_reports_nonexistent_id(
-    db_session: AsyncSession, test_project: Project
+    db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, _ = test_project
     fake_id = uuid.uuid4()
     results = await find_similar_reports(
-        db_session, fake_id, test_project.id, threshold=0.3, limit=5
+        db_session, fake_id, project.id, threshold=0.3, limit=5
     )
     assert results == []
 
 
 async def test_similar_reports_endpoint_requires_auth(
-    client: AsyncClient, db_session: AsyncSession, test_project: Project
+    client: AsyncClient, db_session: AsyncSession, test_project: tuple[Project, str]
 ):
+    project, _ = test_project
     report = await _create_report(
-        db_session, test_project, "Test bug", "A bug", tracking_id="BUG-0001"
+        db_session, project, "Test bug", "A bug", tracking_id="BUG-0001"
     )
     response = await client.get(f"{BASE}/{report.id}/similar")
     assert response.status_code == 401
@@ -136,18 +141,19 @@ async def test_similar_reports_endpoint_returns_results(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     source = await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button broken on Chrome",
         description="Cannot click the login button on Chrome",
         tracking_id="BUG-0001",
     )
     await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button broken on Safari",
         description="Cannot click the login button on Safari",
         tracking_id="BUG-0002",
@@ -178,18 +184,19 @@ async def test_similar_reports_response_schema(
     client: AsyncClient,
     auth_cookies: dict[str, str],
     db_session: AsyncSession,
-    test_project: Project,
+    test_project: tuple[Project, str],
 ):
+    project, _ = test_project
     source = await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button broken",
         description="Cannot click login button",
         tracking_id="BUG-0001",
     )
     await _create_report(
         db_session,
-        test_project,
+        project,
         title="Login button not working",
         description="Login button does not click",
         tracking_id="BUG-0002",

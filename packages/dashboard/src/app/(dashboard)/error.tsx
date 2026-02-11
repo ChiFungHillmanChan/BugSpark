@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
+import * as Sentry from "@sentry/nextjs";
 
 interface ErrorPageProps {
   error: Error & { digest?: string };
@@ -13,7 +14,7 @@ export default function DashboardError({ error, reset }: ErrorPageProps) {
   const t = useTranslations("common");
 
   useEffect(() => {
-    console.error("Dashboard error:", error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (

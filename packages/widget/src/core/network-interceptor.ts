@@ -28,6 +28,10 @@ const SENSITIVE_HEADERS = new Set([
   'cookie',
   'x-api-key',
   'proxy-authorization',
+  'x-csrf-token',
+  'x-xsrf-token',
+  'x-auth-token',
+  'www-authenticate',
 ]);
 
 function parseHeaders(

@@ -6,6 +6,7 @@ from sqlalchemy import func, literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.report import Report
+from app.utils.sql_helpers import escape_like
 
 
 _pg_trgm_cache: bool | None = None
@@ -104,7 +105,8 @@ async def _find_similar_fallback(
 
     conditions = []
     for word in significant_words:
-        pattern = f"%{word}%"
+        escaped_word = escape_like(word)
+        pattern = f"%{escaped_word}%"
         conditions.append(Report.title.ilike(pattern) | Report.description.ilike(pattern))
 
     from sqlalchemy import or_

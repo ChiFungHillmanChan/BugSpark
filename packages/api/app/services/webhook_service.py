@@ -11,6 +11,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook import Webhook
+from app.utils.encryption import decrypt_value, encrypt_value
 
 logger = logging.getLogger(__name__)
 
@@ -32,9 +33,10 @@ async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
         logger.warning("Blocked webhook delivery to unsafe URL: %s", webhook.url)
         return
 
+    secret = decrypt_value(webhook.secret)
     body = json.dumps({"event": event, "data": payload}, default=str)
     payload_bytes = body.encode("utf-8")
-    signature = _generate_signature(webhook.secret, payload_bytes)
+    signature = _generate_signature(secret, payload_bytes)
 
     headers = {
         "Content-Type": "application/json",
@@ -53,13 +55,29 @@ async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
 
 
 async def deliver_webhook_from_payload(payload: dict) -> None:
-    """Deliver a webhook from a serialized task queue payload."""
+    """Deliver a webhook from a serialized task queue payload.
+
+    Looks up the webhook by ID to decrypt the secret at delivery time,
+    rather than passing the raw secret through the task queue.
+    """
+    from app.database import async_session
     from app.utils.url_validator import validate_webhook_url
 
-    url = payload["url"]
-    secret = payload["secret"]
+    webhook_id = payload["webhook_id"]
     event = payload["event"]
     data = payload["data"]
+
+    async with async_session() as db:
+        result = await db.execute(
+            select(Webhook).where(Webhook.id == webhook_id)
+        )
+        webhook = result.scalar_one_or_none()
+        if webhook is None:
+            logger.warning("Webhook %s not found — skipping delivery", webhook_id)
+            return
+
+    url = webhook.url
+    secret = decrypt_value(webhook.secret)
 
     try:
         validate_webhook_url(url)
@@ -101,8 +119,7 @@ async def _enqueue_webhook(
         db,
         task_type="webhook_delivery",
         payload={
-            "url": webhook.url,
-            "secret": webhook.secret,
+            "webhook_id": str(webhook.id),
             "event": event,
             "data": payload,
         },

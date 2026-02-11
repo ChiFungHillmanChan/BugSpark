@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -107,7 +107,7 @@ function BetaUserRow({ user }: { user: BetaUser }) {
 export default function AdminBetaPage() {
   const t = useTranslations("beta");
   const tAdmin = useTranslations("admin");
-  const { isSuperadmin } = useAuth();
+  const { isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
   const [search, setSearch] = useState("");
@@ -125,8 +125,13 @@ export default function AdminBetaPage() {
     pageSize: 20,
   });
 
-  if (!isSuperadmin) {
-    router.push("/dashboard");
+  useEffect(() => {
+    if (!isAuthLoading && !isSuperadmin) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthLoading, isSuperadmin, router]);
+
+  if (isAuthLoading || !isSuperadmin) {
     return null;
   }
 

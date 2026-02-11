@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { version } from "../package.json";
 import { loginCommand } from "./commands/login.js";
 import { logoutCommand } from "./commands/logout.js";
 import { registerCommand } from "./commands/register.js";
@@ -26,7 +27,7 @@ const program = new Command();
 program
   .name("bugspark")
   .description("BugSpark CLI — manage projects and bug reports from the terminal")
-  .version("0.1.0");
+  .version(version);
 
 // ─── Auth ────────────────────────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ projects
 projects
   .command("delete <project-id>")
   .description("Delete a project")
+  .option("-f, --force", "Skip confirmation prompt")
   .action(deleteProjectCommand);
 
 // ─── Reports ─────────────────────────────────────────────────────────────
@@ -95,7 +97,7 @@ reports
   .command("list")
   .description("List bug reports")
   .option("-p, --project <id>", "Filter by project ID")
-  .option("-s, --status <status>", "Filter by status (open, in_progress, resolved, closed)")
+  .option("-s, --status <status>", "Filter by status (new, triaging, in_progress, resolved, closed)")
   .option("--severity <severity>", "Filter by severity (critical, high, medium, low)")
   .option("-l, --limit <n>", "Limit results")
   .action(listReportsCommand);

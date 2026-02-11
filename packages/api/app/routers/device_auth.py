@@ -18,6 +18,7 @@ from app.models.device_auth import DeviceAuthSession
 from app.models.personal_access_token import PersonalAccessToken
 from app.models.user import User
 from app.services.auth_service import create_cli_pat
+from app.utils.encryption import decrypt_value, encrypt_value
 
 
 def _utcnow() -> datetime:
@@ -187,10 +188,10 @@ async def approve_device(
     raw_token, pat = create_cli_pat(current_user.id)
     db.add(pat)
 
-    # Mark session as approved and store token
+    # Mark session as approved and store encrypted token
     session.status = "approved"
     session.user_id = current_user.id
-    session.token_value = raw_token
+    session.token_value = encrypt_value(raw_token)
     await db.commit()
 
     return DeviceApproveResponse(approved=True)
@@ -239,7 +240,7 @@ async def poll_device_token(
     if user is None:
         raise BadRequestException(translate("device.invalid_code", locale))
 
-    token = session.token_value
+    token = decrypt_value(session.token_value)
 
     # Consume the session (one-time use)
     session.status = "consumed"

@@ -100,11 +100,11 @@ pnpm dev              # Rollup watch mode
 
 ### Dashboard Patterns
 - App Router with three route groups: `(public)` (landing, docs), `(auth)` (login, register), `(dashboard)` (protected app)
-- Dashboard pages: overview, bugs (list + detail), projects (list + detail), settings (profile, integrations, tokens, team, webhooks), admin (overview, users, reports, beta)
+- Dashboard pages: overview, bugs (list + detail), projects (list + detail), settings (profile, integrations, tokens, team), admin (overview, users, reports, beta)
 - `src/lib/api-client.ts` — Axios instance with CSRF token injection (try-catch safe `decodeURIComponent`), Accept-Language header, and 401 auto-refresh interceptor
 - `src/lib/query-keys.ts` — Factory pattern for TanStack Query cache key management
-- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-webhooks, use-similar-bugs, use-team, use-debounce
-- `src/types/index.ts` — Shared TypeScript interfaces (User, Project, BugReport, Comment, Webhook, Integration, AnalysisResponse with rootCause/fixSuggestions/affectedArea, ExportResult with issueIdentifier, etc.) and `WEBHOOK_EVENTS` constant
+- `src/hooks/` — TanStack Query hooks: use-bugs, use-projects, use-comments, use-stats, use-admin, use-analysis, use-integrations, use-similar-bugs, use-team, use-debounce
+- `src/types/index.ts` — Shared TypeScript interfaces (User, Project, BugReport, Comment, Webhook, Integration, AnalysisResponse with rootCause/fixSuggestions/affectedArea, ExportResult with issueIdentifier, etc.)
 - `src/providers/` — AuthProvider (login/register/logout context), ThemeProvider (light/dark/system with localStorage), QueryProvider
 - `src/i18n/` + `src/messages/` — next-intl for English and Traditional Chinese (cookie-based `bugspark_locale`, no URL prefix)
 - `content/docs/` — MDX documentation with locale-aware loading (English + zh-TW), categories: getting-started, widget, cli, api, dashboard
@@ -119,7 +119,7 @@ pnpm dev              # Rollup watch mode
 
 ### CLI Architecture
 - Entry point: `src/index.ts` — Commander-based CLI registered as `bugspark` binary
-- **Commands:** `src/commands/` — login, register, logout, whoami, init, projects, reports, tokens, webhooks
+- **Commands:** `src/commands/` — login, register, logout, whoami, init, projects, reports, tokens
 - **Lib:** `src/lib/` — api-client (authenticated + unauthenticated factories using native fetch), config (`~/.bugspark/config.json` with 0600 permissions), output (table/success/error formatting with chalk), errors
 - Auth: email/password login or PAT-based, stores JWT token in config file
 - Default API URL: `https://bugspark-api.onrender.com/api/v1`
@@ -152,8 +152,6 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 - **Linear** (`app/services/linear_integration.py`): Creates Linear issues via GraphQL API (`https://api.linear.app/graphql`). Config requires `apiKey`, `teamId`. Uses `SEVERITY_TO_PRIORITY` mapping (critical=1, high=2, medium=3, low=4). Returns `issue_url`, `issue_identifier` (e.g. "ENG-123"), `issue_id`.
 - **Schema validation** (`app/schemas/integration.py`): `SUPPORTED_PROVIDERS = {"github", "linear"}`, validates required config keys per provider. `ExportResponse` includes `issue_identifier: str | None` for Linear.
 - **Dashboard**: Integrations settings page split into orchestrator (`page.tsx`) + `settings/components/github-integration-form.tsx`, `linear-integration-form.tsx`, `integration-list.tsx`. Bug detail page shows "Export to GitHub" and "Export to Linear" buttons.
-- **Dashboard Webhooks**: Settings → Webhooks page (`settings/webhooks/page.tsx`) with project selector, webhook list (`webhook-list.tsx`) with toggle active/delete, webhook creation form (`webhook-form.tsx`) with URL input and event checkboxes. Uses `use-webhooks.ts` hook (CRUD: `useWebhooks`, `useCreateWebhook`, `useUpdateWebhook`, `useDeleteWebhook`).
-- **CLI Webhooks**: `src/commands/webhooks.ts` — `list -p <id>`, `create <url> -p <id> [-e events]`, `update <id> [--url, --events, --active]`, `delete <id>`. Uses `WebhookResponse` type in `types.ts`.
 
 ### AI Analysis
 - **Service** (`app/services/ai_analysis_service.py`): Sends structured prompt to Anthropic API requesting 6 fields: `summary`, `suggestedCategory`, `suggestedSeverity`, `reproductionSteps`, `rootCause`, `fixSuggestions`, `affectedArea`
@@ -178,11 +176,11 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 
 ### Dashboard Tests
 - Vitest + React Testing Library with jsdom environment
-- 39 test files (287 tests) in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
+- 35 test files (261 tests) in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
 - Use `renderWithIntl` from `tests/test-utils.tsx` for components that use `useTranslations()` (wraps with NextIntlClientProvider)
 - **lib tests:** middleware (route guards, locale cookies), auth-provider (auth flow, safe redirect), api-client (baseURL, CSRF handling, malformed cookie safety), auth (login/register/logout APIs), query-keys, utils
-- **component tests:** error-boundary, confirm-dialog, severity-badge, status-badge, stat-card, skeleton-loader, empty-state, page-header, metadata-panel, console-log-viewer, session-timeline, tokens-page, api-key-display, export-to-tracker, ai-analysis-panel, network-waterfall, performance-metrics, team-page, admin-beta-page, webhook-form, webhook-list, webhooks-page
-- **hook tests:** use-bugs, use-projects, use-analysis, use-team, use-integrations, use-webhooks, use-comments, use-stats, use-admin, use-similar-bugs
+- **component tests:** error-boundary, confirm-dialog, severity-badge, status-badge, stat-card, skeleton-loader, empty-state, page-header, metadata-panel, console-log-viewer, session-timeline, tokens-page, api-key-display, export-to-tracker, ai-analysis-panel, network-waterfall, performance-metrics, team-page, admin-beta-page
+- **hook tests:** use-bugs, use-projects, use-analysis, use-team, use-integrations, use-comments, use-stats, use-admin, use-similar-bugs
 
 ### Widget Tests
 - Vitest with jsdom environment
@@ -269,7 +267,7 @@ Format: `feat(api):`, `fix(dashboard):`, scopes are `api`, `dashboard`, `widget`
 - `tests/conftest.py` (337 lines) — borderline, test fixtures are inherently verbose
 
 ### Test Coverage Gaps
-- **Dashboard:** 39 test files covering lib, hooks, and components. Remaining gaps: project detail page, settings profile page, dashboard overview page, docs pages.
+- **Dashboard:** 35 test files covering lib, hooks, and components. Remaining gaps: project detail page, settings profile page, dashboard overview page, docs pages.
 - **API:** No tests for `stats_service.py`, `ai_analysis_service.py`, `report_formatter.py`, `email_verification_service.py`, `password_reset_service.py` (direct).
 - **Widget:** No tests for `annotation-overlay.ts`, `annotation-text-blur.ts`, `toast.ts`, `floating-button.ts`, `widget-container.ts`.
 

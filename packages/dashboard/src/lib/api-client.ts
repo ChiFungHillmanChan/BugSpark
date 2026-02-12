@@ -1,4 +1,5 @@
 import axios from "axios";
+import { clearSessionIndicator } from "./auth-session";
 
 function getApiBaseUrl(): string {
   return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -112,7 +113,7 @@ apiClient.interceptors.response.use(
         await refreshPromise;
         return apiClient(originalRequest);
       } catch {
-        // AuthProvider and dashboard layout guard handle redirect to /
+        clearSessionIndicator();
       }
     }
 

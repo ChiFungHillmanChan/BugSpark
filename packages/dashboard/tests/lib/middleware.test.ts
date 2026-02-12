@@ -139,7 +139,7 @@ describe("middleware", () => {
   describe("authenticated access", () => {
     it("allows authenticated user through dashboard routes", () => {
       const request = createMockRequest("/dashboard", {
-        bugspark_access_token: "valid-token",
+        bugspark_session: "1",
       });
 
       middleware(request as Parameters<typeof middleware>[0]);
@@ -150,7 +150,7 @@ describe("middleware", () => {
 
     it("allows authenticated user through nested dashboard routes", () => {
       const request = createMockRequest("/settings/tokens", {
-        bugspark_access_token: "valid-token",
+        bugspark_session: "1",
       });
 
       middleware(request as Parameters<typeof middleware>[0]);

@@ -17,6 +17,11 @@ import {
   getMeApi,
   type RegisterResult,
 } from "@/lib/auth";
+import {
+  setSessionIndicator,
+  clearSessionIndicator,
+  hasSessionIndicator,
+} from "@/lib/auth-session";
 import type { User } from "@/types";
 
 interface AuthContextValue {
@@ -37,31 +42,30 @@ function isSafeRedirect(path: string | undefined): path is string {
   return path.startsWith("/") && !path.startsWith("//");
 }
 
-function hasAccessTokenCookie(): boolean {
-  if (typeof document === "undefined") return false;
-  return /(?:^|;\s*)bugspark_access_token=[^;]+/.test(document.cookie);
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (!hasAccessTokenCookie()) {
+    if (!hasSessionIndicator()) {
       setUser(null);
       setIsLoading(false);
       return;
     }
     getMeApi()
       .then((data) => setUser(data))
-      .catch(() => setUser(null))
+      .catch(() => {
+        clearSessionIndicator();
+        setUser(null);
+      })
       .finally(() => setIsLoading(false));
   }, []);
 
   const login = useCallback(
     async (email: string, password: string, redirectTo?: string) => {
       const data = await loginApi(email, password);
+      setSessionIndicator();
       setUser(data);
       router.push(isSafeRedirect(redirectTo) ? redirectTo : "/dashboard");
     },
@@ -72,6 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (name: string, email: string, password: string, redirectTo?: string): Promise<RegisterResult> => {
       const result = await registerApi(name, email, password);
       if (result.kind === "user") {
+        setSessionIndicator();
         setUser(result.user);
         router.push(isSafeRedirect(redirectTo) ? redirectTo : "/dashboard");
       }
@@ -89,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Intentionally ignored – local cleanup is what matters
     }
+    clearSessionIndicator();
     setUser(null);
     router.push("/");
   }, [router]);

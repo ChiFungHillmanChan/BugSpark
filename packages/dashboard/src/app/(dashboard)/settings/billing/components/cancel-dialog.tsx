@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { AlertTriangle } from "lucide-react";
 
 interface CancelDialogProps {
@@ -9,6 +10,7 @@ interface CancelDialogProps {
 }
 
 export function CancelDialog({ isCanceling, onCancel }: CancelDialogProps) {
+  const t = useTranslations("billing");
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ export function CancelDialog({ isCanceling, onCancel }: CancelDialogProps) {
         onClick={() => setIsOpen(true)}
         className="text-sm text-red-600 dark:text-red-400 hover:underline"
       >
-        Cancel Subscription
+        {t("cancelSubscription")}
       </button>
 
       {isOpen && (
@@ -39,11 +41,11 @@ export function CancelDialog({ isCanceling, onCancel }: CancelDialogProps) {
                 <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Cancel Subscription
+                {t("cancelSubscriptionDialog")}
               </h3>
             </div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-              Are you sure you want to cancel your subscription? You will retain access until the end of your current billing period, after which your plan will revert to Free.
+              {t("cancelSubscriptionConfirm")}
             </p>
             <div className="flex justify-end gap-3">
               <button
@@ -51,7 +53,7 @@ export function CancelDialog({ isCanceling, onCancel }: CancelDialogProps) {
                 onClick={() => setIsOpen(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-navy-600 rounded-md hover:bg-gray-50 dark:hover:bg-navy-700 transition-colors"
               >
-                Keep Subscription
+                {t("keepSubscription")}
               </button>
               <button
                 type="button"
@@ -62,7 +64,7 @@ export function CancelDialog({ isCanceling, onCancel }: CancelDialogProps) {
                 disabled={isCanceling}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
               >
-                {isCanceling ? "Canceling..." : "Yes, Cancel"}
+                {isCanceling ? t("canceling") : t("yesCancelSubscription")}
               </button>
             </div>
           </div>

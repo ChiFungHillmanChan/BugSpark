@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ArrowUpRight } from "lucide-react";
 import type { UserPlan } from "@/types";
 
@@ -17,11 +18,12 @@ interface PlanSelectorProps {
 }
 
 export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSelectorProps) {
+  const t = useTranslations("billing");
   const currentPlanIndex = PLAN_ORDER.indexOf(currentPlan);
 
   return (
     <div className="bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg p-6">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Change Plan</h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t("changePlan")}</h2>
       <div className="space-y-3">
         {PLAN_ORDER.map((plan, index) => {
           const isCurrent = plan === currentPlan;
@@ -36,15 +38,15 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
               >
                 <div>
                   <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
-                    {pricing?.name ?? (plan === "free" ? "Free" : "Enterprise")}
+                    {pricing?.name ?? (plan === "free" ? t("planFree") : t("planEnterprise"))}
                   </p>
                   {pricing && (
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      HK${pricing.monthly}/mo or HK${pricing.yearly}/yr
+                      {t("currency")}{pricing.monthly}/{t("monthly_short")} or {t("currency")}{pricing.yearly}/{t("yearly_short")}
                     </p>
                   )}
                 </div>
-                <span className="text-xs font-medium text-accent">Current Plan</span>
+                <span className="text-xs font-medium text-accent">{t("currentPlanLabel")}</span>
               </div>
             );
           }
@@ -57,8 +59,8 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
                 className="flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-600 transition-colors"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">Enterprise</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Custom pricing</p>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t("planEnterprise")}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t("customPricing")}</p>
                 </div>
                 <ArrowUpRight className="w-4 h-4 text-gray-400" />
               </a>
@@ -80,7 +82,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
                 <p className="text-sm font-medium text-gray-900 dark:text-white">{pricing?.name}</p>
                 {pricing && (
                   <p className="text-xs text-gray-500 dark:text-gray-400">
-                    HK${pricing.monthly}/mo or HK${pricing.yearly}/yr
+                    {t("currency")}{pricing.monthly}/{t("monthly_short")} or {t("currency")}{pricing.yearly}/{t("yearly_short")}
                   </p>
                 )}
               </div>
@@ -91,7 +93,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
                   disabled={isChanging}
                   className="px-3 py-1.5 text-xs font-medium rounded-md bg-accent text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
                 >
-                  {isUpgrade ? "Upgrade" : "Switch"} (Monthly)
+                  {isUpgrade ? t("upgrade") : t("switch")} ({t("monthly")})
                 </button>
                 <button
                   type="button"
@@ -99,7 +101,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
                   disabled={isChanging}
                   className="px-3 py-1.5 text-xs font-medium rounded-md border border-accent text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors"
                 >
-                  {isUpgrade ? "Upgrade" : "Switch"} (Yearly)
+                  {isUpgrade ? t("upgrade") : t("switch")} ({t("yearly")})
                 </button>
               </div>
             </div>

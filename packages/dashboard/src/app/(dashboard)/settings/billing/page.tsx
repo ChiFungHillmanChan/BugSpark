@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAuth } from "@/providers/auth-provider";
@@ -20,6 +21,7 @@ import { CancelDialog } from "./components/cancel-dialog";
 import type { UserPlan } from "@/types";
 
 export default function BillingPage() {
+  const t = useTranslations("billing");
   const { user } = useAuth();
   const { data: subscription, isLoading: isLoadingSubscription } = useSubscription();
   const { data: invoices, isLoading: isLoadingInvoices } = useInvoices();
@@ -54,7 +56,7 @@ export default function BillingPage() {
   if (isLoadingSubscription) {
     return (
       <div className="max-w-xl">
-        <PageHeader title="Billing" />
+        <PageHeader title={t("title")} />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
         </div>
@@ -70,11 +72,11 @@ export default function BillingPage() {
           className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Settings
+          {t("backToSettings")}
         </Link>
       </div>
 
-      <PageHeader title="Billing" />
+      <PageHeader title={t("title")} />
 
       <div className="space-y-6">
         {subscription && <SubscriptionCard subscription={subscription} />}

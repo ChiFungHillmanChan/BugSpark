@@ -28,34 +28,34 @@ const MDX_MODULES: Record<string, () => Promise<MDXModule>> = {
     import("@content/docs/dashboard/project-setup.mdx"),
 };
 
-const MDX_MODULES_ZH_TW: Record<string, () => Promise<MDXModule>> = {
+const MDX_MODULES_ZH_HK: Record<string, () => Promise<MDXModule>> = {
   "getting-started": () =>
-    import("@content/docs/zh-TW/getting-started.mdx"),
+    import("@content/docs/zh-HK/getting-started.mdx"),
   "widget/installation": () =>
-    import("@content/docs/zh-TW/widget/installation.mdx"),
+    import("@content/docs/zh-HK/widget/installation.mdx"),
   "widget/configuration": () =>
-    import("@content/docs/zh-TW/widget/configuration.mdx"),
+    import("@content/docs/zh-HK/widget/configuration.mdx"),
   "widget/annotation-tools": () =>
-    import("@content/docs/zh-TW/widget/annotation-tools.mdx"),
+    import("@content/docs/zh-HK/widget/annotation-tools.mdx"),
   "widget/advanced": () =>
-    import("@content/docs/zh-TW/widget/advanced.mdx"),
+    import("@content/docs/zh-HK/widget/advanced.mdx"),
   "cli/installation": () =>
-    import("@content/docs/zh-TW/cli/installation.mdx"),
-  "cli/commands": () => import("@content/docs/zh-TW/cli/commands.mdx"),
+    import("@content/docs/zh-HK/cli/installation.mdx"),
+  "cli/commands": () => import("@content/docs/zh-HK/cli/commands.mdx"),
   "cli/authentication": () =>
-    import("@content/docs/zh-TW/cli/authentication.mdx"),
-  "cli/ai-setup": () => import("@content/docs/zh-TW/cli/ai-setup.mdx"),
+    import("@content/docs/zh-HK/cli/authentication.mdx"),
+  "cli/ai-setup": () => import("@content/docs/zh-HK/cli/ai-setup.mdx"),
   "api/authentication": () =>
-    import("@content/docs/zh-TW/api/authentication.mdx"),
-  "api/reports": () => import("@content/docs/zh-TW/api/reports.mdx"),
-  "api/projects": () => import("@content/docs/zh-TW/api/projects.mdx"),
-  "api/webhooks": () => import("@content/docs/zh-TW/api/webhooks.mdx"),
+    import("@content/docs/zh-HK/api/authentication.mdx"),
+  "api/reports": () => import("@content/docs/zh-HK/api/reports.mdx"),
+  "api/projects": () => import("@content/docs/zh-HK/api/projects.mdx"),
+  "api/webhooks": () => import("@content/docs/zh-HK/api/webhooks.mdx"),
   "dashboard/overview": () =>
-    import("@content/docs/zh-TW/dashboard/overview.mdx"),
+    import("@content/docs/zh-HK/dashboard/overview.mdx"),
   "dashboard/bug-management": () =>
-    import("@content/docs/zh-TW/dashboard/bug-management.mdx"),
+    import("@content/docs/zh-HK/dashboard/bug-management.mdx"),
   "dashboard/project-setup": () =>
-    import("@content/docs/zh-TW/dashboard/project-setup.mdx"),
+    import("@content/docs/zh-HK/dashboard/project-setup.mdx"),
 };
 
 const LOCALE_MODULES: Record<
@@ -63,7 +63,7 @@ const LOCALE_MODULES: Record<
   Record<string, () => Promise<MDXModule>>
 > = {
   en: MDX_MODULES,
-  "zh-TW": MDX_MODULES_ZH_TW,
+  "zh-HK": MDX_MODULES_ZH_HK,
 };
 
 export async function loadMDXContent(

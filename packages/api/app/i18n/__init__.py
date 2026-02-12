@@ -3,14 +3,14 @@ from __future__ import annotations
 from fastapi import Request
 
 from app.i18n.messages.en import MESSAGES as EN_MESSAGES
-from app.i18n.messages.zh_tw import MESSAGES as ZH_TW_MESSAGES
+from app.i18n.messages.zh_hk import MESSAGES as ZH_HK_MESSAGES
 
-SUPPORTED_LOCALES = {"en", "zh-TW"}
-DEFAULT_LOCALE = "en"
+SUPPORTED_LOCALES = {"en", "zh-HK"}
+DEFAULT_LOCALE = "zh-HK"
 
 _MESSAGE_MAP: dict[str, dict[str, str]] = {
     "en": EN_MESSAGES,
-    "zh-TW": ZH_TW_MESSAGES,
+    "zh-HK": ZH_HK_MESSAGES,
 }
 
 
@@ -21,7 +21,7 @@ def get_locale(request: Request) -> str:
         if locale.lower() in accept_lang.lower():
             return locale
     if "zh" in accept_lang.lower():
-        return "zh-TW"
+        return "zh-HK"
     return DEFAULT_LOCALE
 
 

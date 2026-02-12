@@ -23,8 +23,8 @@ vi.mock("next/server", () => {
 
 vi.mock("@/i18n/config", () => ({
   LOCALE_COOKIE_NAME: "bugspark_locale",
-  defaultLocale: "en",
-  locales: ["en", "zh-TW"],
+  defaultLocale: "zh-HK",
+  locales: ["en", "zh-HK"],
 }));
 
 import { middleware, config } from "@/middleware";
@@ -205,7 +205,7 @@ describe("middleware", () => {
 
       expect(mockCookiesSet).toHaveBeenCalledWith(
         "bugspark_locale",
-        "en",
+        "zh-HK",
         { path: "/", maxAge: 31536000, sameSite: "lax" },
       );
     });
@@ -219,14 +219,14 @@ describe("middleware", () => {
 
       expect(mockCookiesSet).toHaveBeenCalledWith(
         "bugspark_locale",
-        "en",
+        "zh-HK",
         { path: "/", maxAge: 31536000, sameSite: "lax" },
       );
     });
 
-    it("does not overwrite valid locale cookie (zh-TW)", () => {
+    it("does not overwrite valid locale cookie (zh-HK)", () => {
       const request = createMockRequest("/", {
-        bugspark_locale: "zh-TW",
+        bugspark_locale: "zh-HK",
       });
 
       middleware(request as Parameters<typeof middleware>[0]);

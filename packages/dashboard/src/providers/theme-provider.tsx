@@ -40,8 +40,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Sync from localStorage after mount (client-only)
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    // Migrate legacy "system" value to "light"
-    const resolved: Theme = stored === "dark" ? "dark" : "light";
+    // Migrate legacy "system" value to "dark"
+    const resolved: Theme = stored === "light" ? "light" : "dark";
     setThemeState(resolved);
     setResolvedTheme(resolved);
     applyTheme(resolved);
@@ -58,7 +58,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
       <script
         dangerouslySetInnerHTML={{
-          __html: `(function(){try{var r=localStorage.getItem("bugspark_theme")==="dark";document.documentElement.classList.toggle("dark",r)}catch(e){}})()`,
+          __html: `(function(){try{var s=localStorage.getItem("bugspark_theme");var r=s?s==="dark":true;document.documentElement.classList.toggle("dark",r)}catch(e){document.documentElement.classList.add("dark")}})()`,
         }}
       />
       {children}

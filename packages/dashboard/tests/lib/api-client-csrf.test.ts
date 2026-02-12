@@ -111,8 +111,8 @@ describe("api-client CSRF and locale handling", () => {
       expect(result.headers["Accept-Language"]).toBe("en");
     });
 
-    it("sets Accept-Language to zh-TW when bugspark_locale cookie exists", () => {
-      document.cookie = "bugspark_locale=zh-TW; path=/";
+    it("sets Accept-Language to zh-HK when bugspark_locale cookie exists", () => {
+      document.cookie = "bugspark_locale=zh-HK; path=/";
 
       const config = createConfig();
 
@@ -120,7 +120,7 @@ describe("api-client CSRF and locale handling", () => {
         config as unknown as Record<string, unknown>,
       ) as ReturnType<typeof createConfig>;
 
-      expect(result.headers["Accept-Language"]).toBe("zh-TW");
+      expect(result.headers["Accept-Language"]).toBe("zh-HK");
     });
 
     it("returns 'en' when locale cookie value is malformed (%ZZ)", () => {

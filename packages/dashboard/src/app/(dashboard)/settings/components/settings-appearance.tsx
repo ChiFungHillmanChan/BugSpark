@@ -9,7 +9,7 @@ import type { Locale } from "@/i18n/config";
 
 const LOCALE_LABELS: Record<Locale, string> = {
   en: "English",
-  "zh-TW": "繁體中文",
+  "zh-HK": "廣東話",
 };
 
 const THEME_OPTIONS: { value: Theme; icon: typeof Sun; key: string }[] = [

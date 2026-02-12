@@ -365,3 +365,22 @@ async def approved_beta_user(db_session: AsyncSession) -> User:
     await db_session.commit()
     await db_session.refresh(user)
     return user
+
+
+# Fixture aliases for backward compatibility
+@pytest.fixture()
+async def db(db_session: AsyncSession) -> AsyncSession:
+    """Alias for db_session."""
+    return db_session
+
+
+@pytest.fixture()
+async def user(test_user: User) -> User:
+    """Alias for test_user."""
+    return test_user
+
+
+@pytest.fixture()
+async def project(test_project: tuple[Project, str]) -> Project:
+    """Alias for test_project that returns just the project."""
+    return test_project[0]

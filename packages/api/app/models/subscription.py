@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 from app.models.enums import Plan
+from typing import Optional
 
 
 class Subscription(Base):
@@ -42,7 +43,7 @@ class Subscription(Base):
     cancel_at_period_end: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False
     )
-    canceled_at: Mapped[datetime | None] = mapped_column(
+    canceled_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(

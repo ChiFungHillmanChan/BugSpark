@@ -5,6 +5,7 @@ import json
 import pytest
 from httpx import AsyncClient
 from unittest.mock import patch, AsyncMock
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.webhook import Webhook
@@ -153,9 +154,12 @@ async def test_webhook_marks_error_in_database(client: AsyncClient, db: AsyncSes
         )
 
     # Check that webhook record was created/updated with error info
-    webhook = await db.query(Webhook).filter(
-        Webhook.external_id == "evt_test_123456"
-    ).first()
+    result = await db.execute(
+        select(Webhook).where(
+            Webhook.external_id == "evt_test_123456"
+        )
+    )
+    webhook = result.scalar_one_or_none()
 
     if webhook:
         assert webhook.error_message is not None
@@ -200,8 +204,11 @@ async def test_webhook_retry_count_increments(client: AsyncClient, db: AsyncSess
     assert response2.status_code >= 400
 
     # Check retry count increased
-    webhook = await db.query(Webhook).filter(
-        Webhook.external_id == "evt_test_123456"
-    ).first()
+    result = await db.execute(
+        select(Webhook).where(
+            Webhook.external_id == "evt_test_123456"
+        )
+    )
+    webhook = result.scalar_one_or_none()
 
     assert webhook and webhook.retry_count >= 2

@@ -8,8 +8,14 @@ import BillingPage from "@/app/(dashboard)/settings/billing/page";
 const originalLocation = window.location;
 let locationHrefMock = "";
 
+interface CheckoutOptions {
+  onSuccess?: (data: { sessionId: string; url?: string }) => void;
+  onError?: (error: Error) => void;
+}
+
 beforeEach(() => {
-  delete (window as any).location;
+  const windowObj = window as unknown as { location: unknown };
+  delete windowObj.location;
   window.location = {
     ...originalLocation,
     href: "",
@@ -26,7 +32,7 @@ beforeEach(() => {
 // Mock the checkout mutation hook
 vi.mock("@/hooks/use-billing", () => ({
   useCheckoutSession: () => ({
-    mutate: vi.fn((data: unknown, options: any) => {
+    mutate: vi.fn((data: unknown, options: CheckoutOptions) => {
       // Simulate successful checkout session creation with sessionId
       if (options?.onSuccess) {
         options.onSuccess({
@@ -64,7 +70,7 @@ describe("BillingPage Stripe Redirect", () => {
 
     vi.mock("@/hooks/use-billing", () => ({
       useCheckoutSession: () => ({
-        mutate: vi.fn((_data: unknown, options: any) => {
+        mutate: vi.fn((_data: unknown, options: CheckoutOptions) => {
           if (options?.onSuccess) {
             options.onSuccess({ sessionId });
           }
@@ -85,7 +91,6 @@ describe("BillingPage Stripe Redirect", () => {
   });
 
   it("does NOT redirect if mutation is still pending", async () => {
-    const user = userEvent.setup();
 
     vi.mock("@/hooks/use-billing", () => ({
       useCheckoutSession: () => ({
@@ -108,7 +113,7 @@ describe("BillingPage Stripe Redirect", () => {
 
     vi.mock("@/hooks/use-billing", () => ({
       useCheckoutSession: () => ({
-        mutate: vi.fn((_data: unknown, options: any) => {
+        mutate: vi.fn((_data: unknown, options: CheckoutOptions) => {
           if (options?.onError) {
             options.onError(new Error("Checkout failed"));
           }

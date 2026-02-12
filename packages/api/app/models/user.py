@@ -9,6 +9,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
 from app.models.enums import BetaStatus, Plan, Role
+from typing import Optional
 
 
 class User(Base):
@@ -18,8 +19,8 @@ class User(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
+    hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[Role] = mapped_column(
         SAEnum(Role, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),
@@ -34,7 +35,7 @@ class User(Base):
         nullable=False,
         index=True,
     )
-    plan_expires_at: Mapped[datetime | None] = mapped_column(
+    plan_expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
     is_active: Mapped[bool] = mapped_column(
@@ -46,37 +47,37 @@ class User(Base):
         server_default="none",
         nullable=False,
     )
-    beta_applied_at: Mapped[datetime | None] = mapped_column(
+    beta_applied_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
-    beta_reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    beta_reason: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
     is_email_verified: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False
     )
-    email_verification_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    email_verification_expires_at: Mapped[datetime | None] = mapped_column(
+    email_verification_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    email_verification_expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    password_reset_token: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    password_reset_expires_at: Mapped[datetime | None] = mapped_column(
+    password_reset_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    password_reset_expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    notification_preferences: Mapped[dict | None] = mapped_column(
+    notification_preferences: Mapped[Optional[dict]] = mapped_column(
         JSON, nullable=True, default=None
     )
-    stripe_customer_id: Mapped[str | None] = mapped_column(
+    stripe_customer_id: Mapped[Optional[str]] = mapped_column(
         String(255), nullable=True, unique=True, index=True
     )
-    stripe_subscription_id: Mapped[str | None] = mapped_column(
+    stripe_subscription_id: Mapped[Optional[str]] = mapped_column(
         String(255), nullable=True, index=True
     )
-    subscription_status: Mapped[str | None] = mapped_column(
+    subscription_status: Mapped[Optional[str]] = mapped_column(
         String(50), nullable=True
     )
     cancel_at_period_end: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False
     )
-    refresh_token_jti: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    refresh_token_jti: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

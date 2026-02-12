@@ -100,7 +100,7 @@ async def create_checkout_session(
         mode="subscription",
         ui_mode="embedded",
         line_items=[{"price": price_id, "quantity": 1}],
-        return_url=f"{settings.FRONTEND_URL}/dashboard/settings/billing?session_id={{CHECKOUT_SESSION_ID}}",
+        return_url=f"{settings.FRONTEND_URL}/settings/billing?session_id={{CHECKOUT_SESSION_ID}}",
         metadata={"user_id": str(user.id), "plan": body.plan},
     )
     return CreateCheckoutSessionResponse(

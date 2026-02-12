@@ -111,14 +111,14 @@ async def handle_stripe_webhook(request: Request) -> dict[str, str]:
             await _dispatch_event(db, event_type, event.data["object"])
             webhook_record.processed = True
             webhook_record.processed_at = datetime.now(timezone.utc)
+            await db.commit()
+            return {"status": "ok"}
         except Exception:
             logger.exception("Error processing Stripe event %s", event_id)
             webhook_record.error_message = "Processing failed"
             webhook_record.retry_count += 1
-
-        await db.commit()
-
-    return {"status": "ok"}
+            await db.commit()
+            raise
 
 
 async def _dispatch_event(

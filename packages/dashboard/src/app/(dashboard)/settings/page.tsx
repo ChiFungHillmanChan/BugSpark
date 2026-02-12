@@ -1,110 +1,66 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/shared/page-header";
-import { Github, Key, ChevronRight, Users, Radio, CreditCard } from "lucide-react";
-import { NotificationSettings } from "@/components/settings/notification-settings";
-import { SettingsProfileForm } from "./components/settings-profile-form";
-import { SettingsPasswordForm } from "./components/settings-password-form";
-import { SettingsGoogleSection } from "./components/settings-google-section";
-import { SettingsAppearance } from "./components/settings-appearance";
-import { SettingsAccountSection } from "./components/settings-account-section";
+import { User, CreditCard, Plug, Palette, AlertTriangle } from "lucide-react";
+import { ProfileTab } from "./components/profile-tab";
+import { BillingTab } from "./components/billing-tab";
+import { IntegrationsTab } from "./components/integrations-tab";
+import { AppearanceTab } from "./components/appearance-tab";
+import { AccountTab } from "./components/account-tab";
+
+type SettingsTab = "profile" | "billing" | "integrations" | "appearance" | "account";
 
 export default function SettingsPage() {
   const t = useTranslations("settings");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
+
+  const TABS: Array<{ key: SettingsTab; label: string; icon: typeof User }> = [
+    { key: "profile", label: t("tabProfile"), icon: User },
+    { key: "billing", label: t("tabBilling"), icon: CreditCard },
+    { key: "integrations", label: t("tabIntegrations"), icon: Plug },
+    { key: "appearance", label: t("tabAppearance"), icon: Palette },
+    { key: "account", label: t("tabAccount"), icon: AlertTriangle },
+  ];
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-2xl">
       <PageHeader title={t("title")} />
 
-      <SettingsProfileForm />
-      <SettingsPasswordForm />
-      <SettingsGoogleSection />
+      <nav className="flex gap-1 overflow-x-auto pb-px mb-6 -mx-1 px-1 scrollbar-hide" role="tablist">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.key;
+          const isDanger = tab.key === "account";
+          return (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap shrink-0",
+                isActive && !isDanger && "bg-accent/10 text-accent",
+                isActive && isDanger && "bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400",
+                !isActive && "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-navy-800 hover:text-gray-700 dark:hover:text-gray-300",
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
 
-      <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
-        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("billing")}</h2>
-        <div className="space-y-3">
-          <Link
-            href="/settings/billing"
-            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("billing")}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("billingDesc")}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </Link>
-        </div>
-      </section>
-
-      <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
-        <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("integrations")}</h2>
-        <div className="space-y-3">
-          <Link
-            href="/settings/integrations"
-            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Github className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("issueTrackers")}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("issueTrackersDesc")}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </Link>
-          <Link
-            href="/settings/tokens"
-            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Key className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("personalAccessTokens")}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("personalAccessTokensDesc")}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </Link>
-          <Link
-            href="/settings/team"
-            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("teamMembers")}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("teamMembersDesc")}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </Link>
-          <Link
-            href="/settings/webhooks"
-            className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg hover:border-gray-300 dark:hover:border-navy-700 transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <Radio className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">{t("webhooks")}</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t("webhooksDesc")}</p>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-          </Link>
-        </div>
-      </section>
-
-      <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
-        <NotificationSettings />
-      </section>
-
-      <SettingsAppearance />
-      <SettingsAccountSection />
+      <div role="tabpanel">
+        {activeTab === "profile" && <ProfileTab />}
+        {activeTab === "billing" && <BillingTab />}
+        {activeTab === "integrations" && <IntegrationsTab />}
+        {activeTab === "appearance" && <AppearanceTab />}
+        {activeTab === "account" && <AccountTab />}
+      </div>
     </div>
   );
 }

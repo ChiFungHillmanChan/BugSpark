@@ -22,8 +22,8 @@ describe("PlanSelector", () => {
       <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
     );
 
-    const monthlyButton = screen.getByRole("button", { name: /Monthly/i });
-    await user.click(monthlyButton);
+    const monthlyButtons = screen.getAllByRole("button", { name: /Monthly/i });
+    await user.click(monthlyButtons[0]);
 
     expect(mockOnChangePlan).toHaveBeenCalledWith(plan, MONTHLY);
   });
@@ -36,8 +36,8 @@ describe("PlanSelector", () => {
       <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
     );
 
-    const yearlyButton = screen.getByRole("button", { name: /Yearly/i });
-    await user.click(yearlyButton);
+    const yearlyButtons = screen.getAllByRole("button", { name: /Yearly/i });
+    await user.click(yearlyButtons[0]);
 
     expect(mockOnChangePlan).toHaveBeenCalledWith(plan, YEARLY);
   });
@@ -50,8 +50,8 @@ describe("PlanSelector", () => {
       <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
     );
 
-    const monthlyButton = screen.getByRole("button", { name: /Monthly/i });
-    await user.click(monthlyButton);
+    const monthlyButtons = screen.getAllByRole("button", { name: /Monthly/i });
+    await user.click(monthlyButtons[0]);
 
     // Verify it does NOT send "monthly"
     expect(mockOnChangePlan).not.toHaveBeenCalledWith(
@@ -68,8 +68,8 @@ describe("PlanSelector", () => {
       <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
     );
 
-    const yearlyButton = screen.getByRole("button", { name: /Yearly/i });
-    await user.click(yearlyButton);
+    const yearlyButtons = screen.getAllByRole("button", { name: /Yearly/i });
+    await user.click(yearlyButtons[0]);
 
     // Verify it does NOT send "yearly"
     expect(mockOnChangePlan).not.toHaveBeenCalledWith(

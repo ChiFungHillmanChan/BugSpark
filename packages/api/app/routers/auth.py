@@ -25,7 +25,7 @@ from app.schemas.auth import (
     LoginRequest,
     RegisterRequest,
 )
-from app.schemas.user import UserResponse, UserUpdate
+from app.schemas.user import UserResponse, UserUpdate, build_user_response
 from app.services.auth_service import (
     hash_password,
     verify_password,
@@ -80,7 +80,7 @@ async def register(
 
     await issue_tokens(user, response, db)
 
-    return UserResponse.model_validate(user)
+    return build_user_response(user)
 
 
 @router.post("/login", response_model=UserResponse)
@@ -92,7 +92,7 @@ async def login(
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(body.password, user.hashed_password):
+    if user is None or not user.hashed_password or not verify_password(body.password, user.hashed_password):
         raise UnauthorizedException(translate("auth.invalid_credentials", locale))
 
     if not user.is_active:
@@ -102,7 +102,7 @@ async def login(
 
     await issue_tokens(user, response, db)
 
-    return UserResponse.model_validate(user)
+    return build_user_response(user)
 
 
 @router.post("/refresh", response_model=UserResponse)
@@ -137,7 +137,7 @@ async def refresh(
 
     await issue_tokens(user, response, db)
 
-    return UserResponse.model_validate(user)
+    return build_user_response(user)
 
 
 @router.post("/logout")
@@ -164,7 +164,7 @@ async def get_me(
     csrf_token = request.cookies.get("bugspark_csrf_token")
     if csrf_token:
         response.headers["X-CSRF-Token"] = csrf_token
-    return UserResponse.model_validate(current_user)
+    return build_user_response(current_user)
 
 
 @router.patch("/me", response_model=UserResponse)
@@ -184,7 +184,7 @@ async def update_me(
     await db.commit()
     await db.refresh(current_user)
 
-    return UserResponse.model_validate(current_user)
+    return build_user_response(current_user)
 
 
 @router.get("/me/export")
@@ -217,6 +217,7 @@ async def delete_my_account(
     current_user.refresh_token_jti = None
     current_user.email_verification_token = None
     current_user.password_reset_token = None
+    current_user.google_id = None
 
     # Delete all personal access tokens
     await db.execute(

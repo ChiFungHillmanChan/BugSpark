@@ -7,6 +7,7 @@ import { Github, Key, ChevronRight, Users, Radio } from "lucide-react";
 import { NotificationSettings } from "@/components/settings/notification-settings";
 import { SettingsProfileForm } from "./components/settings-profile-form";
 import { SettingsPasswordForm } from "./components/settings-password-form";
+import { SettingsGoogleSection } from "./components/settings-google-section";
 import { SettingsAppearance } from "./components/settings-appearance";
 import { SettingsAccountSection } from "./components/settings-account-section";
 
@@ -19,6 +20,7 @@ export default function SettingsPage() {
 
       <SettingsProfileForm />
       <SettingsPasswordForm />
+      <SettingsGoogleSection />
 
       <section className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("integrations")}</h2>

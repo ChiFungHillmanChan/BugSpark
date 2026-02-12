@@ -39,6 +39,10 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+class SetPasswordRequest(BaseModel):
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class CLIAuthResponse(CamelModel):
     """Response for CLI login/register — returns user info + a PAT token."""
 

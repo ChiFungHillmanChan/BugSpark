@@ -59,7 +59,12 @@
     "passwordResetSuccess": "Password reset",
     "passwordResetSuccessDesc": "Your password has been reset successfully. You can now sign in with your new password.",
     "goToLogin": "Go to login",
-    "forgotPasswordLink": "Forgot password?"
+    "forgotPasswordLink": "Forgot password?",
+    "continueWithGoogle": "Continue with Google",
+    "orContinueWith": "or continue with email",
+    "googleDenied": "Google sign-in was cancelled.",
+    "googleFailed": "Google sign-in failed. Please try again.",
+    "accountDeactivated": "Your account has been deactivated."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -279,7 +284,19 @@
     "deleting": "Deleting...",
     "deleteCancel": "Cancel",
     "exportFailed": "Failed to export data. Please try again.",
-    "deleteAccountFailed": "Failed to delete account. Please try again."
+    "deleteAccountFailed": "Failed to delete account. Please try again.",
+    "googleAccount": "Google Account",
+    "googleLinked": "Google account linked",
+    "googleLinkedDesc": "Your Google account is connected for sign-in.",
+    "googleLink": "Link Google Account",
+    "googleLinkDesc": "Connect your Google account for quick sign-in.",
+    "googleUnlink": "Unlink",
+    "googleUnlinked": "Google account unlinked.",
+    "googleUnlinkFailed": "Failed to unlink Google account.",
+    "googleUnlinkNeedsPassword": "Set a password first before unlinking Google.",
+    "setPassword": "Set Password",
+    "settingPassword": "Setting...",
+    "setPasswordDesc": "Set a password to enable email login alongside Google."
   },
   "team": {
     "title": "Team Members",

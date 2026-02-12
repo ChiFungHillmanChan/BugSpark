@@ -10,7 +10,7 @@ from app.exceptions import BadRequestException
 from app.i18n import get_locale, translate
 from app.models.user import User
 from app.rate_limiter import limiter
-from app.schemas.auth import ForgotPasswordRequest, ResetPasswordRequest
+from app.schemas.auth import ForgotPasswordRequest, ResetPasswordRequest, SetPasswordRequest
 from app.schemas.user import PasswordChange
 from app.services.auth_service import hash_password, verify_password
 from app.services.password_reset_service import (
@@ -30,6 +30,9 @@ async def change_password(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, str]:
     locale = get_locale(request)
+
+    if not current_user.hashed_password:
+        raise BadRequestException(translate("auth.no_password_set", locale))
 
     if not verify_password(body.current_password, current_user.hashed_password):
         raise BadRequestException(translate("auth.wrong_current_password", locale))
@@ -68,3 +71,23 @@ async def reset_password_endpoint(
     if not success:
         raise BadRequestException(translate("auth.invalid_reset_token", locale))
     return {"detail": "Password has been reset successfully."}
+
+
+@router.post("/me/password")
+@limiter.limit("3/minute")
+async def set_password(
+    body: SetPasswordRequest,
+    request: Request,
+    current_user: User = Depends(get_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, str]:
+    """Set initial password for OAuth-only users who have no password."""
+    locale = get_locale(request)
+
+    if current_user.hashed_password:
+        raise BadRequestException(translate("auth.password_already_set", locale))
+
+    current_user.hashed_password = hash_password(body.new_password)
+    await db.commit()
+
+    return {"detail": translate("auth.password_set", locale)}

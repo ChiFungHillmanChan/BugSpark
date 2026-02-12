@@ -20,7 +20,7 @@ from app.middleware.csrf import CSRFMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
-from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_password, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
+from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_google, auth_password, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +112,7 @@ register_exception_handlers(app)
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(auth_password.router, prefix="/api/v1")
+app.include_router(auth_google.router, prefix="/api/v1")
 app.include_router(auth_email.router, prefix="/api/v1")
 app.include_router(auth_beta.router, prefix="/api/v1")
 app.include_router(auth_cli.router, prefix="/api/v1")

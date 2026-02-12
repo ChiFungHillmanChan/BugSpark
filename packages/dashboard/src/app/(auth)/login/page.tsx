@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, Clock, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { isAxiosError } from "axios";
 import { useAuth } from "@/providers/auth-provider";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 type BetaState = "none" | "waiting_list" | "rejected";
 
@@ -21,6 +22,21 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [betaState, setBetaState] = useState<BetaState>("none");
+
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam === "google_denied") {
+      setError(t("googleDenied"));
+    } else if (errorParam === "google_failed") {
+      setError(t("googleFailed"));
+    } else if (errorParam === "account_deactivated") {
+      setError(t("accountDeactivated"));
+    } else if (errorParam === "beta.waiting_list") {
+      setBetaState("waiting_list");
+    } else if (errorParam === "beta.rejected") {
+      setBetaState("rejected");
+    }
+  }, [searchParams, t]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -119,6 +135,19 @@ export default function LoginPage() {
             {t("createOne")}
           </Link>
         </p>
+
+        <GoogleSignInButton redirect={searchParams.get("redirect") ?? undefined} />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200 dark:border-white/[0.08]" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white dark:bg-navy-800/60 px-4 text-gray-500 dark:text-gray-400">
+              {t("orContinueWith")}
+            </span>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm sm:text-base border-l-4 border-red-500">

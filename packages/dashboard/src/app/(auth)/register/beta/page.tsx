@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Eye, EyeOff, Loader2, Clock, CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import apiClient from "@/lib/api-client";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 export default function BetaRegisterPage() {
   const t = useTranslations("beta");
@@ -79,6 +80,19 @@ export default function BetaRegisterPage() {
         <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8">
           {t("subtitle")}
         </p>
+
+        <GoogleSignInButton mode="login" />
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200 dark:border-white/[0.08]" />
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="bg-white dark:bg-navy-800/60 px-4 text-gray-500 dark:text-gray-400">
+              {tAuth("orContinueWith")}
+            </span>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-5 sm:mb-6 p-3 sm:p-4 rounded-xl bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm sm:text-base border-l-4 border-red-500">

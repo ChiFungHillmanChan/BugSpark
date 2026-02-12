@@ -271,6 +271,37 @@ async def beta_mode_on(db_session: AsyncSession) -> AppSettings:
 
 
 @pytest.fixture()
+async def google_oauth_user(db_session: AsyncSession) -> User:
+    """A user authenticated via Google OAuth (has google_id, no password)."""
+    user = User(
+        id=uuid.uuid4(),
+        email="googleuser@gmail.com",
+        hashed_password=None,
+        google_id="google_12345",
+        name="Google User",
+        role=Role.USER,
+        plan=Plan.FREE,
+        is_active=True,
+        is_email_verified=True,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture()
+def google_oauth_cookies(google_oauth_user: User) -> dict[str, str]:
+    token = create_access_token(str(google_oauth_user.id), google_oauth_user.email)
+    return {
+        "bugspark_access_token": token,
+        "bugspark_csrf_token": CSRF_TEST_TOKEN,
+    }
+
+
+@pytest.fixture()
 async def pending_beta_user(db_session: AsyncSession) -> User:
     """A user with beta_status=PENDING (on waiting list)."""
     user = User(

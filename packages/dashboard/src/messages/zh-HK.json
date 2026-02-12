@@ -59,7 +59,12 @@
     "passwordResetSuccess": "密碼已重設",
     "passwordResetSuccessDesc": "您的密碼已成功重設。您現在可以使用新密碼登入。",
     "goToLogin": "前往登入",
-    "forgotPasswordLink": "忘記密碼？"
+    "forgotPasswordLink": "忘記密碼？",
+    "continueWithGoogle": "使用 Google 繼續",
+    "orContinueWith": "或使用電子郵件繼續",
+    "googleDenied": "Google 登入已取消。",
+    "googleFailed": "Google 登入失敗，請重試。",
+    "accountDeactivated": "您的帳號已被停用。"
   },
   "dashboard": {
     "title": "儀表板",
@@ -279,7 +284,19 @@
     "deleting": "刪除中...",
     "deleteCancel": "取消",
     "exportFailed": "匯出資料失敗，請重試。",
-    "deleteAccountFailed": "刪除帳戶失敗，請重試。"
+    "deleteAccountFailed": "刪除帳戶失敗，請重試。",
+    "googleAccount": "Google 帳號",
+    "googleLinked": "Google 帳號已連結",
+    "googleLinkedDesc": "您的 Google 帳號已連結用於登入。",
+    "googleLink": "連結 Google 帳號",
+    "googleLinkDesc": "連結您的 Google 帳號以快速登入。",
+    "googleUnlink": "取消連結",
+    "googleUnlinked": "已取消連結 Google 帳號。",
+    "googleUnlinkFailed": "取消連結 Google 帳號失敗。",
+    "googleUnlinkNeedsPassword": "請先設定密碼再取消連結 Google。",
+    "setPassword": "設定密碼",
+    "settingPassword": "設定中...",
+    "setPasswordDesc": "設定密碼以啟用電子郵件登入功能。"
   },
   "team": {
     "title": "團隊成員",

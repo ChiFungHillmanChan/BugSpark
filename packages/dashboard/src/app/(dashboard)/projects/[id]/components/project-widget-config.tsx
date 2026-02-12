@@ -69,7 +69,7 @@ export function ProjectWidgetConfig({ project }: ProjectWidgetConfigProps) {
   }
 
   return (
-    <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+    <div>
       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("widgetAppearance")}</h3>
       <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">{t("widgetColorDesc")}</p>
 

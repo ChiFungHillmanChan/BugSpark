@@ -43,18 +43,18 @@ export function ProjectDangerZone({ project }: ProjectDangerZoneProps) {
 
   return (
     <>
-      <div className="border-t border-red-200 dark:border-red-900/50 pt-8 space-y-6">
+      <div className="space-y-6">
         <h3 className="text-sm font-medium text-red-600 dark:text-red-400 mb-2">{t("dangerZone")}</h3>
 
         <div className="rounded-lg border border-red-200 dark:border-red-900/50 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t("deactivateProject")}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("deactivateMessage")}</p>
             </div>
             <button
               onClick={() => setIsDeactivateOpen(true)}
-              className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm font-medium shrink-0 ml-4"
+              className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg text-sm font-medium shrink-0 w-full sm:w-auto"
             >
               {t("deactivateProject")}
             </button>
@@ -62,14 +62,14 @@ export function ProjectDangerZone({ project }: ProjectDangerZoneProps) {
         </div>
 
         <div className="rounded-lg border border-red-200 dark:border-red-900/50 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{t("deleteProject")}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t("deleteMessage")}</p>
             </div>
             <button
               onClick={() => { setDeleteConfirmText(""); setIsDeleteOpen(true); }}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shrink-0 ml-4"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium shrink-0 w-full sm:w-auto"
             >
               {t("deleteProject")}
             </button>

@@ -240,7 +240,11 @@
     "deleteMessage": "Permanently delete this project and all its bug reports, screenshots, and data. This action cannot be undone.",
     "deleteConfirmMessage": "This will permanently delete the project, all associated bug reports, screenshots, and files. This action is irreversible.",
     "deleteConfirmInstruction": "To confirm, type {text} below:",
-    "deleting": "Deleting..."
+    "deleting": "Deleting...",
+    "tabGeneral": "General",
+    "tabIntegration": "Integration",
+    "tabWidget": "Widget",
+    "tabDanger": "Danger Zone"
   },
   "settings": {
     "title": "Settings",
@@ -805,6 +809,7 @@
     "rejectedMessage": "Unfortunately, your beta testing application was not approved at this time.",
     "successTitle": "Application Submitted!",
     "successMessage": "You've been added to the beta testing waiting list. We'll review your application and get back to you soon.",
+    "successGoogleOAuth": "Your Google account is on the waiting list. We'll notify you via email once you're approved!",
     "backToLogin": "Back to Login",
     "adminTitle": "Beta Applicants",
     "approve": "Approve",

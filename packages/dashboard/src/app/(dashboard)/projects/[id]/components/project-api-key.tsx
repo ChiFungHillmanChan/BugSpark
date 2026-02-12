@@ -36,7 +36,7 @@ export function ProjectApiKey({ project }: ProjectApiKeyProps) {
   }
 
   return (
-    <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+    <div>
       <ApiKeyDisplay apiKey={project.apiKey} onRotate={handleRotateKey} isRotating={isRotating} />
       {rotateError && (
         <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-sm">

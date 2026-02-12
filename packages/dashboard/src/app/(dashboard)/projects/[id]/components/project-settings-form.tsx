@@ -83,7 +83,7 @@ export function ProjectSettingsForm({ project }: ProjectSettingsFormProps) {
   }
 
   return (
-    <form onSubmit={handleSave} className="space-y-6 mb-8">
+    <form onSubmit={handleSave} className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t("projectName")}</label>
         <input

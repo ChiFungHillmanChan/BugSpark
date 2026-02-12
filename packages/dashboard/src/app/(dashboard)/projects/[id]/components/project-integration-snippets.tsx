@@ -58,7 +58,7 @@ export function ProjectIntegrationSnippets({ project }: ProjectIntegrationSnippe
   }
 
   return (
-    <div className="border-t border-gray-200 dark:border-navy-700 pt-8 mb-8">
+    <div>
       <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{t("integrationSnippet")}</h3>
 
       <div className="mb-4">

@@ -240,7 +240,11 @@
     "deleteMessage": "永久刪除此專案及其所有錯誤回報、螢幕截圖和資料。此操作無法復原。",
     "deleteConfirmMessage": "此操作將永久刪除專案、所有相關的錯誤回報、螢幕截圖和檔案。此操作不可逆。",
     "deleteConfirmInstruction": "請在下方輸入 {text} 以確認：",
-    "deleting": "刪除中..."
+    "deleting": "刪除中...",
+    "tabGeneral": "一般",
+    "tabIntegration": "整合",
+    "tabWidget": "小工具",
+    "tabDanger": "危險區域"
   },
   "settings": {
     "title": "設定",
@@ -805,6 +809,7 @@
     "rejectedMessage": "很遺憾，您的 Beta 測試申請目前未獲核准。",
     "successTitle": "申請已提交！",
     "successMessage": "您已加入 Beta 測試等候名單。我們會審核您的申請並儘快回覆。",
+    "successGoogleOAuth": "你嘅 Google 帳號已經加入等候名單。我哋會通過電郵通知你審批結果！",
     "backToLogin": "返回登入",
     "adminTitle": "Beta 申請者",
     "approve": "核准",

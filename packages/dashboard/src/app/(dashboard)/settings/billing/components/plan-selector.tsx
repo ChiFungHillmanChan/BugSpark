@@ -87,7 +87,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
               <div className="flex gap-2">
                 <button
                   type="button"
-                  onClick={() => onChangePlan(plan, "monthly")}
+                  onClick={() => onChangePlan(plan, "month")}
                   disabled={isChanging}
                   className="px-3 py-1.5 text-xs font-medium rounded-md bg-accent text-white hover:bg-accent/90 disabled:opacity-50 transition-colors"
                 >
@@ -95,7 +95,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
                 </button>
                 <button
                   type="button"
-                  onClick={() => onChangePlan(plan, "yearly")}
+                  onClick={() => onChangePlan(plan, "year")}
                   disabled={isChanging}
                   className="px-3 py-1.5 text-xs font-medium rounded-md border border-accent text-accent hover:bg-accent/10 disabled:opacity-50 transition-colors"
                 >

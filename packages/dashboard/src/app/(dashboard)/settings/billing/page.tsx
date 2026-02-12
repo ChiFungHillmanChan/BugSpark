@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -34,6 +35,13 @@ export default function BillingPage() {
       checkoutMutation.mutate({ plan, billingInterval });
     }
   }
+
+  useEffect(() => {
+    if (checkoutMutation.data?.sessionId) {
+      const stripeCheckoutUrl = `https://checkout.stripe.com/pay/${checkoutMutation.data.sessionId}`;
+      window.location.href = stripeCheckoutUrl;
+    }
+  }, [checkoutMutation.data]);
 
   function handleCancelSubscription() {
     cancelMutation.mutate();

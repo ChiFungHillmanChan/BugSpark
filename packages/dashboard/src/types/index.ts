@@ -12,6 +12,8 @@ export interface User {
   isEmailVerified?: boolean;
   betaStatus?: BetaStatusType;
   createdAt: string;
+  hasGoogleLinked?: boolean;
+  hasPassword?: boolean;
 }
 
 export interface AdminUser {

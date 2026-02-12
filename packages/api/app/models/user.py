@@ -18,7 +18,8 @@ class User(Base):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    hashed_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    google_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[Role] = mapped_column(
         SAEnum(Role, native_enum=False, length=20, values_callable=lambda x: [e.value for e in x]),

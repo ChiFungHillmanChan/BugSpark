@@ -22,15 +22,13 @@ export function LandingFooter() {
       title: t("footerResources"),
       links: [
         { label: t("viewDocs"), href: "/docs" },
-        { label: t("footerGitHub"), href: "https://github.com/hillmanchan/bugspark" },
-        { label: t("footerBlog"), href: "#" },
+        { label: t("footerBlog"), href: "/blog" },
       ],
     },
     {
       title: t("footerCompany"),
       links: [
         { label: t("footerAbout"), href: "/about" },
-        { label: t("footerBlog"), href: "#" },
       ],
     },
   ];

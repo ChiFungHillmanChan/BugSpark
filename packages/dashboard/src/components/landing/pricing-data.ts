@@ -46,7 +46,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "pricingStarterHighlightProjects",
       "pricingStarterHighlightSeats",
       "pricingStarterHighlightIncludes",
-      { key: "pricingStarterHighlightReplay", comingSoon: true },
+      "pricingStarterHighlightReplay",
       "pricingStarterHighlightGithub",
       "pricingStarterHighlightRetention",
     ],
@@ -66,8 +66,9 @@ export const PRICING_TIERS: PricingTier[] = [
       "pricingTeamHighlightSeats",
       "pricingTeamHighlightIncludes",
       "pricingTeamHighlightAi",
+      "pricingTeamHighlightLinear",
       { key: "pricingTeamHighlightIntegrations", comingSoon: true },
-      { key: "pricingTeamHighlightBranding", comingSoon: true },
+      "pricingTeamHighlightBranding",
       "pricingTeamHighlightRetention",
     ],
   },
@@ -103,7 +104,6 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
   {
     labelKey: "compSessionReplay",
     values: { free: false, starter: true, team: true },
-    comingSoon: ["starter", "team"],
   },
   {
     labelKey: "compGithub",
@@ -114,14 +114,17 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
     values: { free: false, starter: false, team: true },
   },
   {
-    labelKey: "compJiraLinearSlack",
+    labelKey: "compLinear",
+    values: { free: false, starter: false, team: true },
+  },
+  {
+    labelKey: "compJiraSlack",
     values: { free: false, starter: false, team: true },
     comingSoon: ["team"],
   },
   {
     labelKey: "compCustomBranding",
     values: { free: false, starter: false, team: true },
-    comingSoon: ["team"],
   },
   {
     labelKey: "compDataRetention",
@@ -134,7 +137,6 @@ export const COMPARISON_FEATURES: ComparisonFeature[] = [
 ];
 
 export const ENTERPRISE_FEATURE_KEYS: Array<{ key: string; comingSoon: boolean }> = [
-  { key: "pricingEnterpriseSso", comingSoon: true },
   { key: "pricingEnterpriseAudit", comingSoon: true },
   { key: "pricingEnterpriseSupport", comingSoon: false },
   { key: "pricingEnterpriseRetention", comingSoon: false },

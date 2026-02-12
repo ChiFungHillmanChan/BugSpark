@@ -42,6 +42,7 @@ export function LandingNavbar() {
   const navLinks = [
     { href: "/features", label: t("features") },
     { href: "/pricing", label: t("pricing") },
+    { href: "/blog", label: t("footerBlog") },
     { href: "/docs", label: t("viewDocs") },
   ];
 

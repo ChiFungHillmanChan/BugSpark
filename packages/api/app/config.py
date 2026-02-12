@@ -39,6 +39,11 @@ class Settings(BaseSettings):
 
     ENCRYPTION_KEY: str = ""  # Fernet key for encrypting secrets at rest. Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    ENABLE_GOOGLE_AUTH: bool = False
+    API_PUBLIC_URL: str = ""  # e.g. "https://api.bugspark.hillmanchan.com"
+
     SENTRY_DSN: str = ""
 
     ENVIRONMENT: str = "development"

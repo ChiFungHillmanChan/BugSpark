@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas import CamelModel
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class UserResponse(CamelModel):
@@ -20,6 +24,16 @@ class UserResponse(CamelModel):
     plan_expires_at: datetime | None = None
     notification_preferences: dict[str, bool] | None = None
     created_at: datetime
+    has_google_linked: bool = False
+    has_password: bool = True
+
+
+def build_user_response(user: User) -> UserResponse:
+    """Build UserResponse with computed Google/password fields from the User model."""
+    response = UserResponse.model_validate(user)
+    response.has_google_linked = bool(user.google_id)
+    response.has_password = bool(user.hashed_password)
+    return response
 
 
 class UserUpdate(BaseModel):

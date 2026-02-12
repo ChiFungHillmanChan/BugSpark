@@ -32,6 +32,7 @@ interface AuthContextValue {
   login: (email: string, password: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, password: string, redirectTo?: string) => Promise<RegisterResult>;
   logout: () => void;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -86,6 +87,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [router],
   );
 
+  const refreshUser = useCallback(() => {
+    getMeApi()
+      .then((data) => setUser(data))
+      .catch(() => {
+        // Ignore errors — user state stays as-is
+      });
+  }, []);
+
   const logout = useCallback(async () => {
     // Always clear local state and redirect, even if the API call fails
     // (e.g. expired token, network error). The server session will expire on its own.
@@ -111,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        refreshUser,
       }}
     >
       {children}

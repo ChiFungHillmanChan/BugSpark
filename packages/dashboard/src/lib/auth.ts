@@ -1,4 +1,5 @@
 import apiClient from "./api-client";
+import { BUGSPARK_API_URL } from "./constants";
 import type { User } from "@/types";
 
 export interface BetaRegisterResult {
@@ -54,4 +55,25 @@ export async function getMeApi(): Promise<User> {
 export async function checkBetaMode(): Promise<boolean> {
   const response = await apiClient.get<{ betaModeEnabled: boolean }>("/auth/beta-mode");
   return response.data.betaModeEnabled;
+}
+
+export function getGoogleLoginUrl(redirect?: string, mode: "login" | "link" = "login"): string {
+  const baseUrl = BUGSPARK_API_URL.replace("/api/v1", "");
+  const params = new URLSearchParams();
+  if (redirect) params.set("redirect", redirect);
+  params.set("mode", mode);
+  return `${baseUrl}/api/v1/auth/google/login?${params.toString()}`;
+}
+
+export async function getGoogleAuthStatus(): Promise<boolean> {
+  try {
+    const response = await apiClient.get<{ enabled: boolean }>("/auth/google/status");
+    return response.data.enabled;
+  } catch {
+    return false;
+  }
+}
+
+export async function unlinkGoogleAccount(): Promise<void> {
+  await apiClient.delete("/auth/google/link");
 }

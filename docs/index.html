@@ -390,7 +390,7 @@
 <span class="tag">&lt;script</span>
   <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
   <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
-  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://api.bugspark.hillmanchan.com/api/v1"</span>
 <span class="tag">&gt;&lt;/script&gt;</span></code></pre>
 
 <p>That's it. A floating bug button appears on your page. Users click it to report bugs with screenshots.</p>
@@ -439,7 +439,7 @@
 <pre><code><span class="tag">&lt;script</span>
   <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
   <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
-  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://api.bugspark.hillmanchan.com/api/v1"</span>
   <span class="attr">data-position</span>=<span class="val">"bottom-right"</span>
   <span class="attr">data-theme</span>=<span class="val">"light"</span>
 <span class="tag">&gt;&lt;/script&gt;</span></code></pre>
@@ -452,7 +452,7 @@
 <span class="tag">&lt;script&gt;</span>
   BugSpark.<span class="fn">init</span>({
     <span class="attr">apiKey</span>: <span class="str">'bsk_pub_YOUR_API_KEY'</span>,
-    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+    <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
     <span class="attr">position</span>: <span class="str">'bottom-right'</span>,
     <span class="attr">theme</span>: <span class="str">'dark'</span>,
     <span class="attr">primaryColor</span>: <span class="str">'#e94560'</span>,
@@ -488,7 +488,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
   useEffect(() => {
     <span class="fn">init</span>({
       <span class="attr">apiKey</span>: <span class="str">'bsk_pub_YOUR_API_KEY'</span>,
-      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
       <span class="attr">theme</span>: <span class="str">'auto'</span>,
     });
 
@@ -531,7 +531,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
     <span class="kw">import</span>(<span class="str">'@bugspark/widget'</span>).<span class="fn">then</span>(({ init }) => {
       <span class="fn">init</span>({
         <span class="attr">apiKey</span>: process.env.NEXT_PUBLIC_BUGSPARK_API_KEY!,
-        <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+        <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
         <span class="attr">theme</span>: <span class="str">'auto'</span>,
       });
     });
@@ -580,7 +580,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
 <span class="fn">onMounted</span>(() => {
   <span class="fn">init</span>({
     <span class="attr">apiKey</span>: <span class="kw">import</span>.meta.env.VITE_BUGSPARK_API_KEY,
-    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+    <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
     <span class="attr">theme</span>: <span class="str">'auto'</span>,
   });
 });
@@ -608,7 +608,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
 <span class="kw">export default</span> <span class="fn">defineNuxtPlugin</span>(() => {
   <span class="fn">init</span>({
     <span class="attr">apiKey</span>: useRuntimeConfig().<span class="kw">public</span>.bugsparkApiKey,
-    <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+    <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
   });
 });</code></pre>
 
@@ -633,7 +633,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
   <span class="fn">ngOnInit</span>() {
     <span class="fn">init</span>({
       <span class="attr">apiKey</span>: environment.bugsparkApiKey,
-      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
       <span class="attr">theme</span>: <span class="str">'auto'</span>,
     });
   }
@@ -658,7 +658,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
   <span class="fn">onMount</span>(() => {
     <span class="fn">init</span>({
       <span class="attr">apiKey</span>: <span class="kw">import</span>.meta.env.VITE_BUGSPARK_API_KEY,
-      <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+      <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
       <span class="attr">theme</span>: <span class="str">'auto'</span>,
     });
   });
@@ -687,7 +687,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
 <pre><code><span class="tag">&lt;script</span>
   <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
   <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
-  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://api.bugspark.hillmanchan.com/api/v1"</span>
 <span class="tag">&gt;&lt;/script&gt;</span></code></pre>
 
 <h3>Shopify</h3>
@@ -695,7 +695,7 @@ curl -o bugspark.iife.js https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/di
 <pre><code><span class="tag">&lt;script</span>
   <span class="attr">src</span>=<span class="val">"https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"</span>
   <span class="attr">data-api-key</span>=<span class="val">"bsk_pub_YOUR_API_KEY"</span>
-  <span class="attr">data-endpoint</span>=<span class="val">"https://bugspark-api.onrender.com/api/v1"</span>
+  <span class="attr">data-endpoint</span>=<span class="val">"https://api.bugspark.hillmanchan.com/api/v1"</span>
 <span class="tag">&gt;&lt;/script&gt;</span></code></pre>
 
 <h3>Webflow / Squarespace / Wix</h3>
@@ -909,7 +909,7 @@ BugSpark.<span class="fn">destroy</span>();</code></pre>
 
 <pre><code>BugSpark.<span class="fn">init</span>({
   <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
-  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
 
   <span class="fn">beforeSend</span>(report) {
     <span class="cm">// Redact sensitive data</span>
@@ -929,7 +929,7 @@ BugSpark.<span class="fn">destroy</span>();</code></pre>
 
 <pre><code>BugSpark.<span class="fn">init</span>({
   <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
-  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
 
   <span class="fn">onSubmit</span>(report) {
     console.<span class="fn">log</span>(<span class="str">'Bug reported:'</span>, report.title);
@@ -975,7 +975,7 @@ BugSpark.<span class="fn">destroy</span>();</code></pre>
 
 <pre><code>BugSpark.<span class="fn">init</span>({
   <span class="attr">apiKey</span>: <span class="str">'bsk_pub_...'</span>,
-  <span class="attr">endpoint</span>: <span class="str">'https://bugspark-api.onrender.com/api/v1'</span>,
+  <span class="attr">endpoint</span>: <span class="str">'https://api.bugspark.hillmanchan.com/api/v1'</span>,
   <span class="attr">theme</span>: <span class="str">'dark'</span>,
   <span class="attr">primaryColor</span>: <span class="str">'#6c5ce7'</span>,     <span class="cm">// Purple accent</span>
   <span class="attr">position</span>: <span class="str">'bottom-left'</span>,

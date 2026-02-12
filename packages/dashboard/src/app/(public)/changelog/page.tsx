@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo";
+import { BUGSPARK_DASHBOARD_URL } from "@/lib/constants";
 import ChangelogContent from "./changelog-content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,7 +19,7 @@ const changelogJsonLd = {
   "@type": "WebPage",
   name: "BugSpark Changelog",
   description: "All the latest updates, improvements and fixes for BugSpark.",
-  url: "https://bugspark.hillmanchan.com/changelog",
+  url: `${BUGSPARK_DASHBOARD_URL}/changelog`,
   mainEntity: {
     "@type": "ItemList",
     itemListElement: [

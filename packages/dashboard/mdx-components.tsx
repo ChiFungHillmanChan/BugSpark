@@ -5,6 +5,16 @@ import {
   ApiEndpoint,
   DocsTabs,
 } from "@/components/docs/mdx-components";
+import {
+  WidgetScriptSnippet,
+  WidgetScriptSnippetFull,
+  WidgetNpmSnippet,
+  WidgetReactSnippet,
+  WidgetVueSnippet,
+  WidgetAngularSnippet,
+  CspSnippet,
+  AiSetupPrompt,
+} from "@/components/docs/widget-snippets";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -23,6 +33,14 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     Callout,
     ApiEndpoint,
     DocsTabs,
+    WidgetScriptSnippet,
+    WidgetScriptSnippetFull,
+    WidgetNpmSnippet,
+    WidgetReactSnippet,
+    WidgetVueSnippet,
+    WidgetAngularSnippet,
+    CspSnippet,
+    AiSetupPrompt,
     h1: ({ children }) => (
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-8 mb-4">
         {children}

@@ -11,7 +11,7 @@ BugSpark 根據使用情境使用三種身份驗證方式：
 所有 API 端點的前綴為：
 
 ```
-https://api.bugspark.dev/api/v1
+https://api.bugspark.hillmanchan.com/api/v1
 ```
 
 對於自行託管的實例，請替換為您自己的網域。
@@ -64,7 +64,7 @@ https://api.bugspark.dev/api/v1
 小工具和外部整合使用專案 API 金鑰進行驗證，透過 `X-API-Key` 標頭傳遞：
 
 ```bash
-curl -X POST https://api.bugspark.dev/api/v1/reports \
+curl -X POST https://api.bugspark.hillmanchan.com/api/v1/reports \
   -H "X-API-Key: bsk_pub_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"title": "按鈕故障", "description": "...", "severity": "high", "category": "bug"}'
@@ -77,7 +77,7 @@ API 金鑰的作用範圍限於單一專案。您可以在專案設定中找到�
 CLI 和 CI/CD 腳本使用 PAT 透過 `Authorization: Bearer` 標頭進行驗證：
 
 ```bash
-curl -X GET https://api.bugspark.dev/api/v1/projects \
+curl -X GET https://api.bugspark.hillmanchan.com/api/v1/projects \
   -H "Authorization: Bearer bsk_pat_your_token_here"
 ```
 

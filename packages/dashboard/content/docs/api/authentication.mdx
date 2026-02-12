@@ -11,7 +11,7 @@ BugSpark uses three authentication methods depending on the context:
 All API endpoints are prefixed with:
 
 ```
-https://api.bugspark.dev/api/v1
+https://api.bugspark.hillmanchan.com/api/v1
 ```
 
 For self-hosted instances, replace with your own domain.
@@ -64,7 +64,7 @@ No request body required. The refresh token is read from the `bugspark_refresh_t
 The widget and external integrations authenticate using a project API key passed in the `X-API-Key` header:
 
 ```bash
-curl -X POST https://api.bugspark.dev/api/v1/reports \
+curl -X POST https://api.bugspark.hillmanchan.com/api/v1/reports \
   -H "X-API-Key: bsk_pub_your_key_here" \
   -H "Content-Type: application/json" \
   -d '{"title": "Button broken", "description": "...", "severity": "high", "category": "bug"}'
@@ -77,7 +77,7 @@ API keys are scoped to a single project. You can find your key in the project se
 The CLI and CI/CD scripts authenticate using a PAT passed in the `Authorization: Bearer` header:
 
 ```bash
-curl -X GET https://api.bugspark.dev/api/v1/projects \
+curl -X GET https://api.bugspark.hillmanchan.com/api/v1/projects \
   -H "Authorization: Bearer bsk_pat_your_token_here"
 ```
 

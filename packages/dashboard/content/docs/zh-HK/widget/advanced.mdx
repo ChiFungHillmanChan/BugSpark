@@ -79,10 +79,9 @@ BugSpark.init({
 
 如果您的網站使用 CSP 標頭，請添加 BugSpark 網域：
 
-```
-script-src 'self' https://cdn.bugspark.dev;
-connect-src 'self' https://api.bugspark.dev;
-```
+<CspSnippet />
+
+小工具腳本透過 **jsDelivr**（`cdn.jsdelivr.net`）提供，唔係 `cdn.bugspark.dev`。錯誤回報會提交去 BugSpark API。
 
 對於自行託管的部署，請替換為您自己的 API 網域。
 

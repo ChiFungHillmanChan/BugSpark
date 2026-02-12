@@ -79,10 +79,9 @@ BugSpark.init({
 
 If your site uses CSP headers, add the BugSpark domains:
 
-```
-script-src 'self' https://cdn.bugspark.dev;
-connect-src 'self' https://api.bugspark.dev;
-```
+<CspSnippet />
+
+The widget script is served from **jsDelivr** (`cdn.jsdelivr.net`), not `cdn.bugspark.dev`. Bug reports are submitted to the BugSpark API.
 
 For self-hosted deployments, replace with your own API domain.
 

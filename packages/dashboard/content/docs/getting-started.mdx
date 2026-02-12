@@ -18,14 +18,7 @@ Add the BugSpark widget to your frontend. Choose the method that fits your stack
 
 ### Script Tag (simplest)
 
-```html
-<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>
-```
+<WidgetScriptSnippet />
 
 ### NPM Package
 
@@ -33,14 +26,7 @@ Add the BugSpark widget to your frontend. Choose the method that fits your stack
 npm install @bugspark/widget
 ```
 
-```typescript
-import { BugSpark } from "@bugspark/widget";
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: "bottom-right",
-});
-```
+<WidgetNpmSnippet />
 
 ## 3. Start Receiving Reports
 

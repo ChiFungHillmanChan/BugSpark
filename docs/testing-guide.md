@@ -165,10 +165,10 @@ S3_ACCESS_KEY=（你嘅 R2 access key）
 S3_SECRET_KEY=（你嘅 R2 secret key）
 S3_BUCKET_NAME=bug-spark
 S3_PUBLIC_URL=https://pub-7d2747f6cc21c13e70c7650314efbccc.r2.dev
-CORS_ORIGINS=https://你嘅vercel網址.vercel.app
+CORS_ORIGINS=https://bugspark.hillmanchan.com
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
-FRONTEND_URL=https://你嘅vercel網址.vercel.app
+FRONTEND_URL=https://bugspark.hillmanchan.com
 ```
 
 5. Deploy。等 2-3 分鐘。
@@ -193,7 +193,7 @@ DATABASE_URL="postgresql+asyncpg://..." python scripts/seed.py
 喺 Vercel Dashboard → Settings → Environment Variables：
 
 ```
-NEXT_PUBLIC_API_URL=https://bugspark-api.onrender.com/api/v1
+NEXT_PUBLIC_API_URL=https://api.bugspark.hillmanchan.com/api/v1
 ```
 
 Redeploy。
@@ -204,7 +204,7 @@ Redeploy。
 <script
   src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
   data-api-key="bsk_pub_你喺Dashboard拎到嘅KEY"
-  data-endpoint="https://bugspark-api.onrender.com/api/v1"
+  data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
 ></script>
 ```
 
@@ -224,7 +224,7 @@ BugSpark.init({
   apiKey: 'bsk_pub_...',
 
   // API 地址（預設 http://localhost:8000/api/v1）
-  endpoint: 'https://bugspark-api.onrender.com/api/v1',
+  endpoint: 'https://api.bugspark.hillmanchan.com/api/v1',
 
   // 按鈕位置（預設 bottom-right）
   position: 'bottom-right',  // bottom-left, top-right, top-left
@@ -333,7 +333,7 @@ BugSpark.identify({   // 登入後識別用戶
 ```typescript
 // packages/dashboard/src/app/api/keep-alive/route.ts
 export async function GET() {
-  await fetch('https://bugspark-api.onrender.com/health');
+  await fetch('https://api.bugspark.hillmanchan.com/health');
   return Response.json({ ok: true });
 }
 ```

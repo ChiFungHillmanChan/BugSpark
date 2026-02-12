@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { BUGSPARK_DASHBOARD_DOMAIN } from "@/lib/constants";
 
 export const runtime = "edge";
 export const alt = "BugSpark - 香港 Bug 回報追蹤工具";
@@ -118,7 +119,7 @@ export default function OgImage() {
             color: "rgba(255,255,255,0.4)",
           }}
         >
-          bugspark.hillmanchan.com
+          {BUGSPARK_DASHBOARD_DOMAIN}
         </div>
       </div>
     ),

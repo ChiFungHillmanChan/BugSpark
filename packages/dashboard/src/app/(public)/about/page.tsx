@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo";
+import { BUGSPARK_DASHBOARD_URL } from "@/lib/constants";
 import AboutContent from "./about-content";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,8 +19,8 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "BugSpark",
-  url: "https://bugspark.hillmanchan.com",
-  logo: "https://bugspark.hillmanchan.com/icon.png",
+  url: BUGSPARK_DASHBOARD_URL,
+  logo: `${BUGSPARK_DASHBOARD_URL}/icon.png`,
   description:
     "BugSpark 由香港開發者打造，致力於讓錯誤回報不再痛苦。開源、隱私優先、極致簡潔。",
   founder: {

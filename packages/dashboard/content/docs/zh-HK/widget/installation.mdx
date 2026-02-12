@@ -18,14 +18,9 @@ BUGSPARK_PROJECT_KEY=YOUR_API_KEY
 
 最簡單的方式。在 `</body>` 結尾標籤前貼上以下程式碼：
 
-```html
-<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>
-```
+<WidgetScriptSnippet />
+
+將 `YOUR_API_KEY` 換成儀表板或 `.env` 檔案入面嘅專案 API 金鑰。
 
 > 對於伺服器渲染的頁面，請在建置時或透過範本引擎注入環境變數。
 
@@ -41,68 +36,21 @@ npm install @bugspark/widget
 
 在應用程式入口點初始化：
 
-```typescript
-import { BugSpark } from "@bugspark/widget";
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: "bottom-right",
-});
-```
+<WidgetNpmSnippet />
 
 對於 React 應用，在 `useEffect` 中初始化：
 
-```tsx
-import { useEffect } from "react";
-import { BugSpark } from "@bugspark/widget";
-
-function App() {
-  useEffect(() => {
-    BugSpark.init({
-      projectKey: process.env.BUGSPARK_PROJECT_KEY,
-      position: "bottom-right",
-    });
-  }, []);
-
-  return <div>{/* 您的應用 */}</div>;
-}
-```
+<WidgetReactSnippet />
 
 ## Vue
 
-```vue
-<script setup>
-import { onMounted } from "vue";
-import { BugSpark } from "@bugspark/widget";
-
-onMounted(() => {
-  BugSpark.init({
-    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    position: "bottom-right",
-  });
-});
-</script>
-```
+<WidgetVueSnippet />
 
 > Vue（Vite）的客戶端環境變數需要 `VITE_` 前綴。請在 `.env` 檔案中加入 `VITE_BUGSPARK_PROJECT_KEY`。
 
 ## Angular
 
-```typescript
-import { Component, OnInit } from "@angular/core";
-import { BugSpark } from "@bugspark/widget";
-import { environment } from "../environments/environment";
-
-@Component({ selector: "app-root", template: "<router-outlet />" })
-export class AppComponent implements OnInit {
-  ngOnInit() {
-    BugSpark.init({
-      projectKey: environment.bugsparkProjectKey,
-      position: "bottom-right",
-    });
-  }
-}
-```
+<WidgetAngularSnippet />
 
 > 請將 `bugsparkProjectKey` 加入 `environment.ts` 和 `environment.prod.ts` 檔案中。
 

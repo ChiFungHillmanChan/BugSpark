@@ -1,8 +1,8 @@
 import { getLocale } from "next-intl/server";
 import type { Metadata } from "next";
+import { BUGSPARK_DASHBOARD_URL } from "./constants";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://bugspark.hillmanchan.com";
+const BASE_URL = BUGSPARK_DASHBOARD_URL;
 
 export async function generatePageMetadata(opts: {
   titleZh: string;

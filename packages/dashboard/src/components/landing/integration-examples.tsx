@@ -4,33 +4,16 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "@/components/shared/section-header";
+import {
+  LANDING_SCRIPT_TAG,
+  LANDING_NPM_INIT,
+  LANDING_VUE_INIT,
+} from "@/lib/doc-snippets";
 
 const CODE_EXAMPLES = {
-  script: `<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="\${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>`,
-  npm: `import { BugSpark } from '@bugspark/widget';
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: 'bottom-right',
-  // Optional: customize theme
-  theme: { accent: '#e94560' },
-});`,
-  vue: `<script setup>
-import { onMounted } from 'vue';
-import { BugSpark } from '@bugspark/widget';
-
-onMounted(() => {
-  BugSpark.init({
-    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    position: 'bottom-right',
-  });
-});
-</script>`,
+  script: LANDING_SCRIPT_TAG,
+  npm: LANDING_NPM_INIT,
+  vue: LANDING_VUE_INIT,
 };
 
 type Tab = "script" | "npm" | "vue";

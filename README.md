@@ -276,7 +276,7 @@ Open it with a local server (`npx serve .`) and click the bug button to submit a
 <script
   src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
   data-api-key="YOUR_API_KEY"
-  data-endpoint="https://your-bugspark-api.onrender.com/api/v1"
+  data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
   data-position="bottom-right"
   data-theme="light"
 ></script>
@@ -293,7 +293,7 @@ import BugSpark from '@bugspark/widget';
 
 BugSpark.init({
   apiKey: 'YOUR_API_KEY',
-  endpoint: 'https://your-bugspark-api.onrender.com/api/v1',
+  endpoint: 'https://api.bugspark.hillmanchan.com/api/v1',
 });
 ```
 
@@ -350,7 +350,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script
           src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
           data-api-key="YOUR_API_KEY"
-          data-endpoint="https://your-api.onrender.com/api/v1"
+          data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
           strategy="afterInteractive"
         />
       </body>
@@ -369,7 +369,7 @@ export default function App() {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js';
     script.setAttribute('data-api-key', 'YOUR_API_KEY');
-    script.setAttribute('data-endpoint', 'https://your-api.onrender.com/api/v1');
+    script.setAttribute('data-endpoint', 'https://api.bugspark.hillmanchan.com/api/v1');
     document.body.appendChild(script);
     return () => { window.BugSpark?.destroy(); };
   }, []);
@@ -405,7 +405,7 @@ Webhooks notify your external services whenever events occur in BugSpark (e.g. a
 ### Create a Webhook
 
 ```bash
-curl -X POST "https://your-api.onrender.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
+curl -X POST "https://api.bugspark.hillmanchan.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
   -H "Content-Type: application/json" \
   -H "Cookie: bugspark_access_token=YOUR_JWT" \
   -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
@@ -466,18 +466,18 @@ function verifySignature(payloadBuffer, secret, signature) {
 
 ```bash
 # List all webhooks for a project
-curl "https://your-api.onrender.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
+curl "https://api.bugspark.hillmanchan.com/api/v1/webhooks?project_id=YOUR_PROJECT_ID" \
   -H "Cookie: bugspark_access_token=YOUR_JWT"
 
 # Update a webhook (change URL, events, or disable)
-curl -X PATCH "https://your-api.onrender.com/api/v1/webhooks/WEBHOOK_ID" \
+curl -X PATCH "https://api.bugspark.hillmanchan.com/api/v1/webhooks/WEBHOOK_ID" \
   -H "Content-Type: application/json" \
   -H "Cookie: bugspark_access_token=YOUR_JWT" \
   -H "X-CSRF-Token: YOUR_CSRF_TOKEN" \
   -d '{ "is_active": false }'
 
 # Delete a webhook
-curl -X DELETE "https://your-api.onrender.com/api/v1/webhooks/WEBHOOK_ID" \
+curl -X DELETE "https://api.bugspark.hillmanchan.com/api/v1/webhooks/WEBHOOK_ID" \
   -H "Cookie: bugspark_access_token=YOUR_JWT" \
   -H "X-CSRF-Token: YOUR_CSRF_TOKEN"
 ```
@@ -518,11 +518,11 @@ S3_ACCESS_KEY=<r2-access-key>
 S3_SECRET_KEY=<r2-secret-key>
 S3_BUCKET_NAME=bug-spark
 S3_PUBLIC_URL=https://pub-<account>.r2.dev
-CORS_ORIGINS=https://your-dashboard.vercel.app
-CORS_ORIGIN_REGEX=^https://bugspark-[a-z0-9-]+\.vercel\.app$
+CORS_ORIGINS=https://bugspark.hillmanchan.com
+CORS_ORIGIN_REGEX=
 COOKIE_SECURE=true
 COOKIE_SAMESITE=none
-FRONTEND_URL=https://your-dashboard.vercel.app
+FRONTEND_URL=https://bugspark.hillmanchan.com
 ```
 
 Generate keys:
@@ -545,7 +545,7 @@ DATABASE_URL="postgresql+asyncpg://...@your-neon-host/neondb?sslmode=require" al
 1. Import the repo on [vercel.com](https://vercel.com)
 2. Root directory: `packages/dashboard`
 3. Set environment variables:
-   - `NEXT_PUBLIC_API_URL=https://your-api.onrender.com/api/v1`
+   - `NEXT_PUBLIC_API_URL=https://api.bugspark.hillmanchan.com/api/v1`
    - `NEXT_PUBLIC_S3_HOSTNAME=pub-<account>.r2.dev` (for `next/image` remote patterns)
    - `NEXT_PUBLIC_SENTRY_DSN=...` (optional)
 4. Deploy
@@ -557,7 +557,7 @@ Render free tier sleeps after 15 minutes of inactivity. Add a keep-alive cron on
 ```typescript
 // packages/dashboard/src/app/api/keep-alive/route.ts
 export async function GET() {
-  await fetch('https://your-api.onrender.com/health');
+  await fetch('https://api.bugspark.hillmanchan.com/health');
   return Response.json({ ok: true });
 }
 ```

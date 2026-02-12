@@ -18,14 +18,9 @@ You can find your project API key in the [Dashboard](/dashboard) under **Project
 
 The simplest way to add BugSpark. Paste this before the closing `</body>` tag:
 
-```html
-<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>
-```
+<WidgetScriptSnippet />
+
+Replace `YOUR_API_KEY` with your project API key from the dashboard or your `.env` file.
 
 > For server-rendered pages, inject the environment variable at build time or via your templating engine.
 
@@ -41,68 +36,21 @@ npm install @bugspark/widget
 
 Initialize in your app entry point:
 
-```typescript
-import { BugSpark } from "@bugspark/widget";
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: "bottom-right",
-});
-```
+<WidgetNpmSnippet />
 
 For React apps, initialize inside a `useEffect`:
 
-```tsx
-import { useEffect } from "react";
-import { BugSpark } from "@bugspark/widget";
-
-function App() {
-  useEffect(() => {
-    BugSpark.init({
-      projectKey: process.env.BUGSPARK_PROJECT_KEY,
-      position: "bottom-right",
-    });
-  }, []);
-
-  return <div>{/* your app */}</div>;
-}
-```
+<WidgetReactSnippet />
 
 ## Vue
 
-```vue
-<script setup>
-import { onMounted } from "vue";
-import { BugSpark } from "@bugspark/widget";
-
-onMounted(() => {
-  BugSpark.init({
-    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    position: "bottom-right",
-  });
-});
-</script>
-```
+<WidgetVueSnippet />
 
 > Vue (Vite) requires the `VITE_` prefix for client-side environment variables. Add `VITE_BUGSPARK_PROJECT_KEY` to your `.env` file.
 
 ## Angular
 
-```typescript
-import { Component, OnInit } from "@angular/core";
-import { BugSpark } from "@bugspark/widget";
-import { environment } from "../environments/environment";
-
-@Component({ selector: "app-root", template: "<router-outlet />" })
-export class AppComponent implements OnInit {
-  ngOnInit() {
-    BugSpark.init({
-      projectKey: environment.bugsparkProjectKey,
-      position: "bottom-right",
-    });
-  }
-}
-```
+<WidgetAngularSnippet />
 
 > Add `bugsparkProjectKey` to your `environment.ts` and `environment.prod.ts` files.
 

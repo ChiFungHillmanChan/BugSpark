@@ -4,12 +4,12 @@ import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Providers } from "@/providers";
+import { BUGSPARK_DASHBOARD_URL, BUGSPARK_API_URL, BUGSPARK_WIDGET_CDN_URL } from "@/lib/constants";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://bugspark.hillmanchan.com";
+const BASE_URL = BUGSPARK_DASHBOARD_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -51,9 +51,9 @@ export default async function RootLayout({
         </NextIntlClientProvider>
         {process.env.NEXT_PUBLIC_BUGSPARK_API_KEY && (
           <Script
-            src="https://unpkg.com/@bugspark/widget@0.2.0/dist/bugspark.iife.js"
+            src={BUGSPARK_WIDGET_CDN_URL}
             data-api-key={process.env.NEXT_PUBLIC_BUGSPARK_API_KEY}
-            data-endpoint={process.env.NEXT_PUBLIC_API_URL ?? "https://bugspark-api.onrender.com/api/v1"}
+            data-endpoint={BUGSPARK_API_URL}
             strategy="afterInteractive"
           />
         )}

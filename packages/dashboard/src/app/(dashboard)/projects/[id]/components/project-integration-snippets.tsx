@@ -5,6 +5,13 @@ import { useTranslations } from "next-intl";
 import { FileCode, Copy, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Project } from "@/types";
+import {
+  DASHBOARD_SCRIPT_TAG,
+  DASHBOARD_NPM_INIT,
+  DASHBOARD_REACT_INIT,
+  DASHBOARD_VUE_INIT,
+  DASHBOARD_ANGULAR_INIT,
+} from "@/lib/doc-snippets";
 
 type SnippetTab = "script" | "npm" | "react" | "vue" | "angular";
 
@@ -13,55 +20,11 @@ interface ProjectIntegrationSnippetsProps {
 }
 
 const SNIPPET_CODE: Record<SnippetTab, string> = {
-  script: `<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="\${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>`,
-  npm: `import { BugSpark } from "@bugspark/widget";
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: "bottom-right",
-});`,
-  react: `import { useEffect } from "react";
-import { BugSpark } from "@bugspark/widget";
-
-function App() {
-  useEffect(() => {
-    BugSpark.init({
-      projectKey: process.env.BUGSPARK_PROJECT_KEY,
-      position: "bottom-right",
-    });
-  }, []);
-
-  return <div>{/* your app */}</div>;
-}`,
-  vue: `<script setup>
-import { onMounted } from "vue";
-import { BugSpark } from "@bugspark/widget";
-
-onMounted(() => {
-  BugSpark.init({
-    projectKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    position: "bottom-right",
-  });
-});
-</script>`,
-  angular: `import { Component, OnInit } from "@angular/core";
-import { BugSpark } from "@bugspark/widget";
-import { environment } from "../environments/environment";
-
-@Component({ selector: "app-root", template: "<router-outlet />" })
-export class AppComponent implements OnInit {
-  ngOnInit() {
-    BugSpark.init({
-      projectKey: environment.bugsparkProjectKey,
-      position: "bottom-right",
-    });
-  }
-}`,
+  script: DASHBOARD_SCRIPT_TAG,
+  npm: DASHBOARD_NPM_INIT,
+  react: DASHBOARD_REACT_INIT,
+  vue: DASHBOARD_VUE_INIT,
+  angular: DASHBOARD_ANGULAR_INIT,
 };
 
 export function ProjectIntegrationSnippets({ project }: ProjectIntegrationSnippetsProps) {

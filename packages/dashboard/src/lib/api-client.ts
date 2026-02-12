@@ -1,8 +1,10 @@
 import axios from "axios";
 import { clearSessionIndicator } from "./auth-session";
+import { BUGSPARK_API_URL } from "./constants";
 
 function getApiBaseUrl(): string {
-  return process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  // NEXT_PUBLIC_API_URL overrides the centralized default (for local dev, staging, etc.)
+  return process.env.NEXT_PUBLIC_API_URL ?? BUGSPARK_API_URL;
 }
 
 // In cross-origin setups (dashboard on Vercel, API on Render), document.cookie

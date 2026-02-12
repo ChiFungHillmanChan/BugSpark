@@ -66,7 +66,7 @@ The CLI stores config at `~/.bugspark/config.json`:
 
 ```json
 {
-  "apiUrl": "https://bugspark-api.onrender.com/api/v1",
+  "apiUrl": "https://api.bugspark.hillmanchan.com/api/v1",
   "token": "bsk_pat_..."
 }
 ```

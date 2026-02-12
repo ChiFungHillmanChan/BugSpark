@@ -22,7 +22,7 @@ Add one line before `</body>` — works with any website (HTML, Django, WordPres
 <script
   src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
   data-api-key="YOUR_API_KEY"
-  data-endpoint="https://your-bugspark-api.onrender.com/api/v1"
+  data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
   data-position="bottom-right"
   data-theme="light"
 ></script>
@@ -39,7 +39,7 @@ import BugSpark from '@bugspark/widget';
 
 BugSpark.init({
   apiKey: 'YOUR_API_KEY',
-  endpoint: 'https://your-bugspark-api.onrender.com/api/v1',
+  endpoint: 'https://api.bugspark.hillmanchan.com/api/v1',
 });
 ```
 
@@ -107,7 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script
           src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
           data-api-key="YOUR_API_KEY"
-          data-endpoint="https://your-api.onrender.com/api/v1"
+          data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
           strategy="afterInteractive"
         />
       </body>
@@ -127,7 +127,7 @@ export default function App() {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js';
     script.setAttribute('data-api-key', 'YOUR_API_KEY');
-    script.setAttribute('data-endpoint', 'https://your-api.onrender.com/api/v1');
+    script.setAttribute('data-endpoint', 'https://api.bugspark.hillmanchan.com/api/v1');
     document.body.appendChild(script);
     return () => {
       if ((window as any).BugSpark) (window as any).BugSpark.destroy();
@@ -151,7 +151,7 @@ export default function App() {
   <script
     src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
     data-api-key="{{ BUGSPARK_API_KEY }}"
-    data-endpoint="https://your-api.onrender.com/api/v1"
+    data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
   ></script>
 </body>
 </html>
@@ -166,7 +166,7 @@ export default function App() {
   <script
     src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
     data-api-key="YOUR_API_KEY"
-    data-endpoint="https://your-api.onrender.com/api/v1"
+    data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
   ></script>
 </body>
 ```
@@ -179,7 +179,7 @@ function bugspark_widget() {
     echo '<script
       src="https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js"
       data-api-key="YOUR_API_KEY"
-      data-endpoint="https://your-api.onrender.com/api/v1"
+      data-endpoint="https://api.bugspark.hillmanchan.com/api/v1"
     ></script>';
 }
 add_action('wp_footer', 'bugspark_widget');

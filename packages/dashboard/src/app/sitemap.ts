@@ -1,8 +1,8 @@
 import type { MetadataRoute } from "next";
 import { getDocSlugs } from "@/lib/docs-loader";
+import { BUGSPARK_DASHBOARD_URL } from "@/lib/constants";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://bugspark.hillmanchan.com";
+const BASE_URL = BUGSPARK_DASHBOARD_URL;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();

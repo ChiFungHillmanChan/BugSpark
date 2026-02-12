@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { BUGSPARK_DASHBOARD_URL } from "@/lib/constants";
 
 type DemoAnimationVariant = "browser" | "dashboard";
 
@@ -35,7 +36,7 @@ export function DemoAnimation({
           <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-400" />
         </div>
         <div className="flex-1 bg-white dark:bg-navy-900 rounded-md px-2 sm:px-3 py-1 text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 font-mono">
-          {variant === "browser" ? "https://your-app.com" : "https://app.bugspark.dev"}
+          {variant === "browser" ? "https://your-app.com" : BUGSPARK_DASHBOARD_URL}
         </div>
       </div>
 

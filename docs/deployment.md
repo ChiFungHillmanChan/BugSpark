@@ -90,14 +90,14 @@ The API is configured via `render.yaml` (Infrastructure as Code).
    - `ENCRYPTION_KEY` -- generate a Fernet key (see above)
    - `S3_*` variables -- your S3-compatible storage credentials
    - `CORS_ORIGINS` -- your Vercel dashboard URL
-   - `CORS_ORIGIN_REGEX` -- optional, e.g., `^https://bugspark-[a-z0-9-]+\.vercel\.app$`
+   - `CORS_ORIGIN_REGEX` -- optional regex for dynamic origins (not needed for single domain setup)
    - `FRONTEND_URL` -- your dashboard URL
    - `COOKIE_SECURE=true`
    - `COOKIE_SAMESITE=none` (required for cross-origin cookie sharing)
 
 5. **Verify deployment:**
    ```bash
-   curl https://your-api.onrender.com/health
+   curl https://api.bugspark.hillmanchan.com/health
    # Expected: {"status":"healthy","db":"connected"}
    ```
 
@@ -119,7 +119,7 @@ Render auto-deploys when changes are pushed to `main`. The `render.yaml` runs `a
    - **Build command:** `pnpm build` (default)
 
 3. **Set environment variables** in Vercel's project settings:
-   - `NEXT_PUBLIC_API_URL` -- your Render API URL (e.g., `https://bugspark-api.onrender.com/api/v1`)
+   - `NEXT_PUBLIC_API_URL` -- your API URL (e.g., `https://api.bugspark.hillmanchan.com/api/v1`)
    - `NEXT_PUBLIC_S3_HOSTNAME` -- your S3 public hostname (for `next/image`)
    - `NEXT_PUBLIC_SENTRY_DSN` -- optional, Sentry DSN
 
@@ -136,17 +136,16 @@ Vercel auto-deploys on push to `main` and creates preview deployments for pull r
 BugSpark uses HttpOnly cookies for authentication. Cross-origin deployments (API on Render, Dashboard on Vercel) require specific configuration:
 
 ### Same-domain deployment
-If API and Dashboard share a domain (e.g., `api.bugspark.dev` and `app.bugspark.dev`):
+If API and Dashboard share a domain (e.g., `api.bugspark.hillmanchan.com` and `bugspark.hillmanchan.com`):
 - `COOKIE_SECURE=true`
 - `COOKIE_SAMESITE=lax`
-- `CORS_ORIGINS=https://app.bugspark.dev`
+- `CORS_ORIGINS=https://bugspark.hillmanchan.com`
 
 ### Cross-origin deployment (different domains)
-If API and Dashboard are on different domains (e.g., `bugspark-api.onrender.com` and `bugspark.vercel.app`):
+If API and Dashboard are on different domains (e.g., `api.bugspark.hillmanchan.com` and `bugspark.hillmanchan.com`):
 - `COOKIE_SECURE=true`
 - `COOKIE_SAMESITE=none` (required for cross-origin cookies)
-- `CORS_ORIGINS=https://bugspark.vercel.app`
-- `CORS_ORIGIN_REGEX=^https://bugspark-[a-z0-9-]+\.vercel\.app$` (for preview deploys)
+- `CORS_ORIGINS=https://bugspark.hillmanchan.com`
 
 ### Widget CORS
 The widget endpoint (`/api/v1/reports`) uses a dedicated `WidgetCORSMiddleware` that allows requests from any origin authenticated with an API key. No additional CORS configuration is needed for widget users.

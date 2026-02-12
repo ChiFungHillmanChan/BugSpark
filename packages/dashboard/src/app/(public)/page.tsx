@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo";
+import { BUGSPARK_DASHBOARD_URL } from "@/lib/constants";
 import { HeroSection } from "@/components/landing/hero-section";
 import { FeatureHighlights } from "@/components/landing/feature-highlights";
 import { WidgetDemoSection } from "@/components/landing/widget-demo-section";
@@ -24,7 +25,7 @@ const softwareAppJsonLd = {
   name: "BugSpark",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web",
-  url: "https://bugspark.hillmanchan.com",
+  url: BUGSPARK_DASHBOARD_URL,
   description:
     "BugSpark 自動擷取螢幕截圖、主控台日誌、網路請求和工作階段資料，讓使用者回報更完整的錯誤，團隊以最快速度解決問題。",
   offers: [

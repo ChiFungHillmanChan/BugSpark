@@ -12,7 +12,9 @@ export interface BugSparkConfig {
 const CONFIG_DIR = path.join(os.homedir(), ".bugspark");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
-const DEFAULT_API_URL = "https://bugspark-api.onrender.com/api/v1";
+// Centralized BugSpark URLs - Update these to change URLs across the CLI
+// These match the values in packages/dashboard/src/lib/constants.ts and packages/api/app/constants.py
+const DEFAULT_API_URL = "https://api.bugspark.hillmanchan.com/api/v1";
 const DEFAULT_DASHBOARD_URL = "https://bugspark.hillmanchan.com";
 
 function ensureDir(): void {

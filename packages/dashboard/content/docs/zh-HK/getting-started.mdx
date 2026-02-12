@@ -18,14 +18,7 @@
 
 ### Script 標籤（最簡單）
 
-```html
-<script
-  src="https://cdn.bugspark.dev/widget.js"
-  data-project-key="${BUGSPARK_PROJECT_KEY}"
-  data-position="bottom-right"
-  async
-></script>
-```
+<WidgetScriptSnippet />
 
 ### NPM 套件
 
@@ -33,14 +26,7 @@
 npm install @bugspark/widget
 ```
 
-```typescript
-import { BugSpark } from "@bugspark/widget";
-
-BugSpark.init({
-  projectKey: process.env.BUGSPARK_PROJECT_KEY,
-  position: "bottom-right",
-});
-```
+<WidgetNpmSnippet />
 
 ## 3. 開始接收報告
 

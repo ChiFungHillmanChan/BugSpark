@@ -34,7 +34,7 @@ bugspark login
 
 ```
 $ bugspark login
-? BugSpark API URL: https://bugspark-api.onrender.com/api/v1
+? BugSpark API URL: https://api.bugspark.hillmanchan.com/api/v1
 Opening browser to create a token...
 ? Paste your token: bsk_pat_a1b2c3d4...
 ✓ Logged in as Jane Doe (jane@example.com)
@@ -67,7 +67,7 @@ bugspark whoami
 ```
   Name:  Jane Doe
   Email: jane@example.com
-  API:   https://bugspark-api.onrender.com/api/v1
+  API:   https://api.bugspark.hillmanchan.com/api/v1
 ```
 
 ---
@@ -248,7 +248,7 @@ You can use the CLI in automated pipelines by setting the token via config:
 ```bash
 # In your CI script
 mkdir -p ~/.bugspark
-echo '{"apiUrl":"https://bugspark-api.onrender.com/api/v1","token":"bsk_pat_YOUR_TOKEN"}' > ~/.bugspark/config.json
+echo '{"apiUrl":"https://api.bugspark.hillmanchan.com/api/v1","token":"bsk_pat_YOUR_TOKEN"}' > ~/.bugspark/config.json
 chmod 600 ~/.bugspark/config.json
 
 # Now CLI commands work non-interactively

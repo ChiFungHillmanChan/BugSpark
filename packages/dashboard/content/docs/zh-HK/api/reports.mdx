@@ -26,7 +26,7 @@
 | `metadata` | `object` | 否 | 自訂鍵值對 |
 
 ```bash
-curl -X POST https://api.bugspark.dev/api/v1/reports \
+curl -X POST https://api.bugspark.hillmanchan.com/api/v1/reports \
   -H "X-API-Key: bsk_pub_abc123" \
   -H "Content-Type: application/json" \
   -d '{
@@ -109,7 +109,7 @@ curl -X POST https://api.bugspark.dev/api/v1/reports \
 以 `multipart/form-data` 格式傳送，包含 `file` 欄位：
 
 ```bash
-curl -X POST https://api.bugspark.dev/api/v1/upload/screenshot \
+curl -X POST https://api.bugspark.hillmanchan.com/api/v1/upload/screenshot \
   -H "X-API-Key: bsk_pub_abc123" \
   -F "file=@screenshot.png"
 ```

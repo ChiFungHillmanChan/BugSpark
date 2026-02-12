@@ -1,8 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { CosmicBackground } from "@/components/shared/cosmic-background";
+
+const CosmicBackground = dynamic(
+  () =>
+    import("@/components/shared/cosmic-background").then((m) => ({
+      default: m.CosmicBackground,
+    })),
+  { ssr: false }
+);
 import { SectionHeader } from "@/components/shared/section-header";
 import { DemoStepNarration } from "@/components/landing/demo-step-narration";
 import type { StepConfig } from "@/components/landing/demo-step-narration";

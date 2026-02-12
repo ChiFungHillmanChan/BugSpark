@@ -1,10 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { ArrowRight, BookOpen } from "lucide-react";
-import { CosmicBackground } from "@/components/shared/cosmic-background";
-import { ShootingStars } from "./shooting-stars";
+
+const CosmicBackground = dynamic(
+  () =>
+    import("@/components/shared/cosmic-background").then((m) => ({
+      default: m.CosmicBackground,
+    })),
+  { ssr: false }
+);
+const ShootingStars = dynamic(
+  () =>
+    import("./shooting-stars").then((m) => ({
+      default: m.ShootingStars,
+    })),
+  { ssr: false }
+);
 
 export function HeroSection() {
   const t = useTranslations("landing");

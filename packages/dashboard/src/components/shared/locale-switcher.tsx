@@ -12,7 +12,11 @@ const LOCALE_LABELS: Record<Locale, string> = {
   "zh-HK": "廣東話",
 };
 
-export function LocaleSwitcher() {
+interface LocaleSwitcherProps {
+  dropdownDirection?: "up" | "down";
+}
+
+export function LocaleSwitcher({ dropdownDirection = "down" }: LocaleSwitcherProps) {
   const locale = useLocale();
   const router = useRouter();
   const t = useTranslations("settings");
@@ -53,7 +57,7 @@ export function LocaleSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-40 rounded-lg bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 shadow-lg py-1 z-50">
+        <div className={`absolute right-0 w-40 rounded-lg bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 shadow-lg py-1 z-50 ${dropdownDirection === "up" ? "bottom-full mb-1" : "mt-1"}`}>
           {locales.map((loc) => (
             <button
               key={loc}

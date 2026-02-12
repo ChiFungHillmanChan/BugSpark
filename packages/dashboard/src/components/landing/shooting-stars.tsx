@@ -12,7 +12,7 @@ interface Star {
   angle: number;
 }
 
-const STAR_COUNT = 14;
+const STAR_COUNT = 8;
 
 function seededRandom(seed: number): number {
   const x = Math.sin(seed * 9301 + 49297) * 49297;

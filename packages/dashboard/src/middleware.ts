@@ -17,10 +17,12 @@ function isDashboardRoute(pathname: string): boolean {
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
-  // Redirect unauthenticated users away from dashboard routes
+  // Redirect unauthenticated users away from dashboard routes.
+  // In cross-origin deployments the HttpOnly auth cookies live on the API
+  // domain, so middleware checks the dashboard-domain session indicator instead.
   if (isDashboardRoute(pathname)) {
-    const hasAccessToken = request.cookies.has("bugspark_access_token");
-    if (!hasAccessToken) {
+    const hasSession = request.cookies.has("bugspark_session");
+    if (!hasSession) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(loginUrl);

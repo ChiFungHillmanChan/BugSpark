@@ -71,7 +71,7 @@ describe("AuthProvider", () => {
   });
 
   describe("initial state", () => {
-    it("skips getMeApi and resolves immediately when no access token cookie exists", async () => {
+    it("skips getMeApi and resolves immediately when no session indicator exists", async () => {
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -88,7 +88,7 @@ describe("AuthProvider", () => {
     });
 
     it("isAuthenticated starts false and transitions to true after getMeApi resolves", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -105,7 +105,7 @@ describe("AuthProvider", () => {
     });
 
     it("isLoading starts true and becomes false after getMeApi resolves", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -120,7 +120,7 @@ describe("AuthProvider", () => {
     });
 
     it("isLoading becomes false even when getMeApi rejects", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockRejectedValueOnce(new Error("Unauthorized"));
 
       const { result } = renderHook(() => useAuth(), {
@@ -292,7 +292,7 @@ describe("AuthProvider", () => {
 
   describe("logout", () => {
     it("clears user even if logoutApi throws", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockResolvedValueOnce(testUser);
       mockLogout.mockRejectedValueOnce(new Error("Network error"));
 
@@ -319,7 +319,7 @@ describe("AuthProvider", () => {
 
   describe("isSuperadmin", () => {
     it("returns true when user role is superadmin", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockResolvedValueOnce(superadminUser);
 
       const { result } = renderHook(() => useAuth(), {
@@ -334,7 +334,7 @@ describe("AuthProvider", () => {
     });
 
     it("returns false when user role is not superadmin", async () => {
-      mockCookie("bugspark_access_token=fake_token");
+      mockCookie("bugspark_session=1");
       mockGetMe.mockResolvedValueOnce(testUser);
 
       const { result } = renderHook(() => useAuth(), {

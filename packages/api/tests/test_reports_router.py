@@ -287,3 +287,42 @@ async def test_report_gets_tracking_id(
     )
     assert response2.status_code == 201
     assert response2.json()["trackingId"] == "BUG-0002"
+
+
+async def test_create_report_with_annotated_screenshot(
+    client: AsyncClient, test_project: tuple[Project, str]
+):
+    """Test that annotated_screenshot_url is properly stored and retrieved."""
+    project, raw_key = test_project
+    response = await client.post(
+        BASE,
+        json={
+            "title": "Bug with annotation",
+            "description": "Report with annotated screenshot",
+            "severity": "high",
+            "category": "bug",
+            "screenshot_url": "test-key-original.png",
+            "annotated_screenshot_url": "test-key-annotated.png",
+            "metadata": {"browser": "chrome"},
+        },
+        headers=_api_key_headers(raw_key),
+    )
+    assert response.status_code == 201
+    data = response.json()
+    report_id = data["id"]
+
+    # Verify annotated screenshot URL is in response
+    assert data["annotatedScreenshotUrl"] is not None
+    assert "test-key-annotated.png" in data["annotatedScreenshotUrl"]
+    assert data["screenshotUrl"] is not None
+    assert "test-key-original.png" in data["screenshotUrl"]
+
+    # Verify we can retrieve it via GET
+    get_response = await client.get(
+        f"{BASE}/{report_id}",
+        headers=_api_key_headers(raw_key),
+    )
+    assert get_response.status_code == 200
+    get_data = get_response.json()
+    assert get_data["annotatedScreenshotUrl"] is not None
+    assert "test-key-annotated.png" in get_data["annotatedScreenshotUrl"]

@@ -47,11 +47,14 @@ export const WIDGET_SCRIPT_TAG_FULL = `<script
 // ---------------------------------------------------------------------------
 export const WIDGET_NPM_INIT = `import BugSpark from "@bugspark/widget";
 
-BugSpark.init({
-  apiKey: process.env.BUGSPARK_PROJECT_KEY,
-  endpoint: "${BUGSPARK_API_URL}",
-  position: "bottom-right",
-});`;
+// Set ENABLE_BUGSPARK=false in .env to disable the widget
+if (process.env.ENABLE_BUGSPARK !== "false") {
+  BugSpark.init({
+    apiKey: process.env.BUGSPARK_PROJECT_KEY,
+    endpoint: "${BUGSPARK_API_URL}",
+    position: "bottom-right",
+  });
+}`;
 
 // ---------------------------------------------------------------------------
 // NPM — React useEffect pattern
@@ -61,11 +64,14 @@ import BugSpark from "@bugspark/widget";
 
 function App() {
   useEffect(() => {
-    BugSpark.init({
-      apiKey: process.env.BUGSPARK_PROJECT_KEY,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    // Set NEXT_PUBLIC_ENABLE_BUGSPARK=false in .env to disable
+    if (process.env.NEXT_PUBLIC_ENABLE_BUGSPARK !== "false") {
+      BugSpark.init({
+        apiKey: process.env.BUGSPARK_PROJECT_KEY,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }, []);
 
   return <div>{/* your app */}</div>;
@@ -79,11 +85,14 @@ import { onMounted } from "vue";
 import BugSpark from "@bugspark/widget";
 
 onMounted(() => {
-  BugSpark.init({
-    apiKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    endpoint: "${BUGSPARK_API_URL}",
-    position: "bottom-right",
-  });
+  // Set VITE_ENABLE_BUGSPARK=false in .env to disable
+  if (import.meta.env.VITE_ENABLE_BUGSPARK !== "false") {
+    BugSpark.init({
+      apiKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
+      endpoint: "${BUGSPARK_API_URL}",
+      position: "bottom-right",
+    });
+  }
 });
 </script>`;
 
@@ -97,11 +106,14 @@ import { environment } from "../environments/environment";
 @Component({ selector: "app-root", template: "<router-outlet />" })
 export class AppComponent implements OnInit {
   ngOnInit() {
-    BugSpark.init({
-      apiKey: environment.bugsparkApiKey,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    // Set enableBugspark: false in environment.ts to disable
+    if (environment.enableBugspark !== false) {
+      BugSpark.init({
+        apiKey: environment.bugsparkApiKey,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }
 }`;
 
@@ -163,22 +175,28 @@ export const DASHBOARD_SCRIPT_TAG = `<script
 
 export const DASHBOARD_NPM_INIT = `import BugSpark from "@bugspark/widget";
 
-BugSpark.init({
-  apiKey: process.env.BUGSPARK_PROJECT_KEY,
-  endpoint: "${BUGSPARK_API_URL}",
-  position: "bottom-right",
-});`;
+// Set ENABLE_BUGSPARK=false in .env to disable the widget
+if (process.env.ENABLE_BUGSPARK !== "false") {
+  BugSpark.init({
+    apiKey: process.env.BUGSPARK_PROJECT_KEY,
+    endpoint: "${BUGSPARK_API_URL}",
+    position: "bottom-right",
+  });
+}`;
 
 export const DASHBOARD_REACT_INIT = `import { useEffect } from "react";
 import BugSpark from "@bugspark/widget";
 
 function App() {
   useEffect(() => {
-    BugSpark.init({
-      apiKey: process.env.BUGSPARK_PROJECT_KEY,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    // Set NEXT_PUBLIC_ENABLE_BUGSPARK=false in .env to disable
+    if (process.env.NEXT_PUBLIC_ENABLE_BUGSPARK !== "false") {
+      BugSpark.init({
+        apiKey: process.env.BUGSPARK_PROJECT_KEY,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }, []);
 
   return <div>{/* your app */}</div>;
@@ -189,11 +207,14 @@ import { onMounted } from "vue";
 import BugSpark from "@bugspark/widget";
 
 onMounted(() => {
-  BugSpark.init({
-    apiKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
-    endpoint: "${BUGSPARK_API_URL}",
-    position: "bottom-right",
-  });
+  // Set VITE_ENABLE_BUGSPARK=false in .env to disable
+  if (import.meta.env.VITE_ENABLE_BUGSPARK !== "false") {
+    BugSpark.init({
+      apiKey: import.meta.env.VITE_BUGSPARK_PROJECT_KEY,
+      endpoint: "${BUGSPARK_API_URL}",
+      position: "bottom-right",
+    });
+  }
 });
 </script>`;
 
@@ -204,11 +225,14 @@ import { environment } from "../environments/environment";
 @Component({ selector: "app-root", template: "<router-outlet />" })
 export class AppComponent implements OnInit {
   ngOnInit() {
-    BugSpark.init({
-      apiKey: environment.bugsparkApiKey,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    // Set enableBugspark: false in environment.ts to disable
+    if (environment.enableBugspark !== false) {
+      BugSpark.init({
+        apiKey: environment.bugsparkApiKey,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }
 }`;
 
@@ -286,11 +310,14 @@ Select an existing project or create a new one. The CLI will output a ready-to-u
 
 ## Step 5 — Install the widget
 
-First, add your API key to your \`.env\` (or \`.env.local\`) file:
+First, add these to your \`.env\` (or \`.env.local\`) file:
 
 \`\`\`bash
 BUGSPARK_PROJECT_KEY=YOUR_API_KEY
+ENABLE_BUGSPARK=true
 \`\`\`
+
+Set \`ENABLE_BUGSPARK=false\` at any time to disable the widget without removing any code. This is useful for temporarily turning off bug reporting in specific environments.
 
 Then choose one of the following installation methods:
 
@@ -310,6 +337,8 @@ Add before the closing \`</body>\` tag in your base template:
 
 Replace \`YOUR_API_KEY\` with the actual API key from \`bugspark init\` or your \`.env\` file.
 
+For server-rendered frameworks (Next.js, Django, Rails, etc.), wrap in a conditional so the script tag is only rendered when \`ENABLE_BUGSPARK\` is not \`"false"\`.
+
 ### Option B — NPM package (React / Next.js / Vue)
 
 \`\`\`bash
@@ -321,14 +350,17 @@ Initialise in your app entry point (e.g. _app.tsx, layout.tsx, main.ts):
 \`\`\`typescript
 import BugSpark from "@bugspark/widget";
 
-BugSpark.init({
-  apiKey: process.env.BUGSPARK_PROJECT_KEY,
-  endpoint: "${BUGSPARK_API_URL}",
-  position: "bottom-right",
-});
+// Set ENABLE_BUGSPARK=false in .env to disable the widget
+if (process.env.ENABLE_BUGSPARK !== "false") {
+  BugSpark.init({
+    apiKey: process.env.BUGSPARK_PROJECT_KEY,
+    endpoint: "${BUGSPARK_API_URL}",
+    position: "bottom-right",
+  });
+}
 \`\`\`
 
-For React, wrap inside useEffect:
+For React, wrap inside useEffect (use NEXT_PUBLIC_ENABLE_BUGSPARK for Next.js):
 
 \`\`\`typescript
 import { useEffect } from "react";
@@ -336,11 +368,13 @@ import BugSpark from "@bugspark/widget";
 
 export default function App({ children }) {
   useEffect(() => {
-    BugSpark.init({
-      apiKey: process.env.BUGSPARK_PROJECT_KEY,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    if (process.env.NEXT_PUBLIC_ENABLE_BUGSPARK !== "false") {
+      BugSpark.init({
+        apiKey: process.env.BUGSPARK_PROJECT_KEY,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }, []);
 
   return <>{children}</>;
@@ -450,11 +484,14 @@ bugspark init
 
 ## 第 5 步 — 安裝小工具
 
-首先，將你嘅 API 金鑰加入 \`.env\`（或 \`.env.local\`）檔案：
+首先，將以下內容加入 \`.env\`（或 \`.env.local\`）檔案：
 
 \`\`\`bash
 BUGSPARK_PROJECT_KEY=YOUR_API_KEY
+ENABLE_BUGSPARK=true
 \`\`\`
+
+隨時將 \`ENABLE_BUGSPARK=false\` 就可以停用小工具，唔使刪除任何程式碼。呢個功能對於喺特定環境暫時關閉錯誤回報非常有用。
 
 然後揀以下其中一個安裝方式：
 
@@ -474,6 +511,8 @@ BUGSPARK_PROJECT_KEY=YOUR_API_KEY
 
 將 \`YOUR_API_KEY\` 換成 \`bugspark init\` 或 \`.env\` 檔案入面嘅實際 API 金鑰。
 
+對於伺服器渲染框架（Next.js、Django、Rails 等），用條件判斷包住 script 標籤，令到 \`ENABLE_BUGSPARK\` 唔係 \`"false"\` 嘅時候先載入。
+
 ### 選項 B — NPM 套件（React / Next.js / Vue）
 
 \`\`\`bash
@@ -485,14 +524,17 @@ npm install @bugspark/widget
 \`\`\`typescript
 import BugSpark from "@bugspark/widget";
 
-BugSpark.init({
-  apiKey: process.env.BUGSPARK_PROJECT_KEY,
-  endpoint: "${BUGSPARK_API_URL}",
-  position: "bottom-right",
-});
+// 喺 .env 設定 ENABLE_BUGSPARK=false 就可以停用小工具
+if (process.env.ENABLE_BUGSPARK !== "false") {
+  BugSpark.init({
+    apiKey: process.env.BUGSPARK_PROJECT_KEY,
+    endpoint: "${BUGSPARK_API_URL}",
+    position: "bottom-right",
+  });
+}
 \`\`\`
 
-React 嘅話，包喺 useEffect 入面：
+React 嘅話，包喺 useEffect 入面（Next.js 用 NEXT_PUBLIC_ENABLE_BUGSPARK）：
 
 \`\`\`typescript
 import { useEffect } from "react";
@@ -500,11 +542,13 @@ import BugSpark from "@bugspark/widget";
 
 export default function App({ children }) {
   useEffect(() => {
-    BugSpark.init({
-      apiKey: process.env.BUGSPARK_PROJECT_KEY,
-      endpoint: "${BUGSPARK_API_URL}",
-      position: "bottom-right",
-    });
+    if (process.env.NEXT_PUBLIC_ENABLE_BUGSPARK !== "false") {
+      BugSpark.init({
+        apiKey: process.env.BUGSPARK_PROJECT_KEY,
+        endpoint: "${BUGSPARK_API_URL}",
+        position: "bottom-right",
+      });
+    }
   }, []);
 
   return <>{children}</>;

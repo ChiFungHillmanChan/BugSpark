@@ -4,7 +4,7 @@ import Script from "next/script";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Providers } from "@/providers";
-import { BUGSPARK_DASHBOARD_URL, BUGSPARK_API_URL, BUGSPARK_WIDGET_CDN_URL } from "@/lib/constants";
+import { BUGSPARK_DASHBOARD_URL, BUGSPARK_API_URL, BUGSPARK_WIDGET_CDN_URL, BUGSPARK_ENABLED } from "@/lib/constants";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -49,7 +49,7 @@ export default async function RootLayout({
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
-        {process.env.NEXT_PUBLIC_BUGSPARK_API_KEY && (
+        {BUGSPARK_ENABLED && process.env.NEXT_PUBLIC_BUGSPARK_API_KEY && (
           <Script
             src={BUGSPARK_WIDGET_CDN_URL}
             data-api-key={process.env.NEXT_PUBLIC_BUGSPARK_API_KEY}

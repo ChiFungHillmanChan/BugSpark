@@ -12,6 +12,10 @@ export const BUGSPARK_DASHBOARD_URL = process.env.NEXT_PUBLIC_APP_URL || "https:
 // Widget CDN URL (for serving the widget script)
 export const BUGSPARK_WIDGET_CDN_URL = "https://cdn.jsdelivr.net/npm/@bugspark/widget@latest/dist/bugspark.iife.js";
 
+// Widget feature flag — set NEXT_PUBLIC_ENABLE_BUGSPARK=false to disable
+export const BUGSPARK_ENABLED =
+  (process.env.NEXT_PUBLIC_ENABLE_BUGSPARK ?? "true").toLowerCase() !== "false";
+
 // Extract base API URL (without /api/v1) for CSP and other uses
 export const BUGSPARK_API_BASE_URL = BUGSPARK_API_URL.replace("/api/v1", "");
 

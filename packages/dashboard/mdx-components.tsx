@@ -15,6 +15,7 @@ import {
   CspSnippet,
   AiSetupPrompt,
 } from "@/components/docs/widget-snippets";
+import { AuthFlowDiagram } from "@/components/docs/auth-flow-diagram";
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -41,6 +42,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     WidgetAngularSnippet,
     CspSnippet,
     AiSetupPrompt,
+    AuthFlowDiagram,
     h1: ({ children }) => (
       <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-8 mb-4">
         {children}

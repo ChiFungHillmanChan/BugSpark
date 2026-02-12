@@ -13,12 +13,18 @@ const BASE_URL = BUGSPARK_DASHBOARD_URL;
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  applicationName: "BugSpark",
   title: {
     default: "BugSpark - 香港 Bug 回報追蹤工具",
     template: "%s | BugSpark",
   },
   description:
     "BugSpark 自動擷取螢幕截圖、主控台日誌、網路請求和工作階段資料，讓團隊以最快速度解決 Bug。香港開發者首選錯誤追蹤工具。",
+  appleWebApp: {
+    capable: true,
+    title: "BugSpark",
+    statusBarStyle: "black-translucent",
+  },
   openGraph: {
     type: "website",
     siteName: "BugSpark",
@@ -33,6 +39,7 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
     languages: { "zh-HK": "/", en: "/" },
   },
+  manifest: "/manifest.webmanifest",
 };
 
 export default async function RootLayout({

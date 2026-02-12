@@ -60,16 +60,27 @@ export default function OgImage() {
               width: 64,
               height: 64,
               borderRadius: 16,
-              background: "linear-gradient(135deg, #6366f1, #a855f7)",
+              background: "linear-gradient(135deg, #0f172a, #1e1b4b)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 32,
-              fontWeight: 700,
-              color: "white",
             }}
           >
-            B
+            {/* Spider icon using SVG inline */}
+            <svg width="40" height="40" viewBox="0 0 32 32" fill="none">
+              <ellipse cx="16" cy="14" rx="4.5" ry="3.5" fill="#e94560" />
+              <ellipse cx="16" cy="20" rx="3.5" ry="3" fill="#e94560" />
+              <circle cx="14.5" cy="13" r="1" fill="white" opacity="0.9" />
+              <circle cx="17.5" cy="13" r="1" fill="white" opacity="0.9" />
+              <path d="M11.5 14 Q9 11 6 9.5" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M11.5 15.5 Q8.5 14.5 5.5 14" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M12.5 18 Q9 19 6 21" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M13 20 Q10 22 7.5 25" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M20.5 14 Q23 11 26 9.5" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M20.5 15.5 Q23.5 14.5 26.5 14" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M19.5 18 Q23 19 26 21" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+              <path d="M19 20 Q22 22 24.5 25" stroke="#ff6b6b" strokeWidth="1.3" strokeLinecap="round" />
+            </svg>
           </div>
           <span
             style={{

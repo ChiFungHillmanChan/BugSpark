@@ -4,13 +4,7 @@
 
 ## 運作原理
 
-```
-┌─────────────┐    bsk_pat_...    ┌──────────────┐    SHA-256    ┌──────────┐
-│  BugSpark   │ ──────────────→  │  BugSpark    │ ──────────→  │  資料庫  │
-│  CLI        │  Authorization:  │  API         │  雜湊比對   │          │
-│             │  Bearer token    │              │              │          │
-└─────────────┘                  └──────────────┘              └──────────┘
-```
+<AuthFlowDiagram />
 
 1. 你在儀表板中建立 PAT（或透過 `bugspark login` 流程）
 2. CLI 將權杖儲存在本機的 `~/.bugspark/config.json`

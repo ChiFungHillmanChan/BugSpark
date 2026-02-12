@@ -4,13 +4,7 @@ Learn how the BugSpark CLI authenticates with the API using Personal Access Toke
 
 ## How It Works
 
-```
-┌─────────────┐    bsk_pat_...    ┌──────────────┐    SHA-256    ┌──────────┐
-│  BugSpark   │ ──────────────→  │  BugSpark    │ ──────────→  │ Database │
-│  CLI        │  Authorization:  │  API         │  hash match  │          │
-│             │  Bearer token    │              │              │          │
-└─────────────┘                  └──────────────┘              └──────────┘
-```
+<AuthFlowDiagram />
 
 1. You create a PAT in the Dashboard (or via the `bugspark login` flow)
 2. The CLI stores the token locally at `~/.bugspark/config.json`

@@ -908,5 +908,13 @@
     "yesCancelSubscription": "Yes, Cancel",
     "canceling": "Canceling...",
     "currency": "HK$"
+  },
+  "usage": {
+    "unlimited": "Unlimited",
+    "used": "used",
+    "usage": "Usage",
+    "projects": "Projects",
+    "reportsThisMonth": "Reports This Month",
+    "teamMembers": "Team Members"
   }
 }

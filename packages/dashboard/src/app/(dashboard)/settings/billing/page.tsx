@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, FolderKanban, FileText, Users } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -12,6 +12,8 @@ import {
   useReactivateSubscription,
   useCreateCheckoutSession,
 } from "@/hooks/use-billing";
+import { useUsage } from "@/hooks/use-usage";
+import { UsageCard } from "@/components/usage/usage-card";
 import { SubscriptionCard } from "./components/subscription-card";
 import { BillingAlerts } from "./components/billing-alerts";
 import { PlanSelector } from "./components/plan-selector";
@@ -21,9 +23,11 @@ import type { UserPlan } from "@/types";
 
 export default function BillingPage() {
   const t = useTranslations("billing");
+  const tu = useTranslations("usage");
   const { user } = useAuth();
   const { data: subscription, isLoading: isLoadingSubscription } = useSubscription();
   const { data: invoices, isLoading: isLoadingInvoices } = useInvoices();
+  const { data: usage, isLoading: isLoadingUsage } = useUsage();
   const cancelMutation = useCancelSubscription();
   const reactivateMutation = useReactivateSubscription();
   const checkoutMutation = useCreateCheckoutSession();
@@ -87,6 +91,38 @@ export default function BillingPage() {
             onReactivate={handleReactivateSubscription}
           />
         )}
+
+        {isLoadingUsage ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-gray-200 dark:bg-navy-700 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : usage ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <UsageCard
+              label={tu("projects")}
+              quota={usage.projects}
+              icon={FolderKanban}
+              unlimitedLabel={tu("unlimited")}
+            />
+            <UsageCard
+              label={tu("reportsThisMonth")}
+              quota={usage.reportsPerMonth}
+              icon={FileText}
+              unlimitedLabel={tu("unlimited")}
+            />
+            <UsageCard
+              label={tu("teamMembers")}
+              quota={usage.teamMembersPerProject[0] ? {
+                current: usage.teamMembersPerProject.reduce((sum, p) => sum + p.memberCount, 0),
+                limit: usage.teamMembersPerProject[0]?.memberLimit,
+              } : { current: 0, limit: null }}
+              icon={Users}
+              unlimitedLabel={tu("unlimited")}
+            />
+          </div>
+        ) : null}
 
         <PlanSelector
           currentPlan={currentPlan}

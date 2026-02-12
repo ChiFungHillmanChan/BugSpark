@@ -1,10 +1,11 @@
 """Dashboard auth: register, login, refresh, logout, me, update_me, export, delete."""
 from __future__ import annotations
 
+import math
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request, Response
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
@@ -12,6 +13,9 @@ from app.dependencies import get_active_user, get_current_user, get_db
 from app.exceptions import BadRequestException, UnauthorizedException
 from app.i18n import get_locale, translate
 from app.models.enums import BetaStatus
+from app.models.personal_access_token import PersonalAccessToken
+from app.models.project import Project
+from app.models.report import Report
 from app.models.user import User
 from app.rate_limiter import limiter
 from app.routers.auth_helpers import (
@@ -26,14 +30,15 @@ from app.schemas.auth import (
     RegisterRequest,
 )
 from app.schemas.user import UserResponse, UserUpdate, build_user_response
+from app.schemas.usage import QuotaUsage, UserUsage
 from app.services.auth_service import (
     hash_password,
     verify_password,
     verify_token,
 )
-from app.models.personal_access_token import PersonalAccessToken
 from app.services.data_export_service import export_user_data
 from app.services.email_verification_service import send_verification_email
+from app.services.plan_limits_service import PLAN_LIMITS
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -230,3 +235,48 @@ async def delete_my_account(
 
     clear_auth_cookies(response)
     return {"detail": "Account has been deactivated."}
+
+
+@router.get("/usage", response_model=UserUsage)
+@limiter.limit("30/minute")
+async def get_user_usage(
+    request: Request,
+    current_user: User = Depends(get_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> UserUsage:
+    """Get current user's quota usage (projects, reports this month)."""
+    limits = PLAN_LIMITS[current_user.plan]
+
+    # Count projects
+    projects_result = await db.execute(
+        select(func.count())
+        .select_from(Project)
+        .where(Project.owner_id == current_user.id, Project.is_active.is_(True))
+    )
+    projects_count = projects_result.scalar() or 0
+
+    # Count reports this month
+    now = datetime.now(timezone.utc)
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+    owner_project_ids = select(Project.id).where(Project.owner_id == current_user.id)
+    reports_result = await db.execute(
+        select(func.count())
+        .select_from(Report)
+        .where(
+            Report.project_id.in_(owner_project_ids),
+            Report.created_at >= month_start,
+        )
+    )
+    reports_count = reports_result.scalar() or 0
+
+    return UserUsage(
+        projects=QuotaUsage(
+            current=projects_count,
+            limit=int(limits.max_projects) if math.isfinite(limits.max_projects) else None,
+        ),
+        reports_this_month=QuotaUsage(
+            current=reports_count,
+            limit=int(limits.max_reports_per_month) if math.isfinite(limits.max_reports_per_month) else None,
+        ),
+    )

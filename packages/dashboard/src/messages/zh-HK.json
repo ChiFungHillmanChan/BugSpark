@@ -908,5 +908,13 @@
     "yesCancelSubscription": "是的，取消",
     "canceling": "取消中...",
     "currency": "HK$"
+  },
+  "usage": {
+    "unlimited": "無限制",
+    "used": "已使用",
+    "usage": "用量",
+    "projects": "專案",
+    "reportsThisMonth": "本月回報數",
+    "teamMembers": "團隊成員"
   }
 }

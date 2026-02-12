@@ -205,6 +205,27 @@ async def _handle_subscription_updated(
     period_start_ts = sub_data.get("current_period_start")
     period_end_ts = sub_data.get("current_period_end")
 
+    # Detect plan downgrade and set grace period
+    old_plan = user.plan
+    if plan != old_plan:
+        # Check if this is a downgrade (from higher tier to lower tier)
+        plan_hierarchy = {Plan.ENTERPRISE: 3, Plan.TEAM: 2, Plan.STARTER: 1, Plan.FREE: 0}
+        old_rank = plan_hierarchy.get(old_plan, 0)
+        new_rank = plan_hierarchy.get(plan, 0)
+
+        if new_rank < old_rank:
+            # This is a downgrade, set grace period fields
+            user.previous_plan = old_plan.value
+            user.plan_downgraded_at = datetime.now(timezone.utc)
+            logger.info(
+                "Plan downgrade detected for user %s: %s -> %s",
+                user.id, old_plan.value, plan.value,
+            )
+        else:
+            # This is an upgrade, clear grace period fields
+            user.previous_plan = None
+            user.plan_downgraded_at = None
+
     user.plan = plan
     user.subscription_status = sub_data["status"]
     user.cancel_at_period_end = sub_data.get("cancel_at_period_end", False)
@@ -251,6 +272,11 @@ async def _handle_subscription_deleted(
     if user is None:
         logger.warning("No user found for Stripe customer %s", customer_id)
         return
+
+    # Track the previous plan for grace period
+    old_plan = user.plan
+    user.previous_plan = old_plan.value if old_plan != Plan.FREE else None
+    user.plan_downgraded_at = datetime.now(timezone.utc) if old_plan != Plan.FREE else None
 
     user.plan = Plan.FREE
     user.subscription_status = "canceled"

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,6 +19,7 @@ class PlanLimits:
     max_projects: int | float  # math.inf for unlimited
     max_reports_per_project: int | float
     max_reports_per_month: int | float
+    max_team_members_per_project: int | float
 
 
 PLAN_LIMITS: dict[Plan, PlanLimits] = {
@@ -26,21 +27,25 @@ PLAN_LIMITS: dict[Plan, PlanLimits] = {
         max_projects=1,
         max_reports_per_project=100,
         max_reports_per_month=50,
+        max_team_members_per_project=1,
     ),
     Plan.STARTER: PlanLimits(
         max_projects=3,
         max_reports_per_project=1000,
         max_reports_per_month=500,
+        max_team_members_per_project=3,
     ),
     Plan.TEAM: PlanLimits(
         max_projects=10,
         max_reports_per_project=5000,
         max_reports_per_month=5000,
+        max_team_members_per_project=10,
     ),
     Plan.ENTERPRISE: PlanLimits(
         max_projects=math.inf,
         max_reports_per_project=math.inf,
         max_reports_per_month=math.inf,
+        max_team_members_per_project=math.inf,
     ),
 }
 
@@ -102,6 +107,9 @@ def get_limits_config() -> dict[str, dict[str, int | None]]:
             "max_reports_per_month": (
                 int(limits.max_reports_per_month) if math.isfinite(limits.max_reports_per_month) else None
             ),
+            "max_team_members_per_project": (
+                int(limits.max_team_members_per_project) if math.isfinite(limits.max_team_members_per_project) else None
+            ),
         }
     return result
 
@@ -109,6 +117,23 @@ def get_limits_config() -> dict[str, dict[str, int | None]]:
 def get_features_config() -> dict[str, list[str]]:
     """Return the features config as a JSON-serialisable dict."""
     return {plan.value: sorted(features) for plan, features in PLAN_FEATURES.items()}
+
+
+# Grace period configuration for plan downgrades
+GRACE_PERIOD_DAYS = 30
+
+
+def is_in_grace_period(user: User) -> bool:
+    """Check if a user is in the grace period after a plan downgrade.
+
+    During the grace period, users can continue to use features from their
+    previous higher-tier plan even though they've downgraded to a lower tier.
+    """
+    if user.plan_downgraded_at is None:
+        return False
+
+    elapsed = datetime.now(timezone.utc) - user.plan_downgraded_at
+    return elapsed < timedelta(days=GRACE_PERIOD_DAYS)
 
 
 async def check_project_limit(db: AsyncSession, user: User) -> None:
@@ -186,3 +211,40 @@ async def check_report_limit(db: AsyncSession, project: Project) -> None:
                 f"{int(limits.max_reports_per_month)} report(s) per month. "
                 "Please upgrade your plan."
             )
+
+
+async def check_team_member_limit(db: AsyncSession, project: Project) -> None:
+    """Raise ForbiddenException if the project has reached its team member limit."""
+    # Ensure owner is loaded — prefer eager-loaded relation, fall back to explicit query
+    owner: User | None = getattr(project, "owner", None)
+    if owner is None:
+        owner_result = await db.execute(
+            select(User).where(User.id == project.owner_id)
+        )
+        owner = owner_result.scalar_one_or_none()
+    if owner is None:
+        raise ForbiddenException("Project owner not found")
+    if owner.role == Role.SUPERADMIN:
+        return
+
+    limits = PLAN_LIMITS[owner.plan]
+    if math.isinf(limits.max_team_members_per_project):
+        return
+
+    from app.models.project_member import ProjectMember
+
+    count_result = await db.execute(
+        select(func.count())
+        .select_from(ProjectMember)
+        .where(ProjectMember.project_id == project.id)
+    )
+    current_count = count_result.scalar() or 0
+    # Would-be count if we invite one more member (owner + existing + new)
+    would_be_count = current_count + 2  # +1 for owner, +1 for new invitee
+
+    if would_be_count > limits.max_team_members_per_project:
+        raise ForbiddenException(
+            f"Plan limit reached: {owner.plan.value} plan allows up to "
+            f"{int(limits.max_team_members_per_project)} team member(s) per project. "
+            "Please upgrade your plan."
+        )

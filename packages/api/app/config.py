@@ -97,6 +97,24 @@ class Settings(BaseSettings):
                     "COOKIE_SAMESITE='none' is insecure for production",
                     stacklevel=1,
                 )
+            # Validate CORS origins for production (Phase 1: CORS fix)
+            if not self.CORS_ORIGINS or "localhost" in self.CORS_ORIGINS:
+                raise ValueError(
+                    "CORS_ORIGINS must be set to production URLs in non-development environments. "
+                    "Default localhost origins are not allowed in production."
+                )
+            if not self.FRONTEND_URL or "localhost" in self.FRONTEND_URL:
+                raise ValueError(
+                    "FRONTEND_URL must be set to a production URL in non-development environments"
+                )
+            # Warn if FRONTEND_URL not in CORS_ORIGINS
+            if self.FRONTEND_URL not in self.cors_origins_list:
+                _logger = logging.getLogger(__name__)
+                _logger.warning(
+                    "FRONTEND_URL (%s) is not in CORS_ORIGINS (%s) — dashboard requests may fail",
+                    self.FRONTEND_URL,
+                    self.CORS_ORIGINS,
+                )
         return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}

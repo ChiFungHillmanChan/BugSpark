@@ -78,6 +78,10 @@ class User(Base):
         Boolean, default=False, server_default="false", nullable=False
     )
     refresh_token_jti: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    previous_plan: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    plan_downgraded_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

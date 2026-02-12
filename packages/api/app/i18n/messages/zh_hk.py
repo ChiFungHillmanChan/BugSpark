@@ -73,4 +73,5 @@ MESSAGES: dict[str, str] = {
     "plan.project_limit": "已達方案上限：您的方案最多允許 {limit} 個專案。請升級方案。",
     "plan.report_per_project_limit": "已達方案上限：您的方案每個專案最多允許 {limit} 則回報。請升級方案。",
     "plan.report_monthly_limit": "已達方案上限：您的方案每月最多允許 {limit} 則回報。請升級方案。",
+    "plan.team_member_limit": "已達方案上限：您的方案每個專案最多允許 {limit} 位團隊成員。請升級方案。",
 }

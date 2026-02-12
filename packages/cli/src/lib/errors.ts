@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { ApiError } from "./api-client.js";
 
 /**
@@ -20,7 +21,28 @@ export function formatError(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
+function formatQuotaError(err: ApiError): string {
+  const message = err.message;
+
+  // Extract plan name from error message if available
+  const planMatch = message.match(/(\w+)\s+plan\s+/i);
+  const plan = planMatch ? planMatch[1].toLowerCase() : "your";
+
+  const quotaMsg = chalk.red(message);
+  const upgradeMsg = chalk.cyan(
+    "\n💡 Upgrade your plan to increase limits:\n" +
+    "   Run: bugspark billing portal"
+  );
+
+  return quotaMsg + upgradeMsg;
+}
+
 function formatApiError(err: ApiError): string {
+  // Check for quota limit errors
+  if (err.code && err.code.endsWith("_LIMIT_REACHED")) {
+    return formatQuotaError(err);
+  }
+
   switch (err.status) {
     case 401:
       return "Authentication failed. Run `bugspark login` to re-authenticate.";

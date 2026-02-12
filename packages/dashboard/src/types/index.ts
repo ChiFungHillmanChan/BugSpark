@@ -259,3 +259,21 @@ export interface ProjectMember {
 
 export type Severity = "critical" | "high" | "medium" | "low";
 export type Status = "new" | "triaging" | "in_progress" | "resolved" | "closed";
+
+export interface UsageQuota {
+  current: number;
+  limit: number | null;
+}
+
+export interface ProjectMemberUsage {
+  projectId: string;
+  projectName: string;
+  memberCount: number;
+  memberLimit: number | null;
+}
+
+export interface UsageResponse {
+  projects: UsageQuota;
+  reportsPerMonth: UsageQuota;
+  teamMembersPerProject: ProjectMemberUsage[];
+}

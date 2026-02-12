@@ -20,7 +20,7 @@ from app.middleware.csrf import CSRFMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
-from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_google, auth_password, billing, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks, webhooks_stripe
+from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_google, auth_password, billing, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, usage, webhooks, webhooks_stripe
 
 logger = logging.getLogger(__name__)
 
@@ -101,6 +101,20 @@ _cors_kwargs: dict = {
 if settings.CORS_ORIGIN_REGEX:
     _cors_kwargs["allow_origin_regex"] = settings.CORS_ORIGIN_REGEX
 app.add_middleware(CORSMiddleware, **_cors_kwargs)
+
+# Log CORS configuration for debugging (Phase 1: CORS fix)
+logger.info(
+    "CORS configuration: origins=%s, regex=%s",
+    settings.cors_origins_list,
+    settings.CORS_ORIGIN_REGEX or "(none)",
+)
+if settings.ENVIRONMENT == "production":
+    if not settings.cors_origins_list or any("localhost" in o for o in settings.cors_origins_list):
+        logger.error(
+            "CRITICAL: Production deployment with localhost CORS origins. "
+            "Set CORS_ORIGINS environment variable to production URL."
+        )
+
 app.add_middleware(CSRFMiddleware)
 app.add_middleware(RequestIDMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
@@ -131,6 +145,7 @@ app.include_router(plans.router, prefix="/api/v1")
 app.include_router(team.router, prefix="/api/v1")
 app.include_router(billing.router, prefix="/api/v1")
 app.include_router(webhooks_stripe.router, prefix="/api/v1")
+app.include_router(usage.router, prefix="/api/v1")
 
 
 if settings.ENVIRONMENT == "development":

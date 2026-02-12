@@ -18,6 +18,7 @@ from app.schemas.team import (
     ProjectMemberResponse,
     UpdateMemberRoleRequest,
 )
+from app.services.plan_limits_service import check_team_member_limit
 from app.services.team_service import (
     accept_invite,
     get_project_members,
@@ -89,6 +90,7 @@ async def invite(
     locale = get_locale(request)
     project = await get_accessible_project(project_id, user, db, locale)
     await _require_project_admin(project, user, db, locale)
+    await check_team_member_limit(db, project)
     member = await invite_member(db, project, user, body.email, body.role, locale)
     return _member_response(member)
 

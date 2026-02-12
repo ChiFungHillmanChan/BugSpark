@@ -37,6 +37,9 @@ export const queryKeys = {
     subscription: ["billing", "subscription"] as const,
     invoices: ["billing", "invoices"] as const,
   },
+  usage: {
+    current: ["usage"] as const,
+  },
   admin: {
     users: <P extends object>(params?: P) =>
       ["admin", "users", params] as const,

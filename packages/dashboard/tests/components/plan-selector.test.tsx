@@ -25,7 +25,7 @@ describe("PlanSelector", () => {
     const monthlyButtons = screen.getAllByRole("button", { name: /Monthly/i });
     await user.click(monthlyButtons[0]);
 
-    expect(mockOnChangePlan).toHaveBeenCalledWith(plan, MONTHLY);
+    expect(mockOnChangePlan).toHaveBeenCalledWith(plan.id, MONTHLY);
   });
 
   it("sends 'year' when yearly billing button is clicked", async () => {
@@ -39,7 +39,7 @@ describe("PlanSelector", () => {
     const yearlyButtons = screen.getAllByRole("button", { name: /Yearly/i });
     await user.click(yearlyButtons[0]);
 
-    expect(mockOnChangePlan).toHaveBeenCalledWith(plan, YEARLY);
+    expect(mockOnChangePlan).toHaveBeenCalledWith(plan.id, YEARLY);
   });
 
   it("does NOT send 'monthly' (API would reject this)", async () => {
@@ -55,7 +55,7 @@ describe("PlanSelector", () => {
 
     // Verify it does NOT send "monthly"
     expect(mockOnChangePlan).not.toHaveBeenCalledWith(
-      plan,
+      plan.id,
       "monthly"
     );
   });
@@ -73,7 +73,7 @@ describe("PlanSelector", () => {
 
     // Verify it does NOT send "yearly"
     expect(mockOnChangePlan).not.toHaveBeenCalledWith(
-      plan,
+      plan.id,
       "yearly"
     );
   });

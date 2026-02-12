@@ -21,6 +21,12 @@ import {
   createTokenCommand,
   revokeTokenCommand,
 } from "./commands/tokens.js";
+import {
+  listWebhooksCommand,
+  createWebhookCommand,
+  updateWebhookCommand,
+  deleteWebhookCommand,
+} from "./commands/webhooks.js";
 
 const program = new Command();
 
@@ -135,5 +141,37 @@ tokens
   .command("revoke <token-id>")
   .description("Revoke a personal access token")
   .action(revokeTokenCommand);
+
+// ─── Webhooks ────────────────────────────────────────────────────────────
+
+const webhooks = program
+  .command("webhooks")
+  .description("Manage project webhooks");
+
+webhooks
+  .command("list")
+  .description("List webhooks for a project")
+  .requiredOption("-p, --project <id>", "Project ID")
+  .action(listWebhooksCommand);
+
+webhooks
+  .command("create <url>")
+  .description("Create a new webhook")
+  .requiredOption("-p, --project <id>", "Project ID")
+  .option("-e, --events <events>", "Comma-separated events (default: report.created,report.updated)")
+  .action(createWebhookCommand);
+
+webhooks
+  .command("update <webhook-id>")
+  .description("Update a webhook")
+  .option("--url <url>", "New endpoint URL")
+  .option("-e, --events <events>", "Comma-separated events")
+  .option("--active <bool>", "Set active status (true/false)")
+  .action(updateWebhookCommand);
+
+webhooks
+  .command("delete <webhook-id>")
+  .description("Delete a webhook")
+  .action(deleteWebhookCommand);
 
 program.parse();

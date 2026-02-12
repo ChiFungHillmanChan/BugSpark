@@ -126,7 +126,7 @@ pnpm dev              # Rollup watch mode
 
 ### Widget Architecture
 - Shadow DOM host for CSS isolation, auto-initializes from `<script>` data attributes (`data-api-key`, `data-endpoint`, `data-position`, `data-theme`, `data-watermark`)
-- **Core modules:** console interceptor (50 entries default), network interceptor (30 requests default, filters sensitive headers), error tracker, screenshot engine (html2canvas), metadata collector, performance collector (Web Vitals: LCP, CLS, FID, INP, TTFB), session recorder (30-second sliding window)
+- **Core modules:** console interceptor (50 entries default), network interceptor (30 requests default, filters sensitive headers), error tracker, screenshot engine (html2canvas), metadata collector, performance collector (Web Vitals: LCP, CLS, FID, INP, TTFB), session recorder (60-second sliding window)
 - **Remote config:** `widget-lifecycle.ts` fetches project config from API on init, can override `enableScreenshot`, `showWatermark`, `ownerPlan`, `primaryColor`, `buttonText`, `modalTitle`, `logo`
 - **Annotation tools:** pen, arrow, rectangle, circle, text, blur — with undo/redo history and color picker
 - **UI:** floating button (4 position options, optional `buttonText` label), report modal (title, description, severity, category, email, screenshot preview, hidden honeypot field), annotation overlay, toast notifications, "Powered by BugSpark" watermark (default on, togglable via `branding.showWatermark`)

@@ -140,7 +140,10 @@ export interface Webhook {
   url: string;
   events: string[];
   isActive: boolean;
+  createdAt: string;
 }
+
+export const WEBHOOK_EVENTS = ["report.created", "report.updated"] as const;
 
 export interface OverviewStats {
   totalBugs: number;

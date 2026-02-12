@@ -16,6 +16,8 @@ The widget captures bug reports (screenshots with annotation tools, console/netw
 ## Commands
 
 ### Root (pnpm + turbo)
+**Project uses pnpm as the package manager** (not npm). All Node.js scripts should use `pnpm` commands.
+
 ```bash
 pnpm dev              # Start all packages
 pnpm build            # Build all packages
@@ -27,7 +29,7 @@ pnpm db:migrate       # Run Alembic migrations (alembic upgrade head)
 pnpm db:seed          # Seed database (python scripts/seed.py)
 pnpm docker:up        # Start Postgres + MinIO containers
 pnpm docker:down      # Stop containers
-pnpm cli:link         # Build CLI and npm link for local use
+pnpm cli:link         # Build CLI and pnpm link for local use
 ```
 
 ### API (from packages/api)
@@ -38,6 +40,17 @@ pytest -k "test_login"           # Single test by name
 alembic upgrade head             # Apply migrations
 alembic revision --autogenerate -m "description"  # New migration
 ```
+
+**Python Environment:**
+- Python 3.11+
+- Key dependencies: FastAPI, SQLAlchemy 2.0 (async), Pydantic v2, Alembic, pytest, httpx (test client)
+- All Python dependencies managed via pip/pyproject.toml (see `packages/api/pyproject.toml`)
+
+**Test File Creation Pattern:**
+- Location: `packages/api/tests/`
+- Naming: `test_<feature>.py` (e.g., `test_auth_router.py`, `test_stripe_webhook.py`)
+- Structure: Use pytest fixtures from `conftest.py` for DB session, client, authenticated user, test project
+- Example: Create `tests/test_plans_router.py` for plan-related endpoints
 
 ### Dashboard (from packages/dashboard)
 ```bash
@@ -50,6 +63,12 @@ pnpm test:coverage    # vitest with coverage
 npx tsc --noEmit      # Type check
 ```
 
+**Test File Creation Pattern:**
+- Location: `packages/dashboard/src/**/*.test.ts(x)` (colocated with source files)
+- Naming: `<component>.test.tsx` or `<hook>.test.ts`
+- Framework: vitest + @testing-library/react
+- Example: `src/hooks/use-plans.test.ts` for plan-related hooks
+
 ### Widget (from packages/widget)
 ```bash
 pnpm dev              # Rollup watch
@@ -59,6 +78,12 @@ pnpm test             # vitest run
 pnpm test:watch       # vitest watch mode
 pnpm test:coverage    # vitest with coverage
 ```
+
+**Test File Creation Pattern:**
+- Location: `packages/widget/src/**/*.test.ts` (colocated with source files)
+- Naming: `<module>.test.ts`
+- Framework: vitest with DOM testing utilities
+- Example: `src/services/storage.test.ts` for utility functions
 
 ### CLI (from packages/cli)
 ```bash
@@ -173,6 +198,17 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 **User role:** `user`, `admin`, `superadmin`
 **User plan:** `free`, `pro`, `enterprise`
 
+### Plans & Billing (Stripe Integration)
+- **Plans:** Free (unlimited), Starter (HK$199/month), Team (HK$799/month), Enterprise (custom)
+- **Stripe Integration:** `app/services/stripe_service.py` handles customer creation, subscription management, hosted checkout, webhook processing
+- **Models:** `app/models/` includes `Subscription`, `Plan` models with enums for plan tiers and subscription status
+- **Schemas:** `app/schemas/billing.py` defines checkout, subscription status, and usage tracking schemas
+- **Routers:** `app/routers/billing.py` exposes endpoints for checkout session creation, subscription management, usage reporting
+- **Webhooks:** `/api/v1/webhooks/stripe` handles Stripe events (customer.subscription.*, invoice.*, etc.) for subscription lifecycle
+- **Environment Variables:** `STRIPE_API_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_IDS` (comma-separated IDs per plan)
+- **Dashboard UI:** Pricing page (`src/components/landing/pricing-data.ts`), subscription settings (`src/components/settings/billing-settings.tsx`), usage dashboard
+- **Quota Enforcement:** `app/services/plan_limits_service.py` enforces per-plan limits (storage, reports/month, team members, integrations)
+
 ## Environment Variables (API)
 
 Key variables (see `app/config.py`):
@@ -181,6 +217,9 @@ Key variables (see `app/config.py`):
 - `JWT_ACCESS_TOKEN_EXPIRE_MINUTES`, `JWT_REFRESH_TOKEN_EXPIRE_DAYS` — Token TTLs (defaults: 15 min, 7 days)
 - `S3_ENDPOINT_URL`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_BUCKET_NAME`, `S3_PUBLIC_URL` — File storage
 - `ANTHROPIC_API_KEY` — AI analysis feature
+- `STRIPE_API_KEY` — Stripe secret key for API access
+- `STRIPE_WEBHOOK_SECRET` — Stripe webhook signing secret
+- `STRIPE_PRICE_IDS` — Comma-separated Stripe price IDs (format: `starter_monthly,team_monthly,enterprise`)
 - `CORS_ORIGINS` — Comma-separated allowed origins
 - `FRONTEND_URL` — Dashboard URL for redirects
 - `SUPERADMIN_EMAIL`, `SUPERADMIN_PASSWORD` — Initial superadmin credentials

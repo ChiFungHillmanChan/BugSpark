@@ -6,6 +6,11 @@ from pydantic import model_validator
 from pydantic_settings import BaseSettings
 
 
+def _is_local_origin(origin: str) -> bool:
+    normalized = origin.lower()
+    return "localhost" in normalized or "127.0.0.1" in normalized or "0.0.0.0" in normalized
+
+
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://bugspark:bugspark_dev@localhost:5432/bugspark"
 
@@ -67,6 +72,7 @@ class Settings(BaseSettings):
         import warnings
 
         if self.ENVIRONMENT != "development":
+            _logger = logging.getLogger(__name__)
             if self.JWT_SECRET == "change-me-in-production":
                 raise ValueError(
                     "JWT_SECRET must be changed from the default value in non-development environments"
@@ -88,7 +94,6 @@ class Settings(BaseSettings):
                     "COOKIE_SECURE must be True in non-development environments (HTTPS required)"
                 )
             if self.COOKIE_SAMESITE.lower() == "none":
-                _logger = logging.getLogger(__name__)
                 _logger.warning(
                     "COOKIE_SAMESITE is set to 'none' — this allows cross-site cookie sending. "
                     "Consider using 'lax' or 'strict' for better security."
@@ -97,24 +102,43 @@ class Settings(BaseSettings):
                     "COOKIE_SAMESITE='none' is insecure for production",
                     stacklevel=1,
                 )
-            # Validate CORS origins for production (Phase 1: CORS fix)
-            if not self.CORS_ORIGINS or "localhost" in self.CORS_ORIGINS:
-                raise ValueError(
-                    "CORS_ORIGINS must be set to production URLs in non-development environments. "
-                    "Default localhost origins are not allowed in production."
-                )
-            if not self.FRONTEND_URL or "localhost" in self.FRONTEND_URL:
-                raise ValueError(
-                    "FRONTEND_URL must be set to a production URL in non-development environments"
-                )
-            # Warn if FRONTEND_URL not in CORS_ORIGINS
-            if self.FRONTEND_URL not in self.cors_origins_list:
-                _logger = logging.getLogger(__name__)
+            # Production-safe CORS normalization:
+            # - remove local origins
+            # - guarantee FRONTEND_URL is a production URL and allowed
+            cors_origins = self.cors_origins_list
+            production_origins = [origin for origin in cors_origins if not _is_local_origin(origin)]
+
+            if not self.FRONTEND_URL or _is_local_origin(self.FRONTEND_URL):
+                if production_origins:
+                    _logger.warning(
+                        "FRONTEND_URL=%s is not production-safe. Falling back to first production CORS origin=%s",
+                        self.FRONTEND_URL,
+                        production_origins[0],
+                    )
+                    self.FRONTEND_URL = production_origins[0]
+                else:
+                    raise ValueError(
+                        "FRONTEND_URL must be set to a production URL in non-development environments"
+                    )
+
+            if not production_origins:
                 _logger.warning(
-                    "FRONTEND_URL (%s) is not in CORS_ORIGINS (%s) — dashboard requests may fail",
+                    "CORS_ORIGINS=%s has no production URLs. Falling back to FRONTEND_URL=%s",
+                    self.CORS_ORIGINS,
+                    self.FRONTEND_URL,
+                )
+                production_origins = [self.FRONTEND_URL]
+
+            if self.FRONTEND_URL not in production_origins:
+                _logger.warning(
+                    "FRONTEND_URL (%s) is not in CORS_ORIGINS (%s). Adding it automatically.",
                     self.FRONTEND_URL,
                     self.CORS_ORIGINS,
                 )
+                production_origins.append(self.FRONTEND_URL)
+
+            # Remove duplicates while preserving order, then store normalized value.
+            self.CORS_ORIGINS = ",".join(dict.fromkeys(production_origins))
         return self
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}

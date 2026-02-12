@@ -27,6 +27,7 @@ class SubscriptionResponse(CamelModel):
     plan: str
     status: str | None
     current_period_end: datetime | None = None
+    plan_expires_at: datetime | None = None
     cancel_at_period_end: bool
     billing_interval: str | None = None
     amount: int | None = None

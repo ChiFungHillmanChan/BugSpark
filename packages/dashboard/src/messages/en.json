@@ -868,6 +868,7 @@
     "billingInterval": "Billing Interval",
     "amount": "Amount",
     "nextBillingDate": "Next Billing Date",
+    "planDueDate": "Plan Due Date",
     "planFree": "Free",
     "planStarter": "Starter",
     "planTeam": "Team",

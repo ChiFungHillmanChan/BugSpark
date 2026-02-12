@@ -247,6 +247,7 @@ async def get_subscription(
         return SubscriptionResponse(
             plan=user.plan.value,
             status=user.subscription_status,
+            plan_expires_at=user.plan_expires_at,
             cancel_at_period_end=user.cancel_at_period_end,
         )
 
@@ -254,6 +255,7 @@ async def get_subscription(
         plan=subscription.plan.value,
         status=subscription.status,
         current_period_end=subscription.current_period_end,
+        plan_expires_at=user.plan_expires_at,
         cancel_at_period_end=subscription.cancel_at_period_end,
         billing_interval=subscription.billing_interval,
     )

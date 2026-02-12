@@ -74,7 +74,15 @@ export function SubscriptionCard({ subscription }: SubscriptionCardProps) {
             </p>
           </div>
         )}
-        {subscription.currentPeriodEnd && (
+        {subscription.planExpiresAt && (
+          <div>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t("planDueDate")}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {formatDate(subscription.planExpiresAt)}
+            </p>
+          </div>
+        )}
+        {subscription.currentPeriodEnd && !subscription.planExpiresAt && (
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t("nextBillingDate")}</p>
             <p className="text-sm font-medium text-gray-900 dark:text-white">

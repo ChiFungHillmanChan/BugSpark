@@ -13,6 +13,7 @@ export interface User {
   betaStatus?: BetaStatusType;
   subscriptionStatus?: string | null;
   cancelAtPeriodEnd?: boolean;
+  planExpiresAt?: string | null;
   createdAt: string;
   hasGoogleLinked?: boolean;
   hasPassword?: boolean;
@@ -22,6 +23,7 @@ export interface SubscriptionInfo {
   plan: string;
   status: string | null;
   currentPeriodEnd: string | null;
+  planExpiresAt: string | null;
   cancelAtPeriodEnd: boolean;
   billingInterval: string | null;
   amount: number | null;

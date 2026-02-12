@@ -150,13 +150,18 @@ async def _handle_subscription_created(
     price_id = sub_data["items"]["data"][0]["price"]["id"]
     plan, interval = _price_id_to_plan(price_id)
 
+    # Handle optional period timestamps (may not exist in all events)
+    period_start_ts = sub_data.get("current_period_start")
+    period_end_ts = sub_data.get("current_period_end")
+
     user.plan = plan
     user.stripe_subscription_id = sub_data["id"]
     user.subscription_status = sub_data["status"]
     user.cancel_at_period_end = sub_data.get("cancel_at_period_end", False)
-    user.plan_expires_at = datetime.fromtimestamp(
-        sub_data["current_period_end"], tz=timezone.utc
-    )
+    if period_end_ts:
+        user.plan_expires_at = datetime.fromtimestamp(
+            period_end_ts, tz=timezone.utc
+        )
 
     subscription = Subscription(
         user_id=user.id,
@@ -167,11 +172,11 @@ async def _handle_subscription_created(
         billing_interval=interval,
         status=sub_data["status"],
         current_period_start=datetime.fromtimestamp(
-            sub_data["current_period_start"], tz=timezone.utc
-        ),
+            period_start_ts, tz=timezone.utc
+        ) if period_start_ts else None,
         current_period_end=datetime.fromtimestamp(
-            sub_data["current_period_end"], tz=timezone.utc
-        ),
+            period_end_ts, tz=timezone.utc
+        ) if period_end_ts else None,
         cancel_at_period_end=sub_data.get("cancel_at_period_end", False),
     )
     db.add(subscription)
@@ -196,12 +201,17 @@ async def _handle_subscription_updated(
     price_id = sub_data["items"]["data"][0]["price"]["id"]
     plan, interval = _price_id_to_plan(price_id)
 
+    # Handle optional period timestamps (may not exist in all events)
+    period_start_ts = sub_data.get("current_period_start")
+    period_end_ts = sub_data.get("current_period_end")
+
     user.plan = plan
     user.subscription_status = sub_data["status"]
     user.cancel_at_period_end = sub_data.get("cancel_at_period_end", False)
-    user.plan_expires_at = datetime.fromtimestamp(
-        sub_data["current_period_end"], tz=timezone.utc
-    )
+    if period_end_ts:
+        user.plan_expires_at = datetime.fromtimestamp(
+            period_end_ts, tz=timezone.utc
+        )
 
     result = await db.execute(
         select(Subscription).where(
@@ -214,12 +224,14 @@ async def _handle_subscription_updated(
         subscription.plan = plan
         subscription.billing_interval = interval
         subscription.status = sub_data["status"]
-        subscription.current_period_start = datetime.fromtimestamp(
-            sub_data["current_period_start"], tz=timezone.utc
-        )
-        subscription.current_period_end = datetime.fromtimestamp(
-            sub_data["current_period_end"], tz=timezone.utc
-        )
+        if period_start_ts:
+            subscription.current_period_start = datetime.fromtimestamp(
+                period_start_ts, tz=timezone.utc
+            )
+        if period_end_ts:
+            subscription.current_period_end = datetime.fromtimestamp(
+                period_end_ts, tz=timezone.utc
+            )
         subscription.cancel_at_period_end = sub_data.get("cancel_at_period_end", False)
         if sub_data.get("canceled_at"):
             subscription.canceled_at = datetime.fromtimestamp(

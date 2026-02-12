@@ -868,6 +868,7 @@
     "billingInterval": "計費週期",
     "amount": "金額",
     "nextBillingDate": "下次計費日期",
+    "planDueDate": "方案到期日期",
     "planFree": "免費",
     "planStarter": "入門",
     "planTeam": "團隊",

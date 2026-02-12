@@ -138,7 +138,7 @@ async function loginWithDeviceFlow(apiUrl: string): Promise<void> {
         `Logged in as ${chalk.bold(tokenResp.user.name)} (${tokenResp.user.email}) — ${tokenResp.user.plan} plan`
       );
       console.log();
-      console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);
+      console.log(`  Token encrypted and saved to ${chalk.dim("~/.bugspark/config.json")}`);
       console.log();
       return;
     } catch (err: unknown) {
@@ -195,7 +195,7 @@ async function loginWithEmail(apiUrl: string): Promise<void> {
     console.log();
     success(`Logged in as ${chalk.bold(res.name)} (${res.email}) — ${res.plan} plan`);
     console.log();
-    console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);
+    console.log(`  Token encrypted and saved to ${chalk.dim("~/.bugspark/config.json")}`);
     console.log();
   } catch (err) {
     if (err instanceof ApiError && err.code === "beta.waiting_list") {
@@ -265,7 +265,7 @@ async function loginWithPAT(apiUrl: string): Promise<void> {
     console.log();
     success(`Logged in as ${chalk.bold(user.name)} (${user.email}) — ${user.plan} plan`);
     console.log();
-    console.log(`  Token saved to ${chalk.dim("~/.bugspark/config.json")}`);
+    console.log(`  Token encrypted and saved to ${chalk.dim("~/.bugspark/config.json")}`);
     console.log();
   } catch (err) {
     error(`Failed to verify token: ${formatError(err)}`);

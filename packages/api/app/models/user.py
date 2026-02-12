@@ -64,6 +64,18 @@ class User(Base):
     notification_preferences: Mapped[dict | None] = mapped_column(
         JSON, nullable=True, default=None
     )
+    stripe_customer_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, unique=True, index=True
+    )
+    stripe_subscription_id: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, index=True
+    )
+    subscription_status: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )
+    cancel_at_period_end: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
     refresh_token_jti: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

@@ -282,7 +282,7 @@ export default function TeamSettingsPage() {
                   <tr className="text-left text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     <th className="px-4 py-3 font-medium">{t("email")}</th>
                     <th className="px-4 py-3 font-medium">{t("role")}</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">{t("status")}</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>

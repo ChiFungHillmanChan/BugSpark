@@ -7,6 +7,10 @@ from urllib.parse import urlparse
 
 from app.exceptions import BadRequestException
 
+# ---------------------------------------------------------------------------
+# Blocked IP ranges — reserved, private, link-local, multicast, etc.
+# ---------------------------------------------------------------------------
+
 # Reserved / internal IP ranges that webhooks should never target
 _BLOCKED_RANGES = [
     ipaddress.ip_network("0.0.0.0/8"),
@@ -67,3 +71,50 @@ def validate_webhook_url(url: str) -> str:
                 )
 
     return url
+
+
+def resolve_and_validate_url(url: str) -> tuple[str, list[str]]:
+    """Resolve DNS for a webhook URL and validate all resolved IPs.
+
+    Returns ``(original_url, list_of_safe_ips)`` so callers can pin the
+    HTTP connection to a validated IP, eliminating TOCTOU / DNS-rebinding
+    attacks.
+
+    Raises :class:`BadRequestException` when any resolved IP falls within
+    a blocked range.
+    """
+    parsed = urlparse(url)
+
+    if parsed.scheme not in ("http", "https"):
+        raise BadRequestException("Webhook URL must use http or https")
+
+    hostname = parsed.hostname
+    if not hostname:
+        raise BadRequestException("Webhook URL must include a hostname")
+
+    blocked_hostnames = {"localhost", "0.0.0.0", "[::]", "[::1]"}
+    if hostname.lower() in blocked_hostnames:
+        raise BadRequestException("Webhook URL cannot target internal addresses")
+
+    try:
+        infos = socket.getaddrinfo(
+            hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM,
+        )
+    except socket.gaierror:
+        raise BadRequestException(f"Cannot resolve webhook hostname: {hostname}")
+
+    resolved_ips: list[str] = []
+    for info in infos:
+        ip_str = info[4][0]
+        addr = ipaddress.ip_address(ip_str)
+        for network in _BLOCKED_RANGES:
+            if addr in network:
+                raise BadRequestException(
+                    "Webhook URL cannot target internal or reserved addresses"
+                )
+        resolved_ips.append(ip_str)
+
+    if not resolved_ips:
+        raise BadRequestException(f"Cannot resolve webhook hostname: {hostname}")
+
+    return url, resolved_ips

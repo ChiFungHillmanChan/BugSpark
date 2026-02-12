@@ -3,6 +3,13 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
 
+import {
+  decryptToken,
+  encryptToken,
+  isPlaintextToken,
+  secureDelete,
+} from "./secure-storage.js";
+
 export interface BugSparkConfig {
   apiUrl: string;
   dashboardUrl?: string;
@@ -29,7 +36,21 @@ export function loadConfig(): BugSparkConfig | null {
     const parsed = JSON.parse(raw) as Partial<BugSparkConfig>;
 
     if (!parsed.token || !parsed.apiUrl) return null;
-    return parsed as BugSparkConfig;
+
+    let token = parsed.token;
+
+    // Decrypt token if it was stored encrypted; legacy plaintext tokens
+    // (starting with bsk_pat_) are accepted as-is for backward compatibility.
+    if (!isPlaintextToken(token)) {
+      try {
+        token = decryptToken(token);
+      } catch {
+        // Corrupted or generated on a different machine — require re-login
+        return null;
+      }
+    }
+
+    return { ...parsed, token } as BugSparkConfig;
   } catch {
     return null;
   }
@@ -37,15 +58,21 @@ export function loadConfig(): BugSparkConfig | null {
 
 export async function saveConfig(config: BugSparkConfig): Promise<void> {
   ensureDir();
-  await fsp.writeFile(CONFIG_FILE, JSON.stringify(config, null, 2) + "\n", {
-    mode: 0o600,
-  });
+
+  const stored = {
+    ...config,
+    token: encryptToken(config.token),
+  };
+
+  await fsp.writeFile(
+    CONFIG_FILE,
+    JSON.stringify(stored, null, 2) + "\n",
+    { mode: 0o600 },
+  );
 }
 
 export async function deleteConfig(): Promise<void> {
-  if (fs.existsSync(CONFIG_FILE)) {
-    await fsp.unlink(CONFIG_FILE);
-  }
+  await secureDelete(CONFIG_FILE);
 }
 
 export function getConfigOrExit(): BugSparkConfig {

@@ -27,7 +27,7 @@ def _validate_json_size(value: dict | list | None, max_size: int, field_name: st
 
 class ReportCreate(BaseModel):
     title: str = Field(min_length=1, max_length=500)
-    description: str = Field(min_length=1, max_length=10000)
+    description: str = Field(default="", max_length=10000)
     severity: Literal["low", "medium", "high", "critical"]
     category: Literal["bug", "ui", "performance", "crash", "other"]
     reporter_identifier: str | None = Field(default=None, max_length=255)
@@ -74,7 +74,7 @@ class ReportCreate(BaseModel):
 
 class ReportUpdate(BaseModel):
     title: str | None = Field(default=None, min_length=1, max_length=500)
-    description: str | None = Field(default=None, min_length=1, max_length=10000)
+    description: str | None = Field(default=None, max_length=10000)
     severity: Literal["low", "medium", "high", "critical"] | None = None
     category: Literal["bug", "ui", "performance", "crash", "other"] | None = None
     status: Literal["new", "triaging", "in_progress", "resolved", "closed"] | None = None

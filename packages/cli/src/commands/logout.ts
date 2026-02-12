@@ -9,5 +9,5 @@ export async function logoutCommand(): Promise<void> {
   }
 
   await deleteConfig();
-  success("Logged out. Token removed from ~/.bugspark/config.json");
+  success("Logged out. Token securely erased from ~/.bugspark/config.json");
 }

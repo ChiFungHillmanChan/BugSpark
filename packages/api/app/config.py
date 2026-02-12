@@ -46,6 +46,15 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: str = ""
 
+    # Stripe billing
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+    STRIPE_PRICE_STARTER_MONTHLY: str = ""
+    STRIPE_PRICE_STARTER_YEARLY: str = ""
+    STRIPE_PRICE_TEAM_MONTHLY: str = ""
+    STRIPE_PRICE_TEAM_YEARLY: str = ""
+
     ENVIRONMENT: str = "development"
 
     @property

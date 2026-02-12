@@ -8,6 +8,8 @@ from app.models.personal_access_token import PersonalAccessToken
 from app.models.project import Project
 from app.models.project_member import ProjectMember
 from app.models.report import Category, Report, Severity, Status
+from app.models.stripe_webhook_event import StripeWebhookEvent
+from app.models.subscription import Subscription
 from app.models.user import User
 from app.models.webhook import Webhook
 
@@ -27,6 +29,8 @@ __all__ = [
     "Severity",
     "Category",
     "Status",
+    "StripeWebhookEvent",
+    "Subscription",
     "User",
     "Webhook",
 ]

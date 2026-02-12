@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { X, Maximize2 } from "lucide-react";
+import { X, Maximize2, Pencil, Image as ImageIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 interface ScreenshotViewerProps {
@@ -16,12 +16,28 @@ export function ScreenshotViewer({
 }: ScreenshotViewerProps) {
   const t = useTranslations("bugs");
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isShowingAnnotated, setIsShowingAnnotated] = useState(false);
+  const [isShowingAnnotated, setIsShowingAnnotated] = useState(
+    !!annotatedScreenshotUrl
+  );
 
   const hasAnnotated = !!annotatedScreenshotUrl;
   const currentUrl = isShowingAnnotated && hasAnnotated
     ? annotatedScreenshotUrl
     : screenshotUrl;
+
+  // Keyboard shortcut to toggle between original and annotated
+  useEffect(() => {
+    if (!hasAnnotated) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'a') {
+        setIsShowingAnnotated(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasAnnotated]);
 
   if (!screenshotUrl) {
     return (
@@ -35,25 +51,29 @@ export function ScreenshotViewer({
     <>
       <div className="relative bg-gray-100 rounded-lg overflow-hidden">
         {hasAnnotated && (
-          <div className="absolute top-3 left-3 z-10 flex gap-1">
+          <div className="absolute top-3 left-3 z-10 flex gap-2">
             <button
               onClick={() => setIsShowingAnnotated(false)}
-              className={`px-2.5 py-1 rounded text-xs font-medium ${
+              title="Press 'A' to toggle"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 !isShowingAnnotated
-                  ? "bg-white text-gray-900 shadow"
-                  : "bg-black/30 text-white"
+                  ? "bg-white text-gray-900 shadow-md"
+                  : "bg-black/40 text-white hover:bg-black/50"
               }`}
             >
+              <ImageIcon className="w-3.5 h-3.5" />
               {t("original")}
             </button>
             <button
               onClick={() => setIsShowingAnnotated(true)}
-              className={`px-2.5 py-1 rounded text-xs font-medium ${
+              title="Press 'A' to toggle"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                 isShowingAnnotated
-                  ? "bg-white text-gray-900 shadow"
-                  : "bg-black/30 text-white"
+                  ? "bg-white text-gray-900 shadow-md"
+                  : "bg-black/40 text-white hover:bg-black/50"
               }`}
             >
+              <Pencil className="w-3.5 h-3.5" />
               {t("annotated")}
             </button>
           </div>

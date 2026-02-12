@@ -22,6 +22,8 @@ class UserResponse(CamelModel):
     is_email_verified: bool = False
     beta_status: str = "none"
     plan_expires_at: datetime | None = None
+    subscription_status: str | None = None
+    cancel_at_period_end: bool = False
     notification_preferences: dict[str, bool] | None = None
     created_at: datetime
     has_google_linked: bool = False
@@ -53,7 +55,7 @@ _UNSET = object()
 class AdminUserUpdate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
-            "examples": [{"plan": "pro", "plan_expires_at": "2026-03-10T00:00:00Z"}]
+            "examples": [{"plan": "starter", "plan_expires_at": "2026-03-10T00:00:00Z"}]
         }
     )
 

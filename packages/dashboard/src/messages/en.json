@@ -100,6 +100,7 @@
     "assignee": "Assignee",
     "reporter": "Reporter",
     "description": "Description",
+    "noDescription": "No description provided",
     "steps": "Steps to Reproduce",
     "expected": "Expected Behavior",
     "actual": "Actual Behavior",
@@ -257,6 +258,8 @@
     "light": "Light",
     "dark": "Dark",
     "language": "Language",
+    "billing": "Billing",
+    "billingDesc": "Manage your subscription and payment method",
     "integrations": "Integrations",
     "issueTrackers": "Issue Trackers",
     "issueTrackersDesc": "Connect GitHub Issues and export bugs",
@@ -300,7 +303,9 @@
     "googleUnlinkNeedsPassword": "Set a password first before unlinking Google.",
     "setPassword": "Set Password",
     "settingPassword": "Setting...",
-    "setPasswordDesc": "Set a password to enable email login alongside Google."
+    "setPasswordDesc": "Set a password to enable email login alongside Google.",
+    "billing": "Billing",
+    "billingDesc": "Manage your subscription and payment details"
   },
   "team": {
     "title": "Team Members",
@@ -652,7 +657,8 @@
     "roleAdmin": "Admin",
     "roleSuperadmin": "Superadmin",
     "planFree": "Free",
-    "planPro": "Pro",
+    "planStarter": "Starter",
+    "planTeam": "Team",
     "planEnterprise": "Enterprise",
     "usage": "Usage",
     "usageProjects": "{count, plural, one {# project} other {# projects}}",
@@ -790,7 +796,8 @@
     "noResults": "No results found",
     "appName": "BugSpark",
     "planFree": "FREE",
-    "planPro": "PRO",
+    "planStarter": "STARTER",
+    "planTeam": "TEAM",
     "planEnterprise": "ENT",
     "planSuperadmin": "SA",
     "tryAgain": "Try again"

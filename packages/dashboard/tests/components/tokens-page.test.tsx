@@ -4,22 +4,32 @@ import userEvent from "@testing-library/user-event";
 import { renderWithIntl } from "../test-utils";
 import TokensPage from "@/app/(dashboard)/settings/tokens/page";
 
-const mockGet = vi.fn();
-const mockPost = vi.fn();
-const mockDelete = vi.fn();
+const mockMutateAsyncCreate = vi.fn();
+const mockMutateAsyncDelete = vi.fn();
 
-vi.mock("@/lib/api-client", () => ({
-  default: {
-    get: (...args: unknown[]) => mockGet(...args),
-    post: (...args: unknown[]) => mockPost(...args),
-    delete: (...args: unknown[]) => mockDelete(...args),
-  },
+let mockTokensData: unknown[] = [];
+let mockCreateIsPending = false;
+
+vi.mock("@/hooks/use-tokens", () => ({
+  useTokens: () => ({
+    data: mockTokensData,
+    isLoading: false,
+  }),
+  useCreateToken: () => ({
+    mutateAsync: mockMutateAsyncCreate,
+    isPending: mockCreateIsPending,
+  }),
+  useDeleteToken: () => ({
+    mutateAsync: mockMutateAsyncDelete,
+    isPending: false,
+  }),
 }));
 
 describe("TokensPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockGet.mockResolvedValue({ data: [] });
+    mockTokensData = [];
+    mockCreateIsPending = false;
   });
 
   it("renders the tokens page", async () => {
@@ -30,7 +40,7 @@ describe("TokensPage", () => {
   });
 
   it("shows error when token creation fails", async () => {
-    mockPost.mockRejectedValue(new Error("Network error"));
+    mockMutateAsyncCreate.mockRejectedValue(new Error("Network error"));
     renderWithIntl(<TokensPage />);
 
     await waitFor(() => {
@@ -50,19 +60,17 @@ describe("TokensPage", () => {
   });
 
   it("shows error when token revocation fails", async () => {
-    mockGet.mockResolvedValue({
-      data: [
-        {
-          id: "token-1",
-          name: "Test Token",
-          tokenPrefix: "bsk_pat_abc",
-          lastUsedAt: null,
-          expiresAt: null,
-          createdAt: "2026-01-01T00:00:00Z",
-        },
-      ],
-    });
-    mockDelete.mockRejectedValue(new Error("Network error"));
+    mockTokensData = [
+      {
+        id: "token-1",
+        name: "Test Token",
+        tokenPrefix: "bsk_pat_abc",
+        lastUsedAt: null,
+        expiresAt: null,
+        createdAt: "2026-01-01T00:00:00Z",
+      },
+    ];
+    mockMutateAsyncDelete.mockRejectedValue(new Error("Network error"));
 
     renderWithIntl(<TokensPage />);
 
@@ -77,7 +85,6 @@ describe("TokensPage", () => {
       expect(screen.getByText("Are you sure you want to revoke this token? It will stop working immediately.")).toBeInTheDocument();
     });
 
-    const confirmButton = screen.getByText("Revoke", { selector: "button" });
     const confirmButtons = screen.getAllByText("Revoke");
     const dialogConfirm = confirmButtons.find(
       (btn) => btn.closest("[role='dialog']") !== null
@@ -85,6 +92,7 @@ describe("TokensPage", () => {
     if (dialogConfirm) {
       await userEvent.click(dialogConfirm);
     } else {
+      const confirmButton = screen.getByText("Revoke", { selector: "button" });
       await userEvent.click(confirmButton);
     }
 
@@ -94,14 +102,12 @@ describe("TokensPage", () => {
   });
 
   it("shows created token after successful creation", async () => {
-    mockPost.mockResolvedValue({
-      data: {
-        id: "new-token-id",
-        name: "New Token",
-        token: "bsk_pat_fulltoken123",
-        expiresAt: null,
-        createdAt: "2026-01-01T00:00:00Z",
-      },
+    mockMutateAsyncCreate.mockResolvedValue({
+      id: "new-token-id",
+      name: "New Token",
+      token: "bsk_pat_fulltoken123",
+      expiresAt: null,
+      createdAt: "2026-01-01T00:00:00Z",
     });
 
     renderWithIntl(<TokensPage />);

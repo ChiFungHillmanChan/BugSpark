@@ -10,7 +10,7 @@ import { useDebouncedValue } from "@/hooks/use-debounce";
 import type { AdminUser, UserRole, UserPlan } from "@/types";
 
 const ROLES: UserRole[] = ["user", "admin", "superadmin"];
-const PLANS: UserPlan[] = ["free", "pro", "enterprise"];
+const PLANS: UserPlan[] = ["free", "starter", "team", "enterprise"];
 
 const ROLE_LABEL_KEYS: Record<UserRole, string> = {
   user: "roleUser",
@@ -20,7 +20,8 @@ const ROLE_LABEL_KEYS: Record<UserRole, string> = {
 
 const PLAN_LABEL_KEYS: Record<UserPlan, string> = {
   free: "planFree",
-  pro: "planPro",
+  starter: "planStarter",
+  team: "planTeam",
   enterprise: "planEnterprise",
 };
 

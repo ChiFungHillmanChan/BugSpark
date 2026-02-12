@@ -213,6 +213,8 @@ function handleAnnotate(): void {
         onClose: close,
         onCapture: captureCallback,
       }, annotatedDataUrl, config?.branding, buildModalOptions());
+
+      showToast(root, 'Annotations saved successfully!', 'success');
     },
     onCancel: () => {
       annotationOverlay.unmount();

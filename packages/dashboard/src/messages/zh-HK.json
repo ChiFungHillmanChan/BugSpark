@@ -100,6 +100,7 @@
     "assignee": "負責人",
     "reporter": "回報者",
     "description": "描述",
+    "noDescription": "未提供描述",
     "steps": "重現步驟",
     "expected": "預期行為",
     "actual": "實際行為",
@@ -257,6 +258,8 @@
     "light": "淺色",
     "dark": "深色",
     "language": "語言",
+    "billing": "帳單",
+    "billingDesc": "管理您的訂閱與付款方式",
     "integrations": "整合",
     "issueTrackers": "問題追蹤器",
     "issueTrackersDesc": "連接 GitHub Issues 並匯出錯誤",
@@ -300,7 +303,9 @@
     "googleUnlinkNeedsPassword": "請先設定密碼再取消連結 Google。",
     "setPassword": "設定密碼",
     "settingPassword": "設定中...",
-    "setPasswordDesc": "設定密碼以啟用電子郵件登入功能。"
+    "setPasswordDesc": "設定密碼以啟用電子郵件登入功能。",
+    "billing": "帳單",
+    "billingDesc": "管理你的訂閱和付款詳情"
   },
   "team": {
     "title": "團隊成員",
@@ -652,7 +657,8 @@
     "roleAdmin": "管理員",
     "roleSuperadmin": "超級管理員",
     "planFree": "免費",
-    "planPro": "專業",
+    "planStarter": "入門",
+    "planTeam": "團隊",
     "planEnterprise": "企業",
     "usage": "使用量",
     "usageProjects": "{count} 個專案",
@@ -790,7 +796,8 @@
     "noResults": "找不到結果",
     "appName": "BugSpark",
     "planFree": "免費",
-    "planPro": "專業",
+    "planStarter": "入門",
+    "planTeam": "團隊",
     "planEnterprise": "企業",
     "planSuperadmin": "超管",
     "tryAgain": "重試"

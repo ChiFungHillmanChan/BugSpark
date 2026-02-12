@@ -1,5 +1,7 @@
 import type { AnnotationToolType } from '../types';
 import * as annotationCanvas from '../core/annotation-canvas';
+import * as annotationHistory from '../core/annotation-history';
+import { ICON_FACTORIES, createUndoIcon, createDoneIcon, createCancelIcon } from './svg-icons';
 
 const PRESET_COLORS = ['#e94560', '#ff9800', '#4caf50', '#2196f3', '#9c27b0', '#ffffff'];
 const LINE_WIDTHS: Array<{ label: string; value: number }> = [
@@ -7,26 +9,6 @@ const LINE_WIDTHS: Array<{ label: string; value: number }> = [
   { label: 'Medium', value: 4 },
   { label: 'Thick', value: 8 },
 ];
-
-/**
- * SVG icons for annotation tools — crisp, consistent across all platforms.
- * Each icon is a 20x20 viewBox SVG string with stroke-based rendering.
- */
-const TOOL_ICONS: Record<AnnotationToolType, string> = {
-  pen: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 3.5l3 3L6 17H3v-3L13.5 3.5z"/><path d="M11.5 5.5l3 3"/></svg>',
-  arrow: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16L16 4"/><path d="M9 4h7v7"/></svg>',
-  rectangle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="14" height="12" rx="1.5"/></svg>',
-  circle: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/></svg>',
-  text: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h12"/><path d="M10 5v12"/><path d="M7 17h6"/></svg>',
-  blur: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 6h14M3 10h14M3 14h14" stroke-dasharray="2 2"/><rect x="5" y="5" width="10" height="10" rx="2" stroke-dasharray="0"/></svg>',
-  none: '',
-};
-
-const ACTION_ICONS = {
-  undo: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8l4-4M4 8l4 4"/><path d="M4 8h9a4 4 0 010 8H11"/></svg>',
-  done: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4 4 8-8"/></svg>',
-  cancel: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>',
-};
 
 const TOOLS: Array<{ type: AnnotationToolType; label: string }> = [
   { type: 'pen', label: 'Pen' },
@@ -145,7 +127,9 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
     btn.title = tool.label;
     const iconWrap = document.createElement('span');
     iconWrap.className = 'bugspark-tool-btn__icon';
-    iconWrap.innerHTML = TOOL_ICONS[tool.type];
+    if (tool.type !== 'none') {
+      iconWrap.appendChild(ICON_FACTORIES[tool.type]());
+    }
     btn.appendChild(iconWrap);
     const label = document.createElement('span');
     label.className = 'bugspark-tool-btn__label';
@@ -217,7 +201,7 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   undoBtn.className = 'bugspark-action-btn bugspark-action-btn--undo';
   undoBtn.setAttribute('aria-label', 'Undo');
   undoBtn.title = 'Undo';
-  undoBtn.innerHTML = ACTION_ICONS.undo;
+  undoBtn.appendChild(createUndoIcon());
   undoBtn.addEventListener('click', () => annotationCanvas.undo());
   actionsSection.appendChild(undoBtn);
 
@@ -227,7 +211,7 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   doneBtn.title = 'Done';
   const doneIconWrap = document.createElement('span');
   doneIconWrap.className = 'bugspark-action-btn__icon';
-  doneIconWrap.innerHTML = ACTION_ICONS.done;
+  doneIconWrap.appendChild(createDoneIcon());
   doneBtn.appendChild(doneIconWrap);
   const doneLabel = document.createElement('span');
   doneLabel.className = 'bugspark-action-btn__text';
@@ -245,13 +229,19 @@ function createToolbar(callbacks: AnnotationOverlayCallbacks): HTMLDivElement {
   cancelBtn.title = 'Cancel';
   const cancelIconWrap = document.createElement('span');
   cancelIconWrap.className = 'bugspark-action-btn__icon';
-  cancelIconWrap.innerHTML = ACTION_ICONS.cancel;
+  cancelIconWrap.appendChild(createCancelIcon());
   cancelBtn.appendChild(cancelIconWrap);
   const cancelLabel = document.createElement('span');
   cancelLabel.className = 'bugspark-action-btn__text';
   cancelLabel.textContent = 'Cancel';
   cancelBtn.appendChild(cancelLabel);
-  cancelBtn.addEventListener('click', callbacks.onCancel);
+  cancelBtn.addEventListener('click', () => {
+    if (annotationHistory.hasUndo()) {
+      showCancelConfirmation(callbacks.onCancel);
+    } else {
+      callbacks.onCancel();
+    }
+  });
   actionsSection.appendChild(cancelBtn);
 
   toolbar.appendChild(actionsSection);
@@ -263,6 +253,101 @@ function createSeparator(): HTMLDivElement {
   const sep = document.createElement('div');
   sep.className = 'bugspark-annotation-toolbar__separator';
   return sep;
+}
+
+function showCancelConfirmation(onConfirm: () => void): void {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'bugspark-confirm-backdrop';
+  backdrop.style.cssText = `
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  `;
+
+  const dialog = document.createElement('div');
+  dialog.className = 'bugspark-confirm-dialog';
+  dialog.style.cssText = `
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 320px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  `;
+
+  const title = document.createElement('h3');
+  title.textContent = 'Discard Annotations?';
+  title.style.cssText = 'margin: 0 0 8px 0; font-size: 16px; font-weight: 600; color: #333;';
+
+  const message = document.createElement('p');
+  message.textContent = 'Your changes will be lost.';
+  message.style.cssText = 'margin: 0 0 20px 0; font-size: 14px; color: #666;';
+
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.style.cssText = 'display: flex; gap: 8px;';
+
+  const keepBtn = document.createElement('button');
+  keepBtn.textContent = 'Keep Editing';
+  keepBtn.style.cssText = `
+    flex: 1;
+    padding: 8px 16px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    color: #333;
+    transition: background-color 0.2s;
+  `;
+  keepBtn.addEventListener('mouseover', () => keepBtn.style.backgroundColor = '#f3f4f6');
+  keepBtn.addEventListener('mouseout', () => keepBtn.style.backgroundColor = 'white');
+  keepBtn.addEventListener('click', () => backdrop.remove());
+
+  const discardBtn = document.createElement('button');
+  discardBtn.textContent = 'Discard';
+  discardBtn.style.cssText = `
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    background: #ef4444;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.2s;
+  `;
+  discardBtn.addEventListener('mouseover', () => discardBtn.style.backgroundColor = '#dc2626');
+  discardBtn.addEventListener('mouseout', () => discardBtn.style.backgroundColor = '#ef4444');
+  discardBtn.addEventListener('click', () => {
+    backdrop.remove();
+    onConfirm();
+  });
+
+  buttonsContainer.appendChild(keepBtn);
+  buttonsContainer.appendChild(discardBtn);
+
+  dialog.appendChild(title);
+  dialog.appendChild(message);
+  dialog.appendChild(buttonsContainer);
+
+  backdrop.appendChild(dialog);
+  document.body.appendChild(backdrop);
+
+  // Close on Escape key
+  const handleEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      backdrop.remove();
+      document.removeEventListener('keydown', handleEscape);
+    }
+  };
+  document.addEventListener('keydown', handleEscape);
 }
 
 function selectTool(toolType: AnnotationToolType): void {

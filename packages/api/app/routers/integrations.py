@@ -236,9 +236,14 @@ async def export_report_to_tracker(
                 description=formatted.description,
                 priority=formatted.priority,
             )
+        except HTTPStatusError as exc:
+            logger.warning("Linear API error: %s", exc.response.text)
+            raise BadRequestException(
+                f"Linear API error: {exc.response.status_code}"
+            )
         except Exception as exc:
-            logger.warning("Linear API error: %s", exc)
-            raise BadRequestException(f"Linear API error: {exc}")
+            logger.error("Unexpected error during Linear export: %s", exc, exc_info=True)
+            raise BadRequestException("Linear integration error")
 
         return ExportResponse(
             issue_url=issue_data["issue_url"],

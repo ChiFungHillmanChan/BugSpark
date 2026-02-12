@@ -1,6 +1,14 @@
 import type { BugSparkBranding, ConsoleLogEntry } from '../types';
 import { createField, createCameraButton } from './report-modal-fields';
 import { createConsoleLogSection } from './report-modal-console';
+import {
+  sanitizeInput,
+  validateTitle,
+  validateDescription,
+  validateEmailField,
+  MAX_TITLE_LENGTH,
+  MAX_DESCRIPTION_LENGTH,
+} from '../utils/form-validation';
 
 export interface ReportFormData {
   title: string;
@@ -106,6 +114,8 @@ function createBody(callbacks: ReportModalCallbacks, branding?: BugSparkBranding
     const annotateBtn = document.createElement('button');
     annotateBtn.className = 'bugspark-btn bugspark-btn--secondary bugspark-btn--small';
     annotateBtn.textContent = 'Annotate';
+    annotateBtn.title = 'Add annotations and marks to highlight issues';
+    annotateBtn.setAttribute('aria-label', 'Annotate screenshot');
     annotateBtn.addEventListener('click', callbacks.onAnnotate);
     actions.appendChild(annotateBtn);
 
@@ -200,15 +210,43 @@ function handleSubmit(onSubmit: (data: ReportFormData) => void): void {
   const titleInput = root.querySelector<HTMLInputElement>('[data-name="title"]');
   const titleValue = titleInput?.value.trim() ?? '';
 
-  const errorEl = root.querySelector('.bugspark-field__error');
-  if (errorEl) errorEl.remove();
+  // Clear any existing errors
+  const existingErrors = root.querySelectorAll('.bugspark-field__error');
+  existingErrors.forEach((el) => el.remove());
 
-  if (titleValue.length < 3) {
+  const titleValidation = validateTitle(titleValue);
+  if (!titleValidation.valid) {
     if (titleInput) {
       const errorDiv = document.createElement('div');
       errorDiv.className = 'bugspark-field__error';
-      errorDiv.textContent = 'Title must be at least 3 characters';
+      errorDiv.textContent = titleValidation.error ?? 'Invalid title';
       titleInput.parentElement?.appendChild(errorDiv);
+    }
+    return;
+  }
+
+  const descValue = root.querySelector<HTMLTextAreaElement>('[data-name="description"]')?.value ?? '';
+  const descValidation = validateDescription(descValue);
+  if (!descValidation.valid) {
+    const descInput = root.querySelector<HTMLTextAreaElement>('[data-name="description"]');
+    if (descInput) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'bugspark-field__error';
+      errorDiv.textContent = descValidation.error ?? 'Invalid description';
+      descInput.parentElement?.appendChild(errorDiv);
+    }
+    return;
+  }
+
+  const emailValue = root.querySelector<HTMLInputElement>('[data-name="email"]')?.value ?? '';
+  const emailValidation = validateEmailField(emailValue);
+  if (!emailValidation.valid) {
+    const emailInput = root.querySelector<HTMLInputElement>('[data-name="email"]');
+    if (emailInput) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'bugspark-field__error';
+      errorDiv.textContent = emailValidation.error ?? 'Invalid email';
+      emailInput.parentElement?.appendChild(errorDiv);
     }
     return;
   }
@@ -217,11 +255,11 @@ function handleSubmit(onSubmit: (data: ReportFormData) => void): void {
   const includeConsoleLogs = consoleCheckbox ? consoleCheckbox.checked : false;
 
   const formData: ReportFormData = {
-    title: titleValue,
-    description: root.querySelector<HTMLTextAreaElement>('[data-name="description"]')?.value ?? '',
+    title: sanitizeInput(titleValue, MAX_TITLE_LENGTH),
+    description: sanitizeInput(descValue, MAX_DESCRIPTION_LENGTH),
     severity: (root.querySelector<HTMLSelectElement>('[data-name="severity"]')?.value ?? 'medium') as ReportFormData['severity'],
     category: (root.querySelector<HTMLSelectElement>('[data-name="category"]')?.value ?? 'bug') as ReportFormData['category'],
-    email: root.querySelector<HTMLInputElement>('[data-name="email"]')?.value ?? '',
+    email: emailValue.trim(),
     hpField: (root.querySelector<HTMLInputElement>('[data-name="hp-field"]'))?.value ?? '',
     includeConsoleLogs,
   };

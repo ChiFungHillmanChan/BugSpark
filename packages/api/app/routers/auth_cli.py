@@ -88,7 +88,7 @@ async def cli_login(
     result = await db.execute(select(User).where(User.email == body.email))
     user = result.scalar_one_or_none()
 
-    if user is None or not verify_password(body.password, user.hashed_password):
+    if user is None or not user.hashed_password or not verify_password(body.password, user.hashed_password):
         raise UnauthorizedException(translate("auth.invalid_credentials", locale))
 
     if not user.is_active:

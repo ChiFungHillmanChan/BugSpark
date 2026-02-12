@@ -157,6 +157,33 @@ async def cleanup_old_tasks() -> int:
         return result.rowcount
 
 
+DEVICE_SESSION_TTL_MINUTES = 15
+
+
+async def cleanup_expired_device_sessions() -> int:
+    """Delete device auth sessions older than DEVICE_SESSION_TTL_MINUTES.
+
+    Device auth sessions are short-lived (created during ``/device/code``
+    and consumed by ``/device/token``).  Expired sessions serve no purpose
+    and would otherwise accumulate indefinitely.
+    """
+    from app.models.device_auth import DeviceAuthSession
+
+    cutoff = datetime.now(timezone.utc) - timedelta(minutes=DEVICE_SESSION_TTL_MINUTES)
+
+    async with async_session() as db:
+        result = await db.execute(
+            delete(DeviceAuthSession).where(
+                DeviceAuthSession.created_at < cutoff,
+            )
+        )
+        await db.commit()
+        deleted_count: int = result.rowcount
+        if deleted_count > 0:
+            logger.info("Cleaned up %d expired device auth sessions", deleted_count)
+        return deleted_count
+
+
 async def start_task_processor() -> None:
     """Infinite polling loop that processes pending background tasks."""
     logger.info("Background task processor started (polling every %ds)", POLL_INTERVAL_SECONDS)
@@ -174,6 +201,11 @@ async def start_task_processor() -> None:
                 deleted = await cleanup_old_tasks()
                 if deleted > 0:
                     logger.info("Cleaned up %d old tasks", deleted)
+
+                try:
+                    await cleanup_expired_device_sessions()
+                except Exception as exc:
+                    logger.error("Device session cleanup failed: %s", exc)
         except Exception as exc:
             logger.error("Task processor error: %s", exc)
         await asyncio.sleep(POLL_INTERVAL_SECONDS)

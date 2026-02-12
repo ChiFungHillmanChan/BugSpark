@@ -27,10 +27,15 @@ PLAN_LIMITS: dict[Plan, PlanLimits] = {
         max_reports_per_project=100,
         max_reports_per_month=50,
     ),
-    Plan.PRO: PlanLimits(
-        max_projects=5,
+    Plan.STARTER: PlanLimits(
+        max_projects=3,
         max_reports_per_project=1000,
         max_reports_per_month=500,
+    ),
+    Plan.TEAM: PlanLimits(
+        max_projects=10,
+        max_reports_per_project=5000,
+        max_reports_per_month=5000,
     ),
     Plan.ENTERPRISE: PlanLimits(
         max_projects=math.inf,
@@ -38,6 +43,48 @@ PLAN_LIMITS: dict[Plan, PlanLimits] = {
         max_reports_per_month=math.inf,
     ),
 }
+
+PLAN_FEATURES: dict[Plan, frozenset[str]] = {
+    Plan.FREE: frozenset({
+        "screenshot",
+        "console_logs",
+    }),
+    Plan.STARTER: frozenset({
+        "screenshot",
+        "console_logs",
+        "session_replay",
+        "github",
+    }),
+    Plan.TEAM: frozenset({
+        "screenshot",
+        "console_logs",
+        "session_replay",
+        "github",
+        "ai_analysis",
+        "linear",
+        "custom_branding",
+    }),
+    Plan.ENTERPRISE: frozenset({
+        "screenshot",
+        "console_logs",
+        "session_replay",
+        "github",
+        "ai_analysis",
+        "linear",
+        "custom_branding",
+        "sso",
+        "audit_logs",
+        "priority_support",
+    }),
+}
+
+
+def has_feature(user: User, feature: str) -> bool:
+    """Check if the user's plan includes the given feature."""
+    if user.role == Role.SUPERADMIN:
+        return True
+    features = PLAN_FEATURES.get(user.plan, PLAN_FEATURES[Plan.FREE])
+    return feature in features
 
 
 def get_limits_config() -> dict[str, dict[str, int | None]]:
@@ -57,6 +104,11 @@ def get_limits_config() -> dict[str, dict[str, int | None]]:
             ),
         }
     return result
+
+
+def get_features_config() -> dict[str, list[str]]:
+    """Return the features config as a JSON-serialisable dict."""
+    return {plan.value: sorted(features) for plan, features in PLAN_FEATURES.items()}
 
 
 async def check_project_limit(db: AsyncSession, user: User) -> None:

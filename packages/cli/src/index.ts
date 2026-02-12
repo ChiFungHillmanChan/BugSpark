@@ -27,6 +27,11 @@ import {
   updateWebhookCommand,
   deleteWebhookCommand,
 } from "./commands/webhooks.js";
+import {
+  billingStatusCommand,
+  billingUpgradeCommand,
+  billingCancelCommand,
+} from "./commands/billing.js";
 
 const program = new Command();
 
@@ -173,5 +178,26 @@ webhooks
   .command("delete <webhook-id>")
   .description("Delete a webhook")
   .action(deleteWebhookCommand);
+
+// ─── Billing ────────────────────────────────────────────────────────────
+
+const billing = program
+  .command("billing")
+  .description("Manage subscription and billing");
+
+billing
+  .command("status")
+  .description("Show current subscription status")
+  .action(billingStatusCommand);
+
+billing
+  .command("upgrade")
+  .description("Open dashboard to upgrade your plan")
+  .action(billingUpgradeCommand);
+
+billing
+  .command("cancel")
+  .description("Cancel your subscription")
+  .action(billingCancelCommand);
 
 program.parse();

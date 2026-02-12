@@ -1,6 +1,7 @@
 """Google OAuth authentication service."""
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import secrets
@@ -79,7 +80,8 @@ async def exchange_code_for_user_info(code: str) -> GoogleUserInfo:
         token_data = token_response.json()
 
     raw_id_token = token_data["id_token"]
-    id_info = google_id_token.verify_oauth2_token(
+    id_info = await asyncio.to_thread(
+        google_id_token.verify_oauth2_token,
         raw_id_token,
         google_requests.Request(),
         settings.GOOGLE_CLIENT_ID,

@@ -11,7 +11,8 @@ class Role(str, Enum):
 
 class Plan(str, Enum):
     FREE = "free"
-    PRO = "pro"
+    STARTER = "starter"
+    TEAM = "team"
     ENTERPRISE = "enterprise"
 
 

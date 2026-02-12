@@ -217,7 +217,8 @@ class TestGoogleOAuthBetaFlow:
                 follow_redirects=False,
             )
 
-        assert response.status_code == 302
+        # _error_redirect uses default RedirectResponse (307 in Starlette)
+        assert response.status_code == 307
         location = response.headers["location"]
         assert "/login" in location
         assert "error=beta_pending" in location

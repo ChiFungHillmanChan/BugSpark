@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, Loader2, Clock, CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import apiClient from "@/lib/api-client";
@@ -10,6 +11,9 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 export default function BetaRegisterPage() {
   const t = useTranslations("beta");
   const tAuth = useTranslations("auth");
+  const searchParams = useSearchParams();
+  const isOAuthPending = searchParams.get("status") === "pending";
+  const provider = searchParams.get("provider");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +21,7 @@ export default function BetaRegisterPage() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(isOAuthPending);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -53,7 +57,7 @@ export default function BetaRegisterPage() {
             {t("successTitle")}
           </h2>
           <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mb-6 sm:mb-8 max-w-sm mx-auto">
-            {t("successMessage")}
+            {provider === "google" ? t("successGoogleOAuth") : t("successMessage")}
           </p>
           <Link
             href="/login"

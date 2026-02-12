@@ -177,7 +177,7 @@ async def _handle_login_mode(
 
             if beta_mode:
                 return RedirectResponse(
-                    url=f"{settings.FRONTEND_URL}/login?error=beta_pending",
+                    url=f"{settings.FRONTEND_URL}/register/beta?status=pending&provider=google",
                     status_code=302,
                 )
 

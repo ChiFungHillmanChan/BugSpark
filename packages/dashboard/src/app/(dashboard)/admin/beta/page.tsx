@@ -107,6 +107,7 @@ function BetaUserRow({ user }: { user: BetaUser }) {
 export default function AdminBetaPage() {
   const t = useTranslations("beta");
   const tAdmin = useTranslations("admin");
+  const tBugs = useTranslations("bugs");
   const { isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
@@ -269,17 +270,17 @@ export default function AdminBetaPage() {
               disabled={page <= 1}
               className="px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg disabled:opacity-30 transition-colors"
             >
-              Previous
+              {tBugs("previous")}
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              Page {page} of {Math.ceil(data.total / 20)}
+              {tBugs("pageOf", { page, total: Math.ceil(data.total / 20) })}
             </span>
             <button
               onClick={() => setPage((p) => p + 1)}
               disabled={page >= Math.ceil(data.total / 20)}
               className="px-3 py-1 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.04] rounded-lg disabled:opacity-30 transition-colors"
             >
-              Next
+              {tBugs("next")}
             </button>
           </div>
         )}

@@ -23,6 +23,7 @@ dependencies = [
     "resend>=2.0.0",
     "google-auth>=2.29.0",
     "sentry-sdk[fastapi]>=2.0.0",
+    "stripe>=8.0.0",
 ]
 
 [project.optional-dependencies]

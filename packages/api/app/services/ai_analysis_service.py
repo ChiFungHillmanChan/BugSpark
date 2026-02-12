@@ -132,9 +132,10 @@ def _build_user_prompt(
 ) -> str:
     title = sanitize_text(title)
     description = sanitize_text(description)
+    description_text = description if description else "(No description provided)"
     return (
         f"Title: {title}\n"
-        f"Description: {description}\n\n"
+        f"Description: {description_text}\n\n"
         f"Console Logs:\n{_format_logs(console_logs)}\n\n"
         f"Network Logs:\n{_format_network(network_logs)}\n\n"
         f"User Actions:\n{_format_actions(user_actions)}\n\n"

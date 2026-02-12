@@ -1,5 +1,5 @@
 export type UserRole = "user" | "admin" | "superadmin";
-export type UserPlan = "free" | "pro" | "enterprise";
+export type UserPlan = "free" | "starter" | "team" | "enterprise";
 export type BetaStatusType = "none" | "pending" | "approved" | "rejected";
 
 export interface User {
@@ -11,9 +11,28 @@ export interface User {
   isActive: boolean;
   isEmailVerified?: boolean;
   betaStatus?: BetaStatusType;
+  subscriptionStatus?: string | null;
+  cancelAtPeriodEnd?: boolean;
   createdAt: string;
   hasGoogleLinked?: boolean;
   hasPassword?: boolean;
+}
+
+export interface SubscriptionInfo {
+  plan: string;
+  status: string | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+  billingInterval: string | null;
+  amount: number | null;
+}
+
+export interface InvoiceInfo {
+  id: string;
+  date: string;
+  amount: number;
+  status: string;
+  invoicePdf: string | null;
 }
 
 export interface AdminUser {

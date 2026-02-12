@@ -29,6 +29,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   isSuperadmin: boolean;
+  canAccessFeature: (feature: string) => boolean;
   login: (email: string, password: string, redirectTo?: string) => Promise<void>;
   register: (name: string, email: string, password: string, redirectTo?: string) => Promise<RegisterResult>;
   logout: () => void;
@@ -42,6 +43,13 @@ function isSafeRedirect(path: string | undefined): path is string {
   if (!path) return false;
   return path.startsWith("/") && !path.startsWith("//");
 }
+
+const PLAN_FEATURES: Record<string, string[]> = {
+  free: ["screenshot", "console_logs"],
+  starter: ["screenshot", "console_logs", "session_replay", "github"],
+  team: ["screenshot", "console_logs", "session_replay", "github", "ai_analysis", "linear", "custom_branding"],
+  enterprise: ["screenshot", "console_logs", "session_replay", "github", "ai_analysis", "linear", "custom_branding", "sso", "audit_logs"],
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -110,6 +118,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isSuperadmin = useMemo(() => user?.role === "superadmin", [user]);
 
+  const canAccessFeature = useCallback((feature: string): boolean => {
+    if (!user) return false;
+    return PLAN_FEATURES[user.plan]?.includes(feature) ?? false;
+  }, [user]);
+
   return (
     <AuthContext.Provider
       value={{
@@ -117,6 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         isLoading,
         isSuperadmin,
+        canAccessFeature,
         login,
         register,
         logout,

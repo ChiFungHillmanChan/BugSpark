@@ -287,3 +287,46 @@ async def test_report_gets_tracking_id(
     )
     assert response2.status_code == 201
     assert response2.json()["trackingId"] == "BUG-0002"
+
+
+async def test_create_report_with_annotated_screenshot(
+    client: AsyncClient, test_project: tuple[Project, str], auth_cookies: dict[str, str]
+):
+    """Test that annotated_screenshot_url is properly stored and retrieved."""
+    import uuid
+    project, raw_key = test_project
+    original_screenshot_key = f"screenshots/{uuid.uuid4()}.png"
+    annotated_screenshot_key = f"screenshots/{uuid.uuid4()}.png"
+
+    response = await client.post(
+        BASE,
+        json={
+            "title": "Bug with annotation",
+            "description": "Report with annotated screenshot",
+            "severity": "high",
+            "category": "bug",
+            "screenshot_url": original_screenshot_key,
+            "annotated_screenshot_url": annotated_screenshot_key,
+            "metadata": {"browser": "chrome"},
+        },
+        headers=_api_key_headers(raw_key),
+    )
+    assert response.status_code == 201
+    data = response.json()
+    report_id = data["id"]
+
+    # Verify annotated screenshot URL is in response
+    assert data["annotatedScreenshotUrl"] is not None
+    assert annotated_screenshot_key in data["annotatedScreenshotUrl"]
+    assert data["screenshotUrl"] is not None
+    assert original_screenshot_key in data["screenshotUrl"]
+
+    # Verify we can retrieve it via GET (requires user authentication, not API key)
+    get_response = await client.get(
+        f"{BASE}/{report_id}",
+        cookies=auth_cookies,
+    )
+    assert get_response.status_code == 200
+    get_data = get_response.json()
+    assert get_data["annotatedScreenshotUrl"] is not None
+    assert annotated_screenshot_key in get_data["annotatedScreenshotUrl"]

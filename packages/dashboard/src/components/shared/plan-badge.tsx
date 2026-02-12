@@ -12,7 +12,8 @@ interface PlanBadgeProps {
 
 const PLAN_STYLES: Record<UserPlan, string> = {
   free: "bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-300",
-  pro: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  starter: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
+  team: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300",
   enterprise:
     "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300",
 };
@@ -22,7 +23,8 @@ const SUPERADMIN_STYLE =
 
 const PLAN_LABEL_KEY: Record<UserPlan, string> = {
   free: "planFree",
-  pro: "planPro",
+  starter: "planStarter",
+  team: "planTeam",
   enterprise: "planEnterprise",
 };
 

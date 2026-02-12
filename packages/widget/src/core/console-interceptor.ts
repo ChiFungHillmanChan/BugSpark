@@ -5,6 +5,24 @@ const INTERCEPTED_LEVELS = ['log', 'warn', 'error', 'info', 'debug'] as const;
 
 type ConsoleLevel = (typeof INTERCEPTED_LEVELS)[number];
 
+const SENSITIVE_PATTERNS = [
+  /token/i,
+  /api[-_]?key/i,
+  /secret/i,
+  /password/i,
+  /bearer/i,
+  /authorization/i,
+  /credential/i,
+  /session[-_]?id/i,
+  /jwt/i,
+];
+
+const MAX_LOG_MESSAGE_LENGTH = 1000;
+
+function containsSensitiveKey(key: string): boolean {
+  return SENSITIVE_PATTERNS.some(pattern => pattern.test(key));
+}
+
 const originalMethods: Partial<Record<ConsoleLevel, (...args: unknown[]) => void>> = {};
 let entries: ConsoleLogEntry[] = [];
 let isRunning = false;
@@ -12,7 +30,10 @@ let maxEntries = DEFAULT_MAX_ENTRIES;
 
 function safeStringify(value: unknown): string {
   const seen = new WeakSet();
-  return JSON.stringify(value, (_key, val: unknown) => {
+  const result = JSON.stringify(value, (key, val: unknown) => {
+    if (key && containsSensitiveKey(key)) {
+      return '[REDACTED]';
+    }
     if (typeof val === 'object' && val !== null) {
       if (seen.has(val)) return '[Circular]';
       seen.add(val);
@@ -24,6 +45,12 @@ function safeStringify(value: unknown): string {
     if (typeof val === 'function') return `[Function: ${val.name || 'anonymous'}]`;
     return val;
   });
+
+  if (result && result.length > MAX_LOG_MESSAGE_LENGTH) {
+    return result.slice(0, MAX_LOG_MESSAGE_LENGTH) + '... [truncated]';
+  }
+
+  return result;
 }
 
 function formatArgs(args: unknown[]): string {

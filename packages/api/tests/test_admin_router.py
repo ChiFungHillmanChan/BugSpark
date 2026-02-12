@@ -92,13 +92,13 @@ async def test_update_user_plan(
 ) -> None:
     resp = await client.patch(
         f"/api/v1/admin/users/{test_user.id}",
-        json={"plan": "pro"},
+        json={"plan": "starter"},
         cookies=superadmin_cookies,
         headers=csrf_headers,
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["plan"] == "pro"
+    assert data["plan"] == "starter"
 
 
 @pytest.mark.asyncio
@@ -160,16 +160,16 @@ async def test_update_plan_expires_at(
     test_user: User,
     test_superadmin: User,
 ) -> None:
-    # Set plan to pro with an expiry date
+    # Set plan to starter with an expiry date
     resp = await client.patch(
         f"/api/v1/admin/users/{test_user.id}",
-        json={"plan": "pro", "plan_expires_at": "2026-03-10T00:00:00Z"},
+        json={"plan": "starter", "plan_expires_at": "2026-03-10T00:00:00Z"},
         cookies=superadmin_cookies,
         headers=csrf_headers,
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["plan"] == "pro"
+    assert data["plan"] == "starter"
     assert data["planExpiresAt"] is not None
     assert "2026-03-10" in data["planExpiresAt"]
 

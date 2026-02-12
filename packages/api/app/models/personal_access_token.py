@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from typing import Optional
 
 
 class PersonalAccessToken(Base):
@@ -27,10 +28,10 @@ class PersonalAccessToken(Base):
     token_prefix: Mapped[str] = mapped_column(
         String(16), nullable=False, index=True
     )
-    last_used_at: Mapped[datetime | None] = mapped_column(
+    last_used_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    expires_at: Mapped[datetime | None] = mapped_column(
+    expires_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(

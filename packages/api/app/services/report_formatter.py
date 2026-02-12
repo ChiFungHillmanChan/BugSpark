@@ -17,7 +17,7 @@ def format_report_body(report: Report) -> str:
 
     sections.append("### Description")
     sections.append("")
-    sections.append(report.description)
+    sections.append(report.description if report.description else "(No description provided)")
     sections.append("")
 
     if report.screenshot_url:

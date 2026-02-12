@@ -1,6 +1,7 @@
 """Google OAuth login, callback, link, and unlink endpoints."""
 from __future__ import annotations
 
+import logging
 import secrets
 
 from fastapi import APIRouter, Depends, Request
@@ -22,6 +23,8 @@ from app.services.google_auth_service import (
     generate_oauth_state,
     parse_oauth_state,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth/google", tags=["auth"])
 
@@ -112,7 +115,8 @@ async def google_callback(
 
     try:
         state_data = parse_oauth_state(state)
-    except Exception:
+    except Exception as exc:
+        logger.error("Google OAuth state parse failed: %s", exc, exc_info=True)
         return _error_redirect("invalid_state")
 
     if state_data.get("csrf") != state_cookie:
@@ -124,7 +128,8 @@ async def google_callback(
     # Exchange code for user info
     try:
         google_user = await exchange_code_for_user_info(code)
-    except Exception:
+    except Exception as exc:
+        logger.error("Google token exchange failed: %s", exc, exc_info=True)
         return _error_redirect("google_exchange_failed")
 
     if mode == "link":
@@ -186,7 +191,8 @@ async def _handle_login_mode(
 
     try:
         check_beta_status(user, "en")
-    except Exception:
+    except Exception as exc:
+        logger.warning("Google OAuth beta check failed for user %s: %s", user.email, exc)
         return _error_redirect("beta_pending")
 
     # Issue tokens

@@ -10,7 +10,8 @@ import type { UserPlan } from "@/types";
 
 const BREAKDOWN_LABELS: Record<string, string> = {
   free: "planFree",
-  pro: "planPro",
+  starter: "planStarter",
+  team: "planTeam",
   enterprise: "planEnterprise",
   user: "roleUser",
   admin: "roleAdmin",

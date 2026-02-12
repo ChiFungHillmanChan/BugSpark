@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 MESSAGES: dict[str, str] = {
     # Auth
     "auth.email_registered": "此電子郵件已註冊",

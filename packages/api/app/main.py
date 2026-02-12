@@ -20,7 +20,7 @@ from app.middleware.csrf import CSRFMiddleware
 from app.middleware.request_id import RequestIDMiddleware
 from app.middleware.security_headers import SecurityHeadersMiddleware
 from app.middleware.widget_cors import WidgetCORSMiddleware
-from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_google, auth_password, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks
+from app.routers import admin, analysis, auth, auth_beta, auth_cli, auth_email, auth_google, auth_password, billing, comments, device_auth, integrations, plans, projects, reports, stats, team, tokens, upload, webhooks, webhooks_stripe
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +129,8 @@ app.include_router(analysis.router, prefix="/api/v1")
 app.include_router(integrations.router, prefix="/api/v1")
 app.include_router(plans.router, prefix="/api/v1")
 app.include_router(team.router, prefix="/api/v1")
+app.include_router(billing.router, prefix="/api/v1")
+app.include_router(webhooks_stripe.router, prefix="/api/v1")
 
 
 if settings.ENVIRONMENT == "development":

@@ -104,6 +104,13 @@ export default function BugDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">
+            <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-2">{t("description")}</h2>
+            <p className={`text-sm ${bug.description ? "text-gray-700 dark:text-gray-300" : "text-gray-500 dark:text-gray-400 italic"}`}>
+              {bug.description || t("noDescription")}
+            </p>
+          </div>
+
           <ScreenshotViewer
             screenshotUrl={bug.screenshotUrl}
             annotatedScreenshotUrl={bug.annotatedScreenshotUrl}

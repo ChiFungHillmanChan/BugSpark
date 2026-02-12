@@ -1,28 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import apiClient from "@/lib/api-client";
+import { useTokens, useCreateToken, useDeleteToken } from "@/hooks/use-tokens";
 import { Key, Copy, Check, Trash2, Plus, Terminal } from "lucide-react";
-
-interface TokenResponse {
-  id: string;
-  name: string;
-  tokenPrefix: string;
-  lastUsedAt: string | null;
-  expiresAt: string | null;
-  createdAt: string;
-}
-
-interface TokenCreateResponse {
-  id: string;
-  name: string;
-  token: string;
-  expiresAt: string | null;
-  createdAt: string;
-}
 
 const EXPIRY_OPTIONS = [
   { value: "", days: null },
@@ -33,36 +16,20 @@ const EXPIRY_OPTIONS = [
 
 export default function TokensPage() {
   const t = useTranslations("tokens");
-  const [tokens, setTokens] = useState<TokenResponse[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data: tokens = [], isLoading } = useTokens();
+  const createMutation = useCreateToken();
+  const deleteMutation = useDeleteToken();
 
-  // Create modal state
+  // UI state
   const [showCreate, setShowCreate] = useState(false);
   const [tokenName, setTokenName] = useState("");
   const [expiresIn, setExpiresIn] = useState<string>("");
-  const [isCreating, setIsCreating] = useState(false);
-
-  // Newly created token (shown once)
   const [newToken, setNewToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-
-  // Revoke confirm dialog
   const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchTokens = useCallback(async () => {
-    setIsLoading(true);
-    const resp = await apiClient.get<TokenResponse[]>("/auth/tokens");
-    setTokens(resp.data);
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    fetchTokens();
-  }, [fetchTokens]);
-
   async function handleCreate() {
-    setIsCreating(true);
     setError(null);
     try {
       const body: { name: string; expiresInDays?: number } = {
@@ -72,19 +39,13 @@ export default function TokensPage() {
         body.expiresInDays = Number(expiresIn);
       }
 
-      const resp = await apiClient.post<TokenCreateResponse>(
-        "/auth/tokens",
-        body
-      );
-      setNewToken(resp.data.token);
+      const result = await createMutation.mutateAsync(body);
+      setNewToken(result.token);
       setShowCreate(false);
       setTokenName("");
       setExpiresIn("");
-      fetchTokens();
     } catch {
       setError(t("createFailed"));
-    } finally {
-      setIsCreating(false);
     }
   }
 
@@ -96,9 +57,8 @@ export default function TokensPage() {
     if (!revokeTarget) return;
     setError(null);
     try {
-      await apiClient.delete(`/auth/tokens/${revokeTarget}`);
+      await deleteMutation.mutateAsync(revokeTarget);
       setRevokeTarget(null);
-      fetchTokens();
     } catch {
       setError(t("revokeFailed"));
       setRevokeTarget(null);
@@ -229,10 +189,10 @@ export default function TokensPage() {
               </button>
               <button
                 onClick={handleCreate}
-                disabled={!tokenName.trim() || isCreating}
+                disabled={!tokenName.trim() || createMutation.isPending}
                 className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-sm font-medium disabled:opacity-50"
               >
-                {isCreating ? t("creating") : t("create")}
+                {createMutation.isPending ? t("creating") : t("create")}
               </button>
             </div>
           </div>

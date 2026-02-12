@@ -4,6 +4,8 @@ import hashlib
 import hmac
 import json
 import logging
+import ssl
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import BackgroundTasks
@@ -24,11 +26,54 @@ def _generate_signature(secret: str, payload_bytes: bytes) -> str:
     ).hexdigest()
 
 
+async def _post_with_pinned_ip(
+    url: str,
+    pinned_ip: str,
+    payload_bytes: bytes,
+    headers: dict[str, str],
+    timeout: float = 5.0,
+) -> httpx.Response:
+    """POST to *url* while pinning the TCP connection to *pinned_ip*.
+
+    Prevents DNS-rebinding TOCTOU by connecting directly to the
+    pre-validated IP address instead of letting httpx re-resolve DNS.
+
+    For HTTPS the SSL context still verifies the certificate chain
+    (``CERT_REQUIRED``) but skips hostname-to-certificate matching
+    (``check_hostname = False``) because we connect via IP.
+    """
+    parsed = urlparse(url)
+    hostname = parsed.hostname or ""
+    scheme = parsed.scheme
+    port = parsed.port
+    path = parsed.path or "/"
+    if parsed.query:
+        path = f"{path}?{parsed.query}"
+
+    # Build URL with pinned IP instead of hostname
+    ip_authority = f"{pinned_ip}:{port}" if port else pinned_ip
+    pinned_url = f"{scheme}://{ip_authority}{path}"
+
+    # Preserve original hostname in Host header for server routing
+    headers["Host"] = parsed.netloc
+
+    verify: bool | ssl.SSLContext = True
+    if scheme == "https":
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        verify = ctx
+
+    async with httpx.AsyncClient(timeout=timeout, verify=verify) as client:
+        return await client.post(
+            pinned_url, content=payload_bytes, headers=headers,
+        )
+
+
 async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
-    from app.utils.url_validator import validate_webhook_url
+    from app.utils.url_validator import resolve_and_validate_url
 
     try:
-        validate_webhook_url(webhook.url)
+        _url, resolved_ips = resolve_and_validate_url(webhook.url)
     except Exception:
         logger.warning("Blocked webhook delivery to unsafe URL: %s", webhook.url)
         return
@@ -45,11 +90,13 @@ async def deliver_webhook(webhook: Webhook, event: str, payload: dict) -> None:
     }
 
     try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            response = await client.post(webhook.url, content=payload_bytes, headers=headers)
-            logger.info(
-                "Webhook delivered to %s: status=%d", webhook.url, response.status_code
-            )
+        response = await _post_with_pinned_ip(
+            webhook.url, resolved_ips[0], payload_bytes, headers,
+        )
+        logger.info(
+            "Webhook delivered to %s: status=%d",
+            webhook.url, response.status_code,
+        )
     except httpx.HTTPError as exc:
         logger.warning("Webhook delivery to %s failed: %s", webhook.url, exc)
 
@@ -61,7 +108,7 @@ async def deliver_webhook_from_payload(payload: dict) -> None:
     rather than passing the raw secret through the task queue.
     """
     from app.database import async_session
-    from app.utils.url_validator import validate_webhook_url
+    from app.utils.url_validator import resolve_and_validate_url
 
     webhook_id = payload["webhook_id"]
     event = payload["event"]
@@ -80,7 +127,7 @@ async def deliver_webhook_from_payload(payload: dict) -> None:
     secret = decrypt_value(webhook.secret)
 
     try:
-        validate_webhook_url(url)
+        _url, resolved_ips = resolve_and_validate_url(url)
     except Exception:
         logger.warning("Blocked webhook delivery to unsafe URL: %s", url)
         return
@@ -95,20 +142,21 @@ async def deliver_webhook_from_payload(payload: dict) -> None:
         "X-BugSpark-Event": event,
     }
 
-    async with httpx.AsyncClient(timeout=5.0) as client:
-        response = await client.post(url, content=payload_bytes, headers=headers)
-        logger.info("Webhook delivered to %s: status=%d", url, response.status_code)
-        if response.status_code >= 500:
-            raise httpx.HTTPStatusError(
-                f"Webhook returned {response.status_code}",
-                request=response.request,
-                response=response,
-            )
-        if 400 <= response.status_code < 500:
-            logger.warning(
-                "Webhook %s returned client error %d — not retrying",
-                url, response.status_code,
-            )
+    response = await _post_with_pinned_ip(
+        url, resolved_ips[0], payload_bytes, headers,
+    )
+    logger.info("Webhook delivered to %s: status=%d", url, response.status_code)
+    if response.status_code >= 500:
+        raise httpx.HTTPStatusError(
+            f"Webhook returned {response.status_code}",
+            request=response.request,
+            response=response,
+        )
+    if 400 <= response.status_code < 500:
+        logger.warning(
+            "Webhook %s returned client error %d — not retrying",
+            url, response.status_code,
+        )
 
 
 async def _enqueue_webhook(

@@ -87,7 +87,7 @@ async def test_pro_plan_blocked_from_analysis(
 ):
     project, _ = test_project
     report = await _create_report(db_session, project)
-    pro_user = await _create_user_with_plan(db_session, Plan.PRO, "pro@example.com")
+    pro_user = await _create_user_with_plan(db_session, Plan.STARTER, "starter@example.com")
     cookies = _cookies_for(pro_user)
     headers = {"X-CSRF-Token": CSRF_TOKEN}
 

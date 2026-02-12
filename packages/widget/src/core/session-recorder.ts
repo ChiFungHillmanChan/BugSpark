@@ -12,7 +12,10 @@ let isRunning = false;
 let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
 
-const originalPushState = history.pushState.bind(history);
+// Captured lazily in start() to avoid breaking SPA routers that patch
+// history methods after the widget script loads.
+let originalPushState: typeof history.pushState | null = null;
+let originalReplaceState: typeof history.replaceState | null = null;
 
 function pushEvent(event: SessionEvent): void {
   const cutoff = Date.now() - BUFFER_DURATION_MS;
@@ -64,13 +67,27 @@ export function start(): void {
   if (isRunning) return;
   isRunning = true;
 
+  // Capture current methods at start time (lazy initialization),
+  // matching the pattern in network-interceptor.ts.
+  originalPushState = history.pushState.bind(history);
+  originalReplaceState = history.replaceState.bind(history);
+
   document.addEventListener('click', handleClick, true);
   window.addEventListener('scroll', handleScroll, true);
   window.addEventListener('resize', handleResize);
   window.addEventListener('popstate', handlePopState);
 
   history.pushState = function (...args: Parameters<typeof history.pushState>) {
-    originalPushState(...args);
+    originalPushState!(...args);
+    pushEvent({
+      type: 'navigation',
+      timestamp: Date.now(),
+      data: { url: location.href },
+    });
+  };
+
+  history.replaceState = function (...args: Parameters<typeof history.replaceState>) {
+    originalReplaceState!(...args);
     pushEvent({
       type: 'navigation',
       timestamp: Date.now(),
@@ -88,7 +105,10 @@ export function stop(): void {
   window.removeEventListener('resize', handleResize);
   window.removeEventListener('popstate', handlePopState);
 
-  history.pushState = originalPushState;
+  if (originalPushState) history.pushState = originalPushState;
+  if (originalReplaceState) history.replaceState = originalReplaceState;
+  originalPushState = null;
+  originalReplaceState = null;
 
   if (scrollTimeout) clearTimeout(scrollTimeout);
   if (resizeTimeout) clearTimeout(resizeTimeout);

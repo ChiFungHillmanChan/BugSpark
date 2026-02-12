@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from typing import Optional
 
 
 class Severity(str, enum.Enum):
@@ -65,16 +66,16 @@ class Report(Base):
         nullable=False,
         index=True,
     )
-    assignee_id: Mapped[uuid.UUID | None] = mapped_column(
+    assignee_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True
     )
-    screenshot_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    annotated_screenshot_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
-    console_logs: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    network_logs: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    user_actions: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
-    reporter_identifier: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    screenshot_url: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    annotated_screenshot_url: Mapped[Optional[str]] = mapped_column(String(1000), nullable=True)
+    console_logs: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    network_logs: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    user_actions: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    metadata_: Mapped[Optional[dict]] = mapped_column("metadata", JSONB, nullable=True)
+    reporter_identifier: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     console_logs_included: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default="false", nullable=False
     )

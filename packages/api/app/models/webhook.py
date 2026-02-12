@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
+from typing import List, Optional
 
 
 class Webhook(Base):
@@ -20,7 +21,7 @@ class Webhook(Base):
         UUID(as_uuid=True), ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
     url: Mapped[str] = mapped_column(String(1000), nullable=False)
-    events: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False)
+    events: Mapped[List[str]] = mapped_column(ARRAY(String), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
     secret: Mapped[str] = mapped_column(String(255), nullable=False)
     created_at: Mapped[datetime] = mapped_column(

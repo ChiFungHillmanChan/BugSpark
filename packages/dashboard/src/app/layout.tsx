@@ -39,7 +39,6 @@ export const metadata: Metadata = {
     canonical: BASE_URL,
     languages: { "zh-HK": "/", en: "/" },
   },
-  manifest: "/manifest.webmanifest",
 };
 
 export default async function RootLayout({

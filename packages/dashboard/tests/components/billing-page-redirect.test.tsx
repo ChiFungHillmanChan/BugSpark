@@ -1,0 +1,134 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { renderWithIntl } from "../test-utils";
+import BillingPage from "@/app/(dashboard)/settings/billing/page";
+
+// Mock window.location.href
+const originalLocation = window.location;
+let locationHrefMock = "";
+
+beforeEach(() => {
+  delete (window as any).location;
+  window.location = {
+    ...originalLocation,
+    href: "",
+  } as Location;
+  locationHrefMock = "";
+
+  Object.defineProperty(window.location, "href", {
+    writable: true,
+    configurable: true,
+    value: locationHrefMock,
+  });
+});
+
+// Mock the checkout mutation hook
+vi.mock("@/hooks/use-billing", () => ({
+  useCheckoutSession: () => ({
+    mutate: vi.fn((data: unknown, options: any) => {
+      // Simulate successful checkout session creation with sessionId
+      if (options?.onSuccess) {
+        options.onSuccess({
+          sessionId: "cs_test_123456789",
+          url: "https://checkout.stripe.com/pay/cs_test_123456789",
+        });
+      }
+    }),
+    isPending: false,
+    isError: false,
+    error: null,
+  }),
+}));
+
+describe("BillingPage Stripe Redirect", () => {
+  it("redirects to Stripe checkout URL after successful session creation", async () => {
+    const user = userEvent.setup();
+    renderWithIntl(<BillingPage />);
+
+    // Click upgrade button (or similar CTA)
+    const upgradeButton = screen.getByRole("button", { name: /Upgrade/i });
+    await user.click(upgradeButton);
+
+    // Wait for redirect to happen
+    await waitFor(() => {
+      expect(window.location.href).toMatch(
+        /https:\/\/checkout\.stripe\.com\/pay\/cs_test_\d+/
+      );
+    });
+  });
+
+  it("includes correct sessionId in redirect URL", async () => {
+    const user = userEvent.setup();
+    const sessionId = "cs_test_abc123def456";
+
+    vi.mock("@/hooks/use-billing", () => ({
+      useCheckoutSession: () => ({
+        mutate: vi.fn((_data: unknown, options: any) => {
+          if (options?.onSuccess) {
+            options.onSuccess({ sessionId });
+          }
+        }),
+        isPending: false,
+        isError: false,
+        error: null,
+      }),
+    }));
+
+    renderWithIntl(<BillingPage />);
+    const upgradeButton = screen.getByRole("button", { name: /Upgrade/i });
+    await user.click(upgradeButton);
+
+    await waitFor(() => {
+      expect(window.location.href).toContain(sessionId);
+    });
+  });
+
+  it("does NOT redirect if mutation is still pending", async () => {
+    const user = userEvent.setup();
+
+    vi.mock("@/hooks/use-billing", () => ({
+      useCheckoutSession: () => ({
+        mutate: vi.fn(),
+        isPending: true,
+        isError: false,
+        error: null,
+      }),
+    }));
+
+    renderWithIntl(<BillingPage />);
+    const upgradeButton = screen.getByRole("button", { name: /Upgrade/i });
+
+    expect(upgradeButton).toBeDisabled();
+    expect(window.location.href).toBe("");
+  });
+
+  it("does NOT redirect if mutation returns error", async () => {
+    const user = userEvent.setup();
+
+    vi.mock("@/hooks/use-billing", () => ({
+      useCheckoutSession: () => ({
+        mutate: vi.fn((_data: unknown, options: any) => {
+          if (options?.onError) {
+            options.onError(new Error("Checkout failed"));
+          }
+        }),
+        isPending: false,
+        isError: true,
+        error: new Error("Checkout failed"),
+      }),
+    }));
+
+    renderWithIntl(<BillingPage />);
+    const upgradeButton = screen.getByRole("button", { name: /Upgrade/i });
+    await user.click(upgradeButton);
+
+    // Should show error, not redirect
+    await waitFor(() => {
+      expect(window.location.href).toBe("");
+      expect(
+        screen.getByText(/checkout failed|error/i)
+      ).toBeInTheDocument();
+    });
+  });
+});

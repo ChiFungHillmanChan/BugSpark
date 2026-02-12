@@ -52,7 +52,7 @@ describe('api-client', () => {
       };
 
       const result = interceptor(config as unknown as Record<string, unknown>) as typeof config;
-      expect(result.baseURL).toBe('http://localhost:8000/api/v1');
+      expect(result.baseURL).toBe('https://api.bugspark.hillmanchan.com/api/v1');
 
       process.env.NEXT_PUBLIC_API_URL = originalEnv;
     });

@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import {
@@ -30,16 +29,16 @@ export function BillingTab() {
 
   function handleChangePlan(plan: string, billingInterval: string) {
     if (isFreePlan) {
-      checkoutMutation.mutate({ plan, billingInterval });
+      checkoutMutation.mutate(
+        { plan, billingInterval },
+        {
+          onSuccess: (data) => {
+            window.location.assign(data.checkoutUrl);
+          },
+        },
+      );
     }
   }
-
-  useEffect(() => {
-    if (checkoutMutation.data?.sessionId) {
-      const stripeCheckoutUrl = `https://checkout.stripe.com/pay/${checkoutMutation.data.sessionId}`;
-      window.location.href = stripeCheckoutUrl;
-    }
-  }, [checkoutMutation.data]);
 
   function handleCancelSubscription() {
     cancelMutation.mutate();

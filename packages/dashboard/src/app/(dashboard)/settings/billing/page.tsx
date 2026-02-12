@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowLeft, Loader2 } from "lucide-react";
@@ -34,16 +33,16 @@ export default function BillingPage() {
 
   function handleChangePlan(plan: string, billingInterval: string) {
     if (isFreePlan) {
-      checkoutMutation.mutate({ plan, billingInterval });
+      checkoutMutation.mutate(
+        { plan, billingInterval },
+        {
+          onSuccess: (data) => {
+            window.location.assign(data.checkoutUrl);
+          },
+        },
+      );
     }
   }
-
-  useEffect(() => {
-    if (checkoutMutation.data?.sessionId) {
-      const stripeCheckoutUrl = `https://checkout.stripe.com/pay/${checkoutMutation.data.sessionId}`;
-      window.location.href = stripeCheckoutUrl;
-    }
-  }, [checkoutMutation.data]);
 
   function handleCancelSubscription() {
     cancelMutation.mutate();

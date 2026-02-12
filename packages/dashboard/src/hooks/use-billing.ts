@@ -16,7 +16,11 @@ export function useSubscription() {
 export function useCreateCheckoutSession() {
   return useMutation({
     mutationFn: async (params: { plan: string; billingInterval: string }) => {
-      const { data } = await apiClient.post<{ clientSecret: string; sessionId: string }>(
+      const { data } = await apiClient.post<{
+        checkoutUrl: string;
+        clientSecret: string;
+        sessionId: string;
+      }>(
         "/billing/create-checkout-session",
         params,
       );

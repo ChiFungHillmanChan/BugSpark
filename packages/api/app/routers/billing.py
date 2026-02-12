@@ -115,7 +115,11 @@ async def create_checkout_session(
         cancel_url=f"{settings.FRONTEND_URL}/settings/billing",
         metadata={"user_id": str(user.id), "plan": body.plan},
     )
+    checkout_url = getattr(session, "url", None)
+    if not checkout_url:
+        raise BadRequestException("Stripe checkout URL was not returned by Stripe.")
     return CreateCheckoutSessionResponse(
+        checkout_url=checkout_url,
         client_secret=session.client_secret or "",
         session_id=session.id,
     )

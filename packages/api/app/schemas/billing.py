@@ -13,6 +13,7 @@ class CreateCheckoutSessionRequest(CamelModel):
 
 
 class CreateCheckoutSessionResponse(CamelModel):
+    checkout_url: str
     client_secret: str
     session_id: str
 

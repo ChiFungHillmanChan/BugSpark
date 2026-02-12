@@ -10,14 +10,14 @@ const CosmicBackground = dynamic(
     import("@/components/shared/cosmic-background").then((m) => ({
       default: m.CosmicBackground,
     })),
-  { ssr: false }
+  { ssr: false, loading: () => <div className="absolute inset-0" /> }
 );
 const ShootingStars = dynamic(
   () =>
     import("./shooting-stars").then((m) => ({
       default: m.ShootingStars,
     })),
-  { ssr: false }
+  { ssr: false, loading: () => <div className="absolute inset-0" /> }
 );
 
 export function HeroSection() {

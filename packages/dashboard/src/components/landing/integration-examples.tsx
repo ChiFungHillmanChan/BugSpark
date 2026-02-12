@@ -29,7 +29,7 @@ export function IntegrationExamples() {
   ];
 
   return (
-    <section className="py-20 sm:py-28 bg-white dark:bg-navy-950">
+    <section className="py-20 sm:py-28 bg-white dark:bg-navy-950 cv-auto">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <SectionHeader title={t("integration")} subtitle={t("integrationSubtitle")} />
 

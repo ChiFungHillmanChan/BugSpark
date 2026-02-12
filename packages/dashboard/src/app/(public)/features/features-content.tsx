@@ -57,13 +57,13 @@ export default function FeaturesContent() {
       </section>
 
       {/* Feature grid */}
-      <section className="py-20 sm:py-28 bg-white dark:bg-navy-950">
+      <section className="py-20 sm:py-28 bg-white dark:bg-navy-950 cv-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {FEATURES.map((feature, index) => (
               <div
                 key={feature.titleKey}
-                className="group relative p-8 rounded-2xl border border-gray-200 dark:border-white/[0.08] dark:bg-navy-800/50 dark:backdrop-blur-sm hover:border-accent/30 dark:hover:border-white/[0.15] hover:shadow-lg dark:hover:shadow-accent/5 hover:-translate-y-0.5 transition-all"
+                className="group relative p-8 rounded-2xl border border-gray-200 dark:border-white/[0.08] dark:bg-navy-800/50 dark:backdrop-blur-sm hover:border-accent/30 dark:hover:border-white/[0.15] hover:shadow-lg dark:hover:shadow-accent/5 hover:-translate-y-0.5 transition-all [will-change:transform]"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent/20 to-accent/5 flex items-center justify-center mb-5 group-hover:from-accent/30 group-hover:to-accent/10 transition-colors">
@@ -82,7 +82,7 @@ export default function FeaturesContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 sm:py-28 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white">
+      <section className="py-20 sm:py-28 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white cv-auto">
         <CosmicBackground variant="full" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl font-bold dark:gradient-text">

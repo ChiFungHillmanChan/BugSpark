@@ -9,7 +9,7 @@ export function CtaSection() {
   const t = useTranslations("landing");
 
   return (
-    <section className="py-20 sm:py-28 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white">
+    <section className="py-20 sm:py-28 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white cv-auto">
       <CosmicBackground variant="full" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
         <h2 className="text-4xl sm:text-5xl font-bold dark:gradient-text">{t("cta")}</h2>

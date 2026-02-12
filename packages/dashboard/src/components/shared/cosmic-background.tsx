@@ -4,7 +4,7 @@ interface CosmicBackgroundProps {
 
 export function CosmicBackground({ variant }: CosmicBackgroundProps) {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none [will-change:transform]">
       {/* Starfield via CSS radial-gradient dots */}
       <div
         className="absolute inset-0 dark:opacity-60 opacity-0"
@@ -55,16 +55,16 @@ export function CosmicBackground({ variant }: CosmicBackgroundProps) {
       />
 
       {/* Gradient orb — top-left cosmic purple */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-cosmic-purple/20 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0" />
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-cosmic-purple/20 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0 [will-change:transform]" />
 
       {/* Gradient orb — center-right accent */}
       {variant === "full" && (
-        <div className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-accent/15 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0" />
+        <div className="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-accent/15 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0 [will-change:transform]" />
       )}
 
       {/* Gradient orb — bottom-left accent */}
       {variant === "full" && (
-        <div className="absolute -bottom-20 left-1/4 w-72 h-72 rounded-full bg-cosmic-purple/15 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0" />
+        <div className="absolute -bottom-20 left-1/4 w-72 h-72 rounded-full bg-cosmic-purple/15 blur-[80px] animate-pulse-glow dark:opacity-100 opacity-0 [will-change:transform]" />
       )}
     </div>
   );

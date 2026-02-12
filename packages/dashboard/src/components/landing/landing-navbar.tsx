@@ -47,7 +47,7 @@ export function LandingNavbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 pt-4 px-4">
+      <header className="sticky top-0 z-50 pt-4 px-4 [will-change:transform]">
         <div className="max-w-5xl mx-auto rounded-2xl bg-white/80 dark:bg-navy-900/60 backdrop-blur-xl border border-gray-200 dark:border-white/[0.08]">
           <div className="px-4 sm:px-6">
             <div className="flex items-center justify-between h-16">

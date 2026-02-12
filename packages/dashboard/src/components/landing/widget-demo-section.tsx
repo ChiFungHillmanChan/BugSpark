@@ -9,7 +9,7 @@ const CosmicBackground = dynamic(
     import("@/components/shared/cosmic-background").then((m) => ({
       default: m.CosmicBackground,
     })),
-  { ssr: false }
+  { ssr: false, loading: () => <div className="absolute inset-0" /> }
 );
 import { SectionHeader } from "@/components/shared/section-header";
 import { DemoStepNarration } from "@/components/landing/demo-step-narration";
@@ -140,7 +140,7 @@ export function WidgetDemoSection() {
   const [activeTab, setActiveTab] = useState<DemoTab>("report");
 
   return (
-    <section className="py-20 sm:py-28 bg-gray-50 dark:bg-navy-950 relative">
+    <section className="py-20 sm:py-28 bg-gray-50 dark:bg-navy-950 relative cv-auto">
       <CosmicBackground variant="top-only" />
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <SectionHeader

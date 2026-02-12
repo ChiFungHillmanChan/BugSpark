@@ -11,7 +11,7 @@ function PricingCard({ tier }: { tier: PricingTier }) {
 
   return (
     <div
-      className={`relative flex flex-col p-6 rounded-xl border ${
+      className={`relative flex flex-col p-6 rounded-xl border [will-change:transform] ${
         tier.isPopular
           ? "border-accent dark:border-accent/30 shadow-lg dark:shadow-accent/10 ring-2 ring-accent/20"
           : "border-gray-200 dark:border-white/[0.08] hover:border-accent/30 dark:hover:border-white/[0.15] hover:shadow-lg"

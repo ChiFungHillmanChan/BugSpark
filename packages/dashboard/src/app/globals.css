@@ -184,6 +184,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Content-visibility optimization for offscreen sections */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
 /* Reusable utility classes */
 
 .glass-card {

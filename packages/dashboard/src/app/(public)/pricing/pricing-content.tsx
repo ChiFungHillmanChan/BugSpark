@@ -33,7 +33,7 @@ export default function PricingContent() {
       </section>
 
       {/* Pricing cards */}
-      <section className="py-20 sm:py-28 bg-gray-50 dark:bg-navy-950 relative">
+      <section className="py-20 sm:py-28 bg-gray-50 dark:bg-navy-950 relative cv-auto">
         <CosmicBackground variant="top-only" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
           <PricingCardGrid />
@@ -76,7 +76,7 @@ export default function PricingContent() {
       </section>
 
       {/* FAQ */}
-      <section className="py-20 sm:py-28 bg-white dark:bg-navy-950">
+      <section className="py-20 sm:py-28 bg-white dark:bg-navy-950 cv-auto">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white text-center mb-12">
             {t("faqTitle")}
@@ -103,7 +103,7 @@ export default function PricingContent() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-20 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white">
+      <section className="py-16 sm:py-20 bg-navy-900 dark:bg-navy-950 dark:cosmic-bg relative overflow-hidden text-white cv-auto">
         <CosmicBackground variant="full" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 text-center relative z-10">
           <h2 className="text-3xl sm:text-4xl font-bold dark:gradient-text">

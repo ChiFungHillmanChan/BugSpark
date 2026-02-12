@@ -17,6 +17,9 @@ os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
 os.environ["JWT_SECRET"] = "test-secret-key-that-is-at-least-32-bytes-long"
 os.environ["JWT_ALGORITHM"] = "HS256"
 os.environ["S3_BUCKET_NAME"] = "bugspark-uploads"
+os.environ["ENABLE_GOOGLE_AUTH"] = "false"
+os.environ["GOOGLE_CLIENT_ID"] = ""
+os.environ["GOOGLE_CLIENT_SECRET"] = ""
 
 # Clear settings cache so test env vars take effect
 from app.config import get_settings

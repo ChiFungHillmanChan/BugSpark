@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
+from typing import TYPE_CHECKING
 
-import stripe
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -24,6 +24,15 @@ from app.schemas.billing import (
     ReactivateSubscriptionResponse,
     SubscriptionResponse,
 )
+
+# Optional stripe import - allows tests to run without stripe installed
+try:
+    import stripe
+except ImportError:
+    stripe = None  # type: ignore
+
+if TYPE_CHECKING:
+    import stripe as stripe_module
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +67,8 @@ def _resolve_price_id(plan: str, interval: str) -> str:
 
 def _init_stripe() -> None:
     """Set the Stripe API key from settings."""
+    if stripe is None:
+        raise BadRequestException("Stripe is not installed. Please install the stripe package.")
     settings = get_settings()
     stripe.api_key = settings.STRIPE_SECRET_KEY
 

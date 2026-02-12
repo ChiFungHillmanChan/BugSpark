@@ -19,7 +19,7 @@ async def test_deliver_webhook_sends_request():
     mock_response = MagicMock(status_code=200)
 
     with (
-        patch("app.utils.url_validator.validate_webhook_url"),
+        patch("app.utils.url_validator.resolve_and_validate_url", return_value=(webhook.url, ["192.168.1.1"])),
         patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls,
     ):
         mock_client = AsyncMock()
@@ -33,7 +33,9 @@ async def test_deliver_webhook_sends_request():
         mock_client.post.assert_called_once()
         call_args = mock_client.post.call_args
         assert call_args.kwargs["headers"]["Content-Type"] == "application/json"
-        assert call_args.args[0] == webhook.url
+        # The URL is transformed to use pinned IP for security (DNS rebinding protection)
+        assert "192.168.1.1" in call_args.args[0]
+        assert "/callback" in call_args.args[0]
 
 
 async def test_deliver_webhook_includes_signature_header():
@@ -41,7 +43,7 @@ async def test_deliver_webhook_includes_signature_header():
     mock_response = MagicMock(status_code=200)
 
     with (
-        patch("app.utils.url_validator.validate_webhook_url"),
+        patch("app.utils.url_validator.resolve_and_validate_url", return_value=(webhook.url, ["192.168.1.1"])),
         patch("app.services.webhook_service.httpx.AsyncClient") as mock_client_cls,
     ):
         mock_client = AsyncMock()

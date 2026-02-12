@@ -83,7 +83,13 @@ export async function updateWebhookCommand(
   const body: Record<string, unknown> = {};
   if (options.url) body.url = options.url;
   if (options.events) body.events = options.events.split(",").map((e) => e.trim());
-  if (options.active !== undefined) body.isActive = options.active === "true";
+  if (options.active !== undefined) {
+    if (options.active !== "true" && options.active !== "false") {
+      error('--active must be "true" or "false".');
+      process.exit(1);
+    }
+    body.isActive = options.active === "true";
+  }
 
   if (Object.keys(body).length === 0) {
     error("Provide at least one option to update (--url, --events, or --active).");

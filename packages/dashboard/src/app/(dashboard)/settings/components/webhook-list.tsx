@@ -54,7 +54,7 @@ export function WebhookList({ webhooks, projectId }: WebhookListProps) {
                   key={event}
                   className="inline-block px-2 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-navy-700 text-gray-600 dark:text-gray-400"
                 >
-                  {t(EVENT_LABEL_KEYS[event] ?? event)}
+                  {EVENT_LABEL_KEYS[event] ? t(EVENT_LABEL_KEYS[event]) : event}
                 </span>
               ))}
               <span

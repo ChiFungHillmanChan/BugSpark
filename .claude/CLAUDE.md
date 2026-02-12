@@ -165,27 +165,6 @@ S3-compatible storage (MinIO locally, any S3-compatible in production). Screensh
 - "Coming Soon" amber badges on unimplemented features: Session Replay (Starter/Team), Jira/Linear/Slack (Team), Custom Branding (Team), SSO (Enterprise), Audit Logs (Enterprise)
 - Comparison table uses `ComparisonFeature.comingSoon?: PricingTierId[]` to render per-cell badges
 
-## Testing
-
-### API Tests
-- Use `pytest-asyncio` with async test functions
-- `conftest.py` provides fixtures: `db_session`, `client` (httpx AsyncClient), `test_user`, `test_project`, `auth_cookies`
-- Tests use SQLite in-memory with shims for PostgreSQL types (UUID → String, JSONB → JSON, ARRAY → JSON)
-- Auth-protected endpoints need `cookies=auth_cookies` on the client
-- 25+ test files covering: auth router/service, projects, reports, comments, admin, integrations, dependencies, storage, similarity, GitHub/Linear integration, spam protection, webhooks, CSRF middleware, security headers, widget CORS, encryption, URL validator, SQL helpers, sanitize, plan limits, task queue, data export, notification service
-
-### Dashboard Tests
-- Vitest + React Testing Library with jsdom environment
-- 35 test files (261 tests) in `packages/dashboard/tests/` organized by type: `components/`, `hooks/`, `lib/`
-- Use `renderWithIntl` from `tests/test-utils.tsx` for components that use `useTranslations()` (wraps with NextIntlClientProvider)
-- **lib tests:** middleware (route guards, locale cookies), auth-provider (auth flow, safe redirect), api-client (baseURL, CSRF handling, malformed cookie safety), auth (login/register/logout APIs), query-keys, utils
-- **component tests:** error-boundary, confirm-dialog, severity-badge, status-badge, stat-card, skeleton-loader, empty-state, page-header, metadata-panel, console-log-viewer, session-timeline, tokens-page, api-key-display, export-to-tracker, ai-analysis-panel, network-waterfall, performance-metrics, team-page, admin-beta-page
-- **hook tests:** use-bugs, use-projects, use-analysis, use-team, use-integrations, use-comments, use-stats, use-admin, use-similar-bugs
-
-### Widget Tests
-- Vitest with jsdom environment
-- 15 test files in `packages/widget/tests/` covering: config, index (lifecycle), annotation history, annotation canvas, console/network interceptors, DOM helpers, error tracker, metadata collector, report composer, report modal, session recorder, performance collector, button drag handler
-
 ## Key Enums and Types
 
 **Report severity:** `low`, `medium`, `high`, `critical`
@@ -248,32 +227,12 @@ Key variables (see `app/config.py`):
 ### Conventional Commits
 Format: `feat(api):`, `fix(dashboard):`, scopes are `api`, `dashboard`, `widget`, `cli`, `db`
 
-## Known Issues & Tech Debt
+## On-Demand References
 
-### Security (fix before production)
-- **Mass assignment pattern:** `setattr` loop in `auth.py:177`, `reports.py:262`, `webhooks.py:90`, `integrations.py:126` relies solely on Pydantic schema filtering. Add explicit field allowlists.
-- **Team invite email mismatch:** `team_service.py:99-125` — `accept_invite` does not verify the accepting user's email matches the invited email. Any authenticated user with the token can join.
-- **HTML injection in emails:** `team_service.py:83-89` and `notification_service.py:71-76` interpolate user/project names into HTML without escaping.
-- **Widget URL data exposure:** Network interceptor captures full request URLs including query parameters that may contain auth tokens. No URL sanitization.
-
-### PostgreSQL/SQLite Test Compatibility
-- `tracking_id_service.py` uses raw SQL `RETURNING` clause (PostgreSQL-only)
-- `stats_service.py:46` uses `func.extract("epoch", ...)` (PostgreSQL-only)
-- `Webhook.events` uses `ARRAY(String)` (PostgreSQL-only, shimmed in tests)
-
-### File Size Violations (300-line limit)
-- `app/routers/reports.py` (353 lines) — split report CRUD from export/analysis endpoints
-- `widget/annotation-overlay.ts` (317 lines) — extract `createToolbar()` into separate file
-- `tests/conftest.py` (337 lines) — borderline, test fixtures are inherently verbose
-
-### Test Coverage Gaps
-- **Dashboard:** 35 test files covering lib, hooks, and components. Remaining gaps: project detail page, settings profile page, dashboard overview page, docs pages.
-- **API:** No tests for `stats_service.py`, `ai_analysis_service.py`, `report_formatter.py`, `email_verification_service.py`, `password_reset_service.py` (direct).
-- **Widget:** No tests for `annotation-overlay.ts`, `annotation-text-blur.ts`, `toast.ts`, `floating-button.ts`, `widget-container.ts`.
-
-### Other Tech Debt
-- **CLI:** `STATUS_COLORS` map has stale `open` key instead of `new`/`triaging`; inline response types should consolidate into `types.ts`; unused `ora` dependency
-- **Widget:** Module-level mutable state prevents clean re-initialization after `destroy()`; `destroy()` doesn't call `consoleInterceptor.clear()`; `_lineWidth` unused parameter in `annotation-text-blur.ts`
-- **API:** `device_auth.py` defines 6 Pydantic schemas inline instead of in `schemas/`; `main.py` contains ~107-line inline HTML landing page; `IntegrationResponse.has_token` only checks `token` key (misses Linear's `apiKey`)
-- **Dashboard:** Hardcoded English strings in session-timeline, project-settings-form
-- **Infra:** Deploy smoke test uses fixed `sleep 120`; `render.yaml` missing `ANTHROPIC_API_KEY`/`RESEND_API_KEY` entries; Docker Compose binds ports to `0.0.0.0`
+Run these commands for detailed guidelines:
+- `/techdebt` — Known issues, security vulnerabilities, test coverage gaps, and automated scanning
+- `/testing-guide` — Test patterns, fixtures, and conventions for all four packages
+- `/security-rules` — Auth architecture, CSRF, rate limiting, widget security
+- `/framework-rules` — Next.js 15, FastAPI, Rollup Widget, Commander CLI specifics
+- `/style-guide` — Tailwind CSS 4, naming conventions, component patterns
+- `/troubleshooting` — Common issues: PostgreSQL shims, Supabase pooler, CSRF, auth cookies

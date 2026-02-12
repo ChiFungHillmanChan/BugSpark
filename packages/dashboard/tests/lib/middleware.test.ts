@@ -4,16 +4,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const mockRedirect = vi.fn();
 const mockNext = vi.fn();
 const mockCookiesSet = vi.fn();
+const mockHeadersSet = vi.fn();
 
 vi.mock("next/server", () => {
   return {
     NextResponse: {
       redirect: (...args: unknown[]) => {
         mockRedirect(...args);
-        return { cookies: { set: mockCookiesSet } };
+        return { cookies: { set: mockCookiesSet }, headers: { set: mockHeadersSet } };
       },
       next: () => {
-        const resp = { cookies: { set: mockCookiesSet } };
+        const resp = { cookies: { set: mockCookiesSet }, headers: { set: mockHeadersSet } };
         mockNext();
         return resp;
       },

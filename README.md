@@ -619,8 +619,8 @@ BugSpark/
 │   │   ├── lib/                # API client, auth helpers
 │   │   ├── providers/          # Auth, React Query, Theme providers
 │   │   ├── i18n/               # next-intl config
-│   │   └── messages/           # en.json, zh-TW.json
-│   ├── content/docs/           # MDX documentation (en + zh-TW)
+│   │   └── messages/           # en.json, zh-HK.json
+│   ├── content/docs/           # MDX documentation (en + zh-HK)
 │   └── package.json
 │
 ├── packages/widget/            # Embeddable JS widget

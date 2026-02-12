@@ -37,7 +37,7 @@ const softwareAppJsonLd = {
     },
     {
       "@type": "Offer",
-      price: "78",
+      price: "199",
       priceCurrency: "HKD",
       name: "Starter",
       description: "500 reports per month, all features",

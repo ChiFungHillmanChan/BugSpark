@@ -30,6 +30,11 @@ export function middleware(request: NextRequest): NextResponse {
   const response = NextResponse.next();
 
   const cookieLocale = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+  const resolvedLocale =
+    cookieLocale && locales.includes(cookieLocale as Locale)
+      ? cookieLocale
+      : defaultLocale;
+
   if (!cookieLocale || !locales.includes(cookieLocale as Locale)) {
     response.cookies.set(LOCALE_COOKIE_NAME, defaultLocale, {
       path: "/",
@@ -37,6 +42,9 @@ export function middleware(request: NextRequest): NextResponse {
       sameSite: "lax",
     });
   }
+
+  // SEO: signal content language to search engine crawlers
+  response.headers.set("Content-Language", resolvedLocale);
 
   return response;
 }

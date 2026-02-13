@@ -14,6 +14,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@bugspark/widget':
+        specifier: ^0.2.4
+        version: 0.2.4
       '@inquirer/prompts':
         specifier: ^8.2.0
         version: 8.2.0(@types/node@22.19.10)
@@ -285,6 +288,9 @@ packages:
   '@bcoe/v8-coverage@1.0.2':
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
+
+  '@bugspark/widget@0.2.4':
+    resolution: {integrity: sha512-1E8DjB7Ji4zxHQ2DIHhOnqc9YU+Zmfh62NE4W0IT8bdwYUBbvgmeVqQZtMDlH1YrUyjoIKqFTmZpx9q8j29hKw==}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -4898,6 +4904,10 @@ snapshots:
       '@babel/helper-validator-identifier': 7.28.5
 
   '@bcoe/v8-coverage@1.0.2': {}
+
+  '@bugspark/widget@0.2.4':
+    dependencies:
+      html2canvas-pro: 1.6.6
 
   '@csstools/color-helpers@5.1.0': {}
 

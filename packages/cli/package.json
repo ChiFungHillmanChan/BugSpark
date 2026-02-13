@@ -1,6 +1,6 @@
 {
   "name": "@bugspark/cli",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "BugSpark CLI — manage projects and bug reports from the terminal",
   "type": "module",
   "bin": {
@@ -30,6 +30,7 @@
     "prepublishOnly": "pnpm build"
   },
   "dependencies": {
+    "@bugspark/widget": "^0.2.4",
     "@inquirer/prompts": "^8.2.0",
     "chalk": "^5.4.0",
     "commander": "^13.0.0",

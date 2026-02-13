@@ -24,6 +24,7 @@ export default {
     "node:process",
     "node:url",
     "node:child_process",
+    "node:module",
     "fs",
     "fs/promises",
     "path",
@@ -33,5 +34,6 @@ export default {
     "child_process",
     "readline",
     "tty",
+    "@bugspark/widget",
   ],
 };

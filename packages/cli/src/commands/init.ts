@@ -4,6 +4,7 @@ import type { ApiClient } from "../lib/api-client.js";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, info, success } from "../lib/output.js";
+import { getWidgetVersion } from "../lib/widget-version.js";
 import type { ProjectResponse } from "../types.js";
 
 export async function initCommand(): Promise<void> {
@@ -75,11 +76,13 @@ export async function initCommand(): Promise<void> {
       console.log();
     }
 
+    const widgetVersion = getWidgetVersion();
+
     console.log(chalk.bold("  HTML / Django / WordPress / PHP:"));
     console.log();
     console.log(
       chalk.cyan(`  <script
-    src="https://unpkg.com/@bugspark/widget@0.1.0/dist/bugspark.iife.js"
+    src="https://unpkg.com/@bugspark/widget@${widgetVersion}/dist/bugspark.iife.js"
     data-api-key="${keyForSnippet}"
     data-endpoint="${config.apiUrl}"
   ></script>`)

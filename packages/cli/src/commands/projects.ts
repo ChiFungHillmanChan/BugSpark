@@ -3,6 +3,7 @@ import { confirm } from "@inquirer/prompts";
 import { getAuthenticatedClientOrExit } from "../lib/auth-guard.js";
 import { formatError } from "../lib/errors.js";
 import { error, success, table } from "../lib/output.js";
+import { getWidgetVersion } from "../lib/widget-version.js";
 import { validateId } from "../lib/validate.js";
 import type { ProjectResponse } from "../types.js";
 
@@ -57,11 +58,13 @@ export async function createProjectCommand(
     console.log();
     console.log(chalk.dim("  Save this API key — it won't be shown again."));
     console.log();
+    const widgetVersion = getWidgetVersion();
+
     console.log(chalk.bold("  Install the widget:"));
     console.log();
     console.log(
       chalk.cyan(`  <script
-    src="https://unpkg.com/@bugspark/widget@0.1.0/dist/bugspark.iife.js"
+    src="https://unpkg.com/@bugspark/widget@${widgetVersion}/dist/bugspark.iife.js"
     data-api-key="${project.apiKey}"
     data-endpoint="${config.apiUrl}"
   ></script>`)

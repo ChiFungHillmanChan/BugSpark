@@ -44,6 +44,20 @@ async def _get_authorized_report(
     return report
 
 
+def _get_language(request: Request) -> str:
+    """Extract language from Accept-Language header."""
+    return request.headers.get("Accept-Language", "en").split(",")[0].strip()
+
+
+def _get_annotations(report: Report) -> str | None:
+    """Extract user annotation text from report metadata if available."""
+    if report.metadata_ and isinstance(report.metadata_, dict):
+        annotations = report.metadata_.get("annotations")
+        if annotations and isinstance(annotations, str):
+            return annotations
+    return None
+
+
 @router.post("/{report_id}/analyze", response_model=AnalysisResponse)
 @limiter.limit("5/minute")
 async def analyze_report(
@@ -53,6 +67,7 @@ async def analyze_report(
     db: AsyncSession = Depends(get_db),
 ) -> AnalysisResponse:
     report = await _get_authorized_report(report_id, current_user, db)
+    language = _get_language(request)
 
     try:
         analysis = await analyze_bug_report(
@@ -62,6 +77,8 @@ async def analyze_report(
             network_logs=report.network_logs,
             user_actions=report.user_actions,
             metadata=report.metadata_,
+            language=language,
+            annotations=_get_annotations(report),
         )
     except ValueError as exc:
         raise BadRequestException(str(exc))
@@ -79,6 +96,7 @@ async def analyze_report_stream(
 ) -> StreamingResponse:
     """Stream AI analysis as Server-Sent Events for real-time display."""
     report = await _get_authorized_report(report_id, current_user, db)
+    language = _get_language(request)
 
     async def event_generator():
         try:
@@ -89,6 +107,8 @@ async def analyze_report_stream(
                 network_logs=report.network_logs,
                 user_actions=report.user_actions,
                 metadata=report.metadata_,
+                language=language,
+                annotations=_get_annotations(report),
             ):
                 if await request.is_disconnected():
                     logger.info("SSE client disconnected, stopping analysis stream")

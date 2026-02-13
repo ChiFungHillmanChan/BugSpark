@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 import threading
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -31,27 +32,47 @@ def _get_anthropic_client() -> anthropic.AsyncAnthropic:
                 )
     return _anthropic_client
 
-_SYSTEM_PROMPT = (
-    "You are a bug-triage assistant. Analyze the provided bug report data and "
-    "respond with a JSON object containing exactly these fields:\n"
-    '- "summary": a concise 1-2 sentence summary of the bug\n'
-    '- "suggestedCategory": one of "bug", "ui", "performance", "crash", "other"\n'
-    '- "suggestedSeverity": one of "critical", "high", "medium", "low"\n'
-    '- "reproductionSteps": an array of step strings to reproduce the issue\n'
-    '- "rootCause": 1-3 sentences explaining the likely root cause\n'
-    '- "fixSuggestions": an array of 1-3 actionable fix suggestions\n'
-    '- "affectedArea": a string identifying the component/area affected '
-    '(e.g. "Authentication", "UI/Forms", "API/Network")\n'
-    "Respond ONLY with valid JSON. No markdown fences, no extra text."
-)
+def _build_system_prompt(language: str = "en") -> str:
+    lang_instruction = ""
+    if language and language != "en":
+        lang_instruction = (
+            f"\nIMPORTANT: Respond with all text values in the language "
+            f"corresponding to locale '{language}'. "
+            f"Keep JSON keys in English, but write all text content "
+            f"(summary, reproductionSteps, rootCause, fixSuggestions, affectedArea) "
+            f"in the user's language.\n"
+        )
+    return (
+        "You are a bug-triage assistant. Analyze the provided bug report data and "
+        "respond with a JSON object containing exactly these fields:\n"
+        '- "summary": a concise 1-2 sentence summary of the bug\n'
+        '- "suggestedCategory": one of "bug", "ui", "performance", "crash", "other"\n'
+        '- "suggestedSeverity": one of "critical", "high", "medium", "low"\n'
+        '- "reproductionSteps": an array of step strings to reproduce the issue\n'
+        '- "rootCause": 1-3 sentences explaining the likely root cause\n'
+        '- "fixSuggestions": an array of 1-3 actionable fix suggestions\n'
+        '- "affectedArea": a string identifying the component/area affected '
+        '(e.g. "Authentication", "UI/Forms", "API/Network")\n'
+        + lang_instruction
+        + "Respond ONLY with valid JSON. No markdown fences, no extra text."
+    )
 
-_SYSTEM_PROMPT_STREAMING = (
-    "You are a bug-triage assistant. Analyze the provided bug report data. "
-    "Provide a clear, structured analysis in plain text with these sections:\n"
-    "## Summary\n## Category\n## Severity\n## Reproduction Steps\n"
-    "## Root Cause\n## Fix Suggestions\n## Affected Area\n"
-    "Be concise but thorough."
-)
+
+def _build_streaming_system_prompt(language: str = "en") -> str:
+    lang_instruction = ""
+    if language and language != "en":
+        lang_instruction = (
+            f"\nIMPORTANT: Write the entire analysis in the language "
+            f"corresponding to locale '{language}'.\n"
+        )
+    return (
+        "You are a bug-triage assistant. Analyze the provided bug report data. "
+        "Provide a clear, structured analysis in plain text with these sections:\n"
+        "## Summary\n## Category\n## Severity\n## Reproduction Steps\n"
+        "## Root Cause\n## Fix Suggestions\n## Affected Area\n"
+        + lang_instruction
+        + "Be concise but thorough."
+    )
 
 
 _MAX_STACK_LENGTH = 300
@@ -129,18 +150,24 @@ def _build_user_prompt(
     network_logs: list[Any] | dict[str, Any] | None,
     user_actions: list[Any] | dict[str, Any] | None,
     metadata: dict[str, Any] | None,
+    annotations: str | None = None,
 ) -> str:
     title = sanitize_text(title)
     description = sanitize_text(description)
     description_text = description if description else "(No description provided)"
-    return (
+    prompt = (
         f"Title: {title}\n"
         f"Description: {description_text}\n\n"
+    )
+    if annotations:
+        prompt += f"User Annotations (from screenshot):\n{sanitize_text(annotations)}\n\n"
+    prompt += (
         f"Console Logs:\n{_format_logs(console_logs)}\n\n"
         f"Network Logs:\n{_format_network(network_logs)}\n\n"
         f"User Actions:\n{_format_actions(user_actions)}\n\n"
         f"Device Info: {_format_metadata(metadata)}"
     )
+    return prompt
 
 
 def _build_message_content(
@@ -168,9 +195,21 @@ def _build_message_content(
     return content
 
 
+_MARKDOWN_FENCE_RE = re.compile(r"```(?:json)?\s*\n?(.*?)\n?\s*```", re.DOTALL)
+
+
+def _strip_markdown_fences(text: str) -> str:
+    """Strip markdown code fences (```json ... ```) from AI response."""
+    match = _MARKDOWN_FENCE_RE.search(text)
+    if match:
+        return match.group(1).strip()
+    return text.strip()
+
+
 def _parse_analysis_response(raw_text: str) -> dict[str, Any]:
+    cleaned = _strip_markdown_fences(raw_text)
     try:
-        parsed = json.loads(raw_text)
+        parsed = json.loads(cleaned)
     except json.JSONDecodeError:
         logger.warning("AI returned non-JSON response: %s", raw_text[:200])
         parsed = {
@@ -203,19 +242,22 @@ async def analyze_bug_report(
     metadata: dict[str, Any] | None,
     screenshot_data: bytes | None = None,
     screenshot_media_type: str = "image/png",
+    language: str = "en",
+    annotations: str | None = None,
 ) -> dict[str, Any]:
     settings = get_settings()
     client = _get_anthropic_client()
 
     user_prompt = _build_user_prompt(
-        title, description, console_logs, network_logs, user_actions, metadata
+        title, description, console_logs, network_logs, user_actions,
+        metadata, annotations=annotations,
     )
     content = _build_message_content(user_prompt, screenshot_data, screenshot_media_type)
 
     message = await client.messages.create(
         model=settings.AI_MODEL,
         max_tokens=1024,
-        system=_SYSTEM_PROMPT,
+        system=_build_system_prompt(language),
         messages=[{"role": "user", "content": content}],
     )
 
@@ -234,20 +276,23 @@ async def analyze_bug_report_stream(
     metadata: dict[str, Any] | None,
     screenshot_data: bytes | None = None,
     screenshot_media_type: str = "image/png",
+    language: str = "en",
+    annotations: str | None = None,
 ) -> AsyncGenerator[str, None]:
     """Stream AI analysis as Server-Sent Events text chunks."""
     settings = get_settings()
     client = _get_anthropic_client()
 
     user_prompt = _build_user_prompt(
-        title, description, console_logs, network_logs, user_actions, metadata
+        title, description, console_logs, network_logs, user_actions,
+        metadata, annotations=annotations,
     )
     content = _build_message_content(user_prompt, screenshot_data, screenshot_media_type)
 
     async with client.messages.stream(
         model=settings.AI_MODEL,
         max_tokens=1024,
-        system=_SYSTEM_PROMPT_STREAMING,
+        system=_build_streaming_system_prompt(language),
         messages=[{"role": "user", "content": content}],
     ) as stream:
         async for text in stream.text_stream:

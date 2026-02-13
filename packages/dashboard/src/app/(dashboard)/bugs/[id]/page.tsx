@@ -12,7 +12,6 @@ import { ConsoleLogViewer } from "@/components/bug-detail/console-log-viewer";
 import { NetworkWaterfall } from "@/components/bug-detail/network-waterfall";
 import { SessionTimeline } from "@/components/bug-detail/session-timeline";
 import { MetadataPanel } from "@/components/bug-detail/metadata-panel";
-import { CommentThread } from "@/components/bug-detail/comment-thread";
 import { ExportToTracker } from "@/components/bug-detail/export-to-tracker";
 import { AiAnalysisPanel } from "@/components/bug-detail/ai-analysis-panel";
 import { UserFlowDiagram } from "@/components/bug-detail/user-flow-diagram";
@@ -252,10 +251,6 @@ export default function BugDetailPage({
               {t("aiAnalysis")}
             </h3>
             <AiAnalysisPanel reportId={bug.id} />
-          </div>
-
-          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-4">
-            <CommentThread reportId={bug.id} />
           </div>
 
           <div className="bg-white dark:bg-navy-800 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm p-4">

@@ -138,6 +138,7 @@
     "noBugsTableDescription": "目前的篩選條件沒有符合的錯誤報告，請調整搜尋條件。",
     "userFlow": "使用者流程",
     "noUserActions": "此工作階段沒有記錄使用者操作。",
+    "enableSessionRecordingHint": "請在小工具設定中啟用工作階段錄製：BugSpark.init({ enableSessionRecording: true })",
     "noScreenshot": "沒有可用的螢幕截圖",
     "original": "原始",
     "annotated": "已標註",

@@ -84,9 +84,14 @@ export function UserFlowDiagram({ userActions }: UserFlowDiagramProps) {
     return (
       <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 shadow-sm p-6">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">{t("userFlow")}</h3>
-        <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-4">
-          {t("noUserActions")}
-        </p>
+        <div className="text-center py-4">
+          <p className="text-gray-400 dark:text-gray-500 text-sm mb-2">
+            {t("noUserActions")}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            {t("enableSessionRecordingHint")}
+          </p>
+        </div>
       </div>
     );
   }

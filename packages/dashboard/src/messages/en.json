@@ -138,6 +138,7 @@
     "noBugsTableDescription": "No bug reports match your current filters. Try adjusting your search criteria.",
     "userFlow": "User Flow",
     "noUserActions": "No user actions recorded for this session.",
+    "enableSessionRecordingHint": "Enable session recording in widget config: BugSpark.init({ enableSessionRecording: true })",
     "noScreenshot": "No screenshot available",
     "original": "Original",
     "annotated": "Annotated",

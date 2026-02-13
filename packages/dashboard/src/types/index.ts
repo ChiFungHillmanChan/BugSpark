@@ -194,12 +194,27 @@ export interface PaginatedResponse<T> {
   pageSize: number;
 }
 
+export interface BugListItem {
+  id: string;
+  trackingId: string;
+  projectId: string;
+  title: string;
+  description: string;
+  severity: Severity;
+  category: string;
+  status: Status;
+  assigneeId: string | null;
+  reporterIdentifier: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface BugFilters {
   projectId?: string | null;
   search?: string;
   status?: Status[];
   severity?: Severity[];
-  dateRange?: "7d" | "30d" | "90d" | "all";
+  dateRange?: "today" | "7d" | "30d" | "90d" | "all";
   page?: number;
   pageSize?: number;
   sortBy?: string;

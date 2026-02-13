@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { useComments, useAddComment } from "@/hooks/use-comments";
 
@@ -11,7 +11,7 @@ interface CommentThreadProps {
 
 export function CommentThread({ reportId }: CommentThreadProps) {
   const t = useTranslations("bugs");
-  const locale = useLocale();
+
   const { data: comments, isLoading } = useComments(reportId);
   const addComment = useAddComment();
   const [commentBody, setCommentBody] = useState("");
@@ -63,7 +63,7 @@ export function CommentThread({ reportId }: CommentThreadProps) {
                   {comment.authorName}
                 </span>
                 <span className="text-xs text-gray-400 dark:text-gray-500">
-                  {formatDate(comment.createdAt, locale)}
+                  {formatDate(comment.createdAt)}
                 </span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-300 mt-0.5">{comment.body}</p>

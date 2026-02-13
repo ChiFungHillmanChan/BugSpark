@@ -6,13 +6,15 @@ import {
 } from "@tanstack/react-query";
 import apiClient from "@/lib/api-client";
 import { queryKeys } from "@/lib/query-keys";
-import type { BugReport, BugFilters, PaginatedResponse } from "@/types";
+import type { BugReport, BugListItem, BugFilters, PaginatedResponse } from "@/types";
 
 export function useBugs(filters: BugFilters) {
   return useQuery({
     queryKey: queryKeys.bugs.list(filters),
     placeholderData: keepPreviousData,
-    queryFn: async (): Promise<PaginatedResponse<BugReport>> => {
+    staleTime: 30_000,
+    gcTime: 5 * 60 * 1000,
+    queryFn: async (): Promise<PaginatedResponse<BugListItem>> => {
       const params = new URLSearchParams();
       if (filters.projectId) params.set("project_id", filters.projectId);
       if (filters.search) params.set("search", filters.search);
@@ -26,7 +28,7 @@ export function useBugs(filters: BugFilters) {
       if (filters.sortBy) params.set("sort_by", filters.sortBy);
       if (filters.sortOrder) params.set("sort_order", filters.sortOrder);
 
-      const response = await apiClient.get<PaginatedResponse<BugReport>>(
+      const response = await apiClient.get<PaginatedResponse<BugListItem>>(
         `/reports?${params.toString()}`,
       );
       return response.data;
@@ -37,6 +39,8 @@ export function useBugs(filters: BugFilters) {
 export function useBug(id: string) {
   return useQuery({
     queryKey: queryKeys.bugs.detail(id),
+    staleTime: 60_000,
+    gcTime: 10 * 60 * 1000,
     queryFn: async (): Promise<BugReport> => {
       const response = await apiClient.get<BugReport>(`/reports/${id}`);
       return response.data;

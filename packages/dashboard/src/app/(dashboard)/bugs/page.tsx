@@ -20,7 +20,8 @@ export default function BugsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("table");
   const [filters, setFilters] = useState<BugFilters>({
     page: 1,
-    pageSize: 20,
+    pageSize: 10,
+    dateRange: "today",
     sortBy: "createdAt",
     sortOrder: "desc",
   });

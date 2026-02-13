@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Trash2 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "./severity-badge";
@@ -11,17 +11,16 @@ import { SkeletonTableRow } from "@/components/shared/skeleton-loader";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Bug } from "lucide-react";
 import { useDeleteBug } from "@/hooks/use-bugs";
-import type { BugReport } from "@/types";
+import type { BugListItem } from "@/types";
 
 interface BugTableProps {
-  bugs: BugReport[] | undefined;
+  bugs: BugListItem[] | undefined;
   isLoading: boolean;
 }
 
 export function BugTable({ bugs, isLoading }: BugTableProps) {
   const t = useTranslations("bugs");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
   const router = useRouter();
   const deleteBug = useDeleteBug();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -86,7 +85,7 @@ export function BugTable({ bugs, isLoading }: BugTableProps) {
                       {bug.assigneeId ? t("assigned") : t("unassigned")}
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                      {formatDate(bug.createdAt, locale)}
+                      {formatDate(bug.createdAt)}
                     </td>
                     <td className="px-4 py-3">
                       <button

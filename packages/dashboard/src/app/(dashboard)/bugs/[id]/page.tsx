@@ -4,7 +4,7 @@ import { useState, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trash2, CheckCircle } from "lucide-react";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { ScreenshotViewer } from "@/components/bug-detail/screenshot-viewer";
@@ -43,7 +43,6 @@ export default function BugDetailPage({
   const { id } = use(params);
   const t = useTranslations("bugs");
   const tCommon = useTranslations("common");
-  const locale = useLocale();
   const router = useRouter();
   const { data: bug, isLoading } = useBug(id);
   const updateBug = useUpdateBug();
@@ -216,7 +215,7 @@ export default function BugDetailPage({
 
             <div>
               <label className="text-xs font-medium text-gray-500 dark:text-gray-400 block mb-1">{t("created")}</label>
-              <p className="text-sm text-gray-900 dark:text-white">{formatDate(bug.createdAt, locale)}</p>
+              <p className="text-sm text-gray-900 dark:text-white">{formatDate(bug.createdAt)}</p>
             </div>
 
             <div>

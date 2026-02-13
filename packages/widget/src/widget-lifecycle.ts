@@ -14,6 +14,7 @@ import * as annotationOverlay from './ui/annotation-overlay';
 import { showToast, dismiss as dismissToast } from './ui/toast';
 import { submitReport } from './api/report-composer';
 import { enableDrag, restorePosition } from './ui/button-drag-handler';
+import { checkForUpdates } from './utils/version-checker';
 
 let config: BugSparkConfig | null = null;
 let screenshotCanvas: HTMLCanvasElement | null = null;
@@ -53,6 +54,7 @@ export function init(userConfig: Partial<BugSparkConfig>): void {
   floatingButton.mount(root, config.position, () => open(), config.branding?.buttonText);
 
   fetchRemoteConfig(config);
+  checkForUpdates();
 }
 
 function fetchRemoteConfig(currentConfig: BugSparkConfig): void {

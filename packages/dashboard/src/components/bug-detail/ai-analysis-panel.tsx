@@ -4,7 +4,7 @@ import { Loader2, AlertTriangle } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { isAxiosError } from "axios";
 import { cn } from "@/lib/utils";
-import { useAnalyzeReport } from "@/hooks/use-analysis";
+import { useAnalysis, useAnalyzeReport } from "@/hooks/use-analysis";
 import type { AnalysisResponse } from "@/types";
 
 interface AiAnalysisPanelProps {
@@ -140,8 +140,11 @@ function AnalysisResult({ data }: { data: AnalysisResponse }) {
 
 export function AiAnalysisPanel({ reportId }: AiAnalysisPanelProps) {
   const t = useTranslations("bugs");
-  const { mutate, data, isPending, isError, error } =
-    useAnalyzeReport();
+  const { data: existingAnalysis, isLoading: isLoadingExisting } = useAnalysis(reportId);
+  const { mutate, data: newAnalysis, isPending, isError, error } = useAnalyzeReport();
+
+  const analysis = newAnalysis || existingAnalysis;
+  const isLoading = isLoadingExisting || isPending;
 
   function handleAnalyze() {
     mutate(reportId);
@@ -155,7 +158,7 @@ export function AiAnalysisPanel({ reportId }: AiAnalysisPanelProps) {
 
   return (
     <div>
-      {!data && !isPending && (
+      {!analysis && !isLoading && (
         <div className="text-center py-4">
           <button
             onClick={handleAnalyze}
@@ -184,14 +187,14 @@ export function AiAnalysisPanel({ reportId }: AiAnalysisPanelProps) {
         </div>
       )}
 
-      {isPending && (
+      {isLoading && (
         <div className="flex items-center gap-2 py-4 justify-center">
           <Loader2 className="w-4 h-4 text-gray-500 dark:text-gray-400 animate-spin" />
           <p className="text-sm text-gray-500 dark:text-gray-400">{t("analyzingReport")}</p>
         </div>
       )}
 
-      {data && <AnalysisResult data={data} />}
+      {analysis && <AnalysisResult data={analysis} />}
     </div>
   );
 }

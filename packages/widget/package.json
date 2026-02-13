@@ -1,6 +1,6 @@
 {
   "name": "@bugspark/widget",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "Embeddable bug reporting widget with auto screenshot, console logs, network logs, and session recording",
   "type": "module",
   "main": "dist/bugspark.iife.js",
@@ -8,9 +8,7 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/bugspark.iife.js",
-    "dist/bugspark.iife.js.map",
     "dist/bugspark.esm.js",
-    "dist/bugspark.esm.js.map",
     "dist/index.d.ts",
     "dist/types.d.ts",
     "dist/config.d.ts"

@@ -12,6 +12,7 @@ from app.dependencies import get_accessible_project_ids, get_active_user, get_db
 from app.exceptions import BadRequestException, ForbiddenException, NotFoundException
 from app.models.enums import Plan, Role
 from app.models.report import Report
+from app.models.report_analysis import ReportAnalysis
 from app.models.user import User
 from app.rate_limiter import limiter
 from app.schemas.analysis import AnalysisResponse
@@ -58,6 +59,34 @@ def _get_annotations(report: Report) -> str | None:
     return None
 
 
+@router.get("/{report_id}/analyze", response_model=AnalysisResponse)
+async def get_analysis(
+    report_id: uuid.UUID,
+    current_user: User = Depends(get_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> AnalysisResponse:
+    """Get existing AI analysis for a report if available."""
+    report = await _get_authorized_report(report_id, current_user, db)
+    
+    result = await db.execute(
+        select(ReportAnalysis).where(ReportAnalysis.report_id == report_id)
+    )
+    existing_analysis = result.scalar_one_or_none()
+    
+    if existing_analysis:
+        return AnalysisResponse(
+            summary=existing_analysis.summary,
+            suggested_category=existing_analysis.suggested_category,
+            suggested_severity=existing_analysis.suggested_severity,
+            reproduction_steps=existing_analysis.reproduction_steps or [],
+            root_cause=existing_analysis.root_cause or "",
+            fix_suggestions=existing_analysis.fix_suggestions or [],
+            affected_area=existing_analysis.affected_area or "",
+        )
+    
+    raise NotFoundException("Analysis not found for this report")
+
+
 @router.post("/{report_id}/analyze", response_model=AnalysisResponse)
 @limiter.limit("5/minute")
 async def analyze_report(
@@ -66,11 +95,31 @@ async def analyze_report(
     current_user: User = Depends(get_active_user),
     db: AsyncSession = Depends(get_db),
 ) -> AnalysisResponse:
+    """Generate and store AI analysis for a report."""
     report = await _get_authorized_report(report_id, current_user, db)
     language = _get_language(request)
 
+    # Check if analysis already exists
+    result = await db.execute(
+        select(ReportAnalysis).where(ReportAnalysis.report_id == report_id)
+    )
+    existing_analysis = result.scalar_one_or_none()
+    
+    if existing_analysis:
+        # Return existing analysis
+        return AnalysisResponse(
+            summary=existing_analysis.summary,
+            suggested_category=existing_analysis.suggested_category,
+            suggested_severity=existing_analysis.suggested_severity,
+            reproduction_steps=existing_analysis.reproduction_steps or [],
+            root_cause=existing_analysis.root_cause or "",
+            fix_suggestions=existing_analysis.fix_suggestions or [],
+            affected_area=existing_analysis.affected_area or "",
+        )
+
+    # Generate new analysis
     try:
-        analysis = await analyze_bug_report(
+        analysis_data = await analyze_bug_report(
             title=report.title,
             description=report.description,
             console_logs=report.console_logs,
@@ -83,7 +132,23 @@ async def analyze_report(
     except ValueError as exc:
         raise BadRequestException(str(exc))
 
-    return AnalysisResponse(**analysis)
+    # Save analysis to database
+    new_analysis = ReportAnalysis(
+        report_id=report_id,
+        summary=analysis_data["summary"],
+        suggested_category=analysis_data["suggested_category"],
+        suggested_severity=analysis_data["suggested_severity"],
+        reproduction_steps=analysis_data["reproduction_steps"],
+        root_cause=analysis_data.get("root_cause") or None,
+        fix_suggestions=analysis_data.get("fix_suggestions") or None,
+        affected_area=analysis_data.get("affected_area") or None,
+        language=language,
+    )
+    db.add(new_analysis)
+    await db.commit()
+    await db.refresh(new_analysis)
+
+    return AnalysisResponse(**analysis_data)
 
 
 @router.post("/{report_id}/analyze/stream")

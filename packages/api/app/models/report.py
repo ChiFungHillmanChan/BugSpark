@@ -89,3 +89,4 @@ class Report(Base):
     project = relationship("Project", lazy="raise")
     assignee = relationship("User", lazy="raise")
     comments = relationship("Comment", back_populates="report", lazy="raise")
+    analysis = relationship("ReportAnalysis", back_populates="report", lazy="selectin", uselist=False)

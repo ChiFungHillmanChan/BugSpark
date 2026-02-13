@@ -204,7 +204,7 @@ async def change_plan(
         user.previous_plan = old_plan.value
         user.plan_downgraded_at = datetime.now(timezone.utc)
 
-    period_end_ts = getattr(updated_sub, "current_period_end", None)
+    period_end_ts = updated_sub.get("current_period_end")
     if period_end_ts:
         user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
 
@@ -236,6 +236,11 @@ async def cancel_subscription(
 
     user.cancel_at_period_end = True
 
+    # Persist the period end date so GET /subscription shows it after refresh
+    period_end_ts = updated_sub.get("current_period_end")
+    if period_end_ts:
+        user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+
     # Also update the Subscription record so GET /subscription returns correct state
     sub_result = await db.execute(
         select(Subscription).where(
@@ -245,16 +250,13 @@ async def cancel_subscription(
     sub_record = sub_result.scalar_one_or_none()
     if sub_record is not None:
         sub_record.cancel_at_period_end = True
+        if period_end_ts:
+            sub_record.current_period_end = datetime.fromtimestamp(
+                period_end_ts, tz=timezone.utc
+            )
 
     await db.commit()
-
-    # Safely extract period end — prevents TypeError if Stripe returns None
-    period_end_ts = getattr(updated_sub, "current_period_end", None)
-    cancel_at = (
-        datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
-        if period_end_ts
-        else user.plan_expires_at
-    )
+    cancel_at = user.plan_expires_at
     return CancelSubscriptionResponse(
         message="Subscription will be canceled at the end of the billing period.",
         cancel_at=cancel_at,
@@ -400,25 +402,29 @@ def _build_subscription_response(
     user: User, stripe_sub: stripe.Subscription
 ) -> SubscriptionResponse:
     """Build a SubscriptionResponse from user and Stripe subscription data."""
-    period_end_ts = getattr(stripe_sub, "current_period_end", None)
+    # Use dict-style access — Stripe objects inherit from dict, so attribute
+    # access on "items" returns the dict .items() method, not subscription items.
+    period_end_ts = stripe_sub.get("current_period_end")
     period_end = (
         datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
         if period_end_ts
         else user.plan_expires_at
     )
 
-    # Extract amount from subscription items
+    # Extract amount from subscription line items via dict access
     amount = None
-    items_data = getattr(stripe_sub, "items", None)
-    if items_data and items_data.data:
-        price = items_data.data[0].price
-        amount = getattr(price, "unit_amount", None)
+    items_obj = stripe_sub.get("items")
+    if isinstance(items_obj, dict):
+        items_list = items_obj.get("data", [])
+        if items_list:
+            price = items_list[0].get("price", {})
+            amount = price.get("unit_amount")
 
     return SubscriptionResponse(
         plan=user.plan.value,
-        status=stripe_sub.status or "unknown",
+        status=stripe_sub.get("status") or "unknown",
         current_period_end=period_end,
         plan_expires_at=user.plan_expires_at,
-        cancel_at_period_end=stripe_sub.cancel_at_period_end or False,
+        cancel_at_period_end=stripe_sub.get("cancel_at_period_end") or False,
         amount=amount,
     )

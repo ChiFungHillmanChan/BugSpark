@@ -16,65 +16,80 @@ describe("PlanSelector", () => {
 
   it("sends 'month' when monthly billing button is clicked", async () => {
     const user = userEvent.setup();
-    const plan = { id: "starter", name: "Starter", priceMonthly: 199 };
 
     renderWithIntl(
-      <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
+      <PlanSelector currentPlan="free" isChanging={false} onChangePlan={mockOnChangePlan} />
     );
 
     const monthlyButtons = screen.getAllByRole("button", { name: /Monthly/i });
     await user.click(monthlyButtons[0]);
 
-    expect(mockOnChangePlan).toHaveBeenCalledWith(plan.id, MONTHLY);
+    expect(mockOnChangePlan).toHaveBeenCalledWith("starter", MONTHLY);
   });
 
   it("sends 'year' when yearly billing button is clicked", async () => {
     const user = userEvent.setup();
-    const plan = { id: "starter", name: "Starter", priceYearly: 1990 };
 
     renderWithIntl(
-      <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
+      <PlanSelector currentPlan="free" isChanging={false} onChangePlan={mockOnChangePlan} />
     );
 
     const yearlyButtons = screen.getAllByRole("button", { name: /Yearly/i });
     await user.click(yearlyButtons[0]);
 
-    expect(mockOnChangePlan).toHaveBeenCalledWith(plan.id, YEARLY);
+    expect(mockOnChangePlan).toHaveBeenCalledWith("starter", YEARLY);
   });
 
-  it("does NOT send 'monthly' (API would reject this)", async () => {
+  it("does NOT send 'monthly' string (API expects 'month')", async () => {
     const user = userEvent.setup();
-    const plan = { id: "starter", name: "Starter", priceMonthly: 199 };
 
     renderWithIntl(
-      <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
+      <PlanSelector currentPlan="free" isChanging={false} onChangePlan={mockOnChangePlan} />
     );
 
     const monthlyButtons = screen.getAllByRole("button", { name: /Monthly/i });
     await user.click(monthlyButtons[0]);
 
-    // Verify it does NOT send "monthly"
-    expect(mockOnChangePlan).not.toHaveBeenCalledWith(
-      plan.id,
-      "monthly"
-    );
+    expect(mockOnChangePlan).not.toHaveBeenCalledWith("starter", "monthly");
   });
 
-  it("does NOT send 'yearly' (API would reject this)", async () => {
+  it("does NOT send 'yearly' string (API expects 'year')", async () => {
     const user = userEvent.setup();
-    const plan = { id: "starter", name: "Starter", priceYearly: 1990 };
 
     renderWithIntl(
-      <PlanSelector plan={plan} onChangePlan={mockOnChangePlan} />
+      <PlanSelector currentPlan="free" isChanging={false} onChangePlan={mockOnChangePlan} />
     );
 
     const yearlyButtons = screen.getAllByRole("button", { name: /Yearly/i });
     await user.click(yearlyButtons[0]);
 
-    // Verify it does NOT send "yearly"
-    expect(mockOnChangePlan).not.toHaveBeenCalledWith(
-      plan.id,
-      "yearly"
+    expect(mockOnChangePlan).not.toHaveBeenCalledWith("starter", "yearly");
+  });
+
+  it("shows downgrade button when user is on a paid plan", () => {
+    renderWithIntl(
+      <PlanSelector currentPlan="starter" isChanging={false} onChangePlan={mockOnChangePlan} />
     );
+
+    expect(screen.getByRole("button", { name: /Downgrade/i })).toBeDefined();
+  });
+
+  it("hides free plan when user is already on free", () => {
+    renderWithIntl(
+      <PlanSelector currentPlan="free" isChanging={false} onChangePlan={mockOnChangePlan} />
+    );
+
+    expect(screen.queryByRole("button", { name: /Downgrade/i })).toBeNull();
+  });
+
+  it("disables buttons when isChanging is true", () => {
+    renderWithIntl(
+      <PlanSelector currentPlan="free" isChanging={true} onChangePlan={mockOnChangePlan} />
+    );
+
+    const buttons = screen.getAllByRole("button");
+    for (const button of buttons) {
+      expect(button).toHaveProperty("disabled", true);
+    }
   });
 });

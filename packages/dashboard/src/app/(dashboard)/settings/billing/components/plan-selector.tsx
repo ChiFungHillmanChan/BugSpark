@@ -68,7 +68,26 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan }: PlanSele
           }
 
           if (plan === "free") {
-            return null;
+            if (currentPlanIndex === 0) return null;
+            return (
+              <div
+                key={plan}
+                className="flex items-center justify-between px-4 py-3 border border-gray-200 dark:border-navy-700 rounded-lg"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t("planFree")}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">{t("noCharge")}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onChangePlan("free", "month")}
+                  disabled={isChanging}
+                  className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-navy-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-navy-700 disabled:opacity-50 transition-colors"
+                >
+                  {t("downgrade")}
+                </button>
+              </div>
+            );
           }
 
           const isUpgrade = index > currentPlanIndex;

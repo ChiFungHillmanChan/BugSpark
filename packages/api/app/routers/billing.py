@@ -28,8 +28,14 @@ from app.schemas.billing import (
 # Optional stripe import - allows tests to run without stripe installed
 try:
     import stripe
+    from stripe import StripeError
 except ImportError:
-    stripe = None  # type: ignore
+    stripe = None  # type: ignore[assignment]
+
+    class StripeError(Exception):  # noqa: N818
+        """Stub when stripe package is not installed."""
+
+        user_message: str = ""
 
 if TYPE_CHECKING:
     import stripe as stripe_module
@@ -79,11 +85,15 @@ async def _get_or_create_customer(user: User, db: AsyncSession) -> str:
         return user.stripe_customer_id
 
     _init_stripe()
-    customer = stripe.Customer.create(
-        email=user.email,
-        name=user.name,
-        metadata={"user_id": str(user.id)},
-    )
+    try:
+        customer = stripe.Customer.create(
+            email=user.email,
+            name=user.name,
+            metadata={"user_id": str(user.id)},
+        )
+    except StripeError as e:
+        logger.error("Stripe error creating customer for user %s: %s", user.id, e)
+        raise BadRequestException(f"Failed to create billing customer: {e.user_message or str(e)}")
     user.stripe_customer_id = customer.id
     await db.commit()
     return customer.id
@@ -106,15 +116,19 @@ async def create_checkout_session(
 
     _init_stripe()
     settings = get_settings()
-    session = stripe.checkout.Session.create(
-        customer=customer_id,
-        mode="subscription",
-        ui_mode="hosted",
-        line_items=[{"price": price_id, "quantity": 1}],
-        success_url=f"{settings.FRONTEND_URL}/settings/billing?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{settings.FRONTEND_URL}/settings/billing",
-        metadata={"user_id": str(user.id), "plan": body.plan},
-    )
+    try:
+        session = stripe.checkout.Session.create(
+            customer=customer_id,
+            mode="subscription",
+            ui_mode="hosted",
+            line_items=[{"price": price_id, "quantity": 1}],
+            success_url=f"{settings.FRONTEND_URL}/settings/billing?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{settings.FRONTEND_URL}/settings/billing",
+            metadata={"user_id": str(user.id), "plan": body.plan},
+        )
+    except StripeError as e:
+        logger.error("Stripe error creating checkout session: %s", e)
+        raise BadRequestException(f"Failed to create checkout: {e.user_message or str(e)}")
     checkout_url = getattr(session, "url", None)
     if not checkout_url:
         raise BadRequestException("Stripe checkout URL was not returned by Stripe.")
@@ -153,24 +167,48 @@ async def change_plan(
     interval = body.billing_interval or "month"
     new_price_id = _resolve_price_id(body.new_plan, interval)
 
-    sub = stripe.Subscription.retrieve(user.stripe_subscription_id)
-    subscription_item_id = sub["items"]["data"][0]["id"]
+    try:
+        sub = stripe.Subscription.retrieve(user.stripe_subscription_id)
+        subscription_item_id = sub["items"]["data"][0]["id"]
+
+        if is_upgrade:
+            # Prorated upgrade: credit unused time on old plan, start new billing
+            # cycle now. E.g. Starter→Team on day 15/30: credit ~50% of Starter,
+            # charge full Team price for a new period starting today.
+            updated_sub = stripe.Subscription.modify(
+                user.stripe_subscription_id,
+                items=[{"id": subscription_item_id, "price": new_price_id}],
+                proration_behavior="always_invoice",
+                billing_cycle_anchor="now",
+            )
+        else:
+            # Downgrade between paid plans: takes effect immediately, no proration
+            updated_sub = stripe.Subscription.modify(
+                user.stripe_subscription_id,
+                items=[{"id": subscription_item_id, "price": new_price_id}],
+                proration_behavior="none",
+            )
+    except StripeError as e:
+        logger.error("Stripe error during plan change: %s", e)
+        raise BadRequestException(f"Failed to change plan: {e.user_message or str(e)}")
+
+    # Update user plan for both upgrades and downgrades
+    old_plan = user.plan
+    user.plan = Plan(body.new_plan)
+    user.subscription_status = updated_sub.status
 
     if is_upgrade:
-        updated_sub = stripe.Subscription.modify(
-            user.stripe_subscription_id,
-            items=[{"id": subscription_item_id, "price": new_price_id}],
-            proration_behavior="always_invoice",
-        )
-        user.plan = Plan(body.new_plan)
-        user.subscription_status = updated_sub.status
-        await db.commit()
+        user.previous_plan = None
+        user.plan_downgraded_at = None
     else:
-        updated_sub = stripe.Subscription.modify(
-            user.stripe_subscription_id,
-            items=[{"id": subscription_item_id, "price": new_price_id}],
-            proration_behavior="none",
-        )
+        user.previous_plan = old_plan.value
+        user.plan_downgraded_at = datetime.now(timezone.utc)
+
+    period_end_ts = getattr(updated_sub, "current_period_end", None)
+    if period_end_ts:
+        user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+
+    await db.commit()
 
     return _build_subscription_response(user, updated_sub)
 
@@ -187,14 +225,36 @@ async def cancel_subscription(
         raise BadRequestException("No active subscription to cancel.")
 
     _init_stripe()
-    updated_sub = stripe.Subscription.modify(
-        user.stripe_subscription_id,
-        cancel_at_period_end=True,
-    )
+    try:
+        updated_sub = stripe.Subscription.modify(
+            user.stripe_subscription_id,
+            cancel_at_period_end=True,
+        )
+    except StripeError as e:
+        logger.error("Stripe error during cancel for user %s: %s", user.id, e)
+        raise BadRequestException(f"Failed to cancel subscription: {e.user_message or str(e)}")
+
     user.cancel_at_period_end = True
+
+    # Also update the Subscription record so GET /subscription returns correct state
+    sub_result = await db.execute(
+        select(Subscription).where(
+            Subscription.stripe_subscription_id == user.stripe_subscription_id
+        )
+    )
+    sub_record = sub_result.scalar_one_or_none()
+    if sub_record is not None:
+        sub_record.cancel_at_period_end = True
+
     await db.commit()
 
-    cancel_at = datetime.fromtimestamp(updated_sub.current_period_end, tz=timezone.utc)
+    # Safely extract period end — prevents TypeError if Stripe returns None
+    period_end_ts = getattr(updated_sub, "current_period_end", None)
+    cancel_at = (
+        datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+        if period_end_ts
+        else user.plan_expires_at
+    )
     return CancelSubscriptionResponse(
         message="Subscription will be canceled at the end of the billing period.",
         cancel_at=cancel_at,
@@ -215,11 +275,27 @@ async def reactivate_subscription(
         raise BadRequestException("Subscription is not set to cancel.")
 
     _init_stripe()
-    stripe.Subscription.modify(
-        user.stripe_subscription_id,
-        cancel_at_period_end=False,
-    )
+    try:
+        stripe.Subscription.modify(
+            user.stripe_subscription_id,
+            cancel_at_period_end=False,
+        )
+    except StripeError as e:
+        logger.error("Stripe error during reactivate for user %s: %s", user.id, e)
+        raise BadRequestException(f"Failed to reactivate: {e.user_message or str(e)}")
+
     user.cancel_at_period_end = False
+
+    # Also update the Subscription record
+    sub_result = await db.execute(
+        select(Subscription).where(
+            Subscription.stripe_subscription_id == user.stripe_subscription_id
+        )
+    )
+    sub_record = sub_result.scalar_one_or_none()
+    if sub_record is not None:
+        sub_record.cancel_at_period_end = False
+
     await db.commit()
 
     return ReactivateSubscriptionResponse(
@@ -247,6 +323,7 @@ async def get_subscription(
         return SubscriptionResponse(
             plan=user.plan.value,
             status=user.subscription_status,
+            current_period_end=user.plan_expires_at,
             plan_expires_at=user.plan_expires_at,
             cancel_at_period_end=user.cancel_at_period_end,
         )
@@ -270,7 +347,11 @@ async def get_invoices(
         return []
 
     _init_stripe()
-    invoices = stripe.Invoice.list(customer=user.stripe_customer_id, limit=24)
+    try:
+        invoices = stripe.Invoice.list(customer=user.stripe_customer_id, limit=24)
+    except StripeError as e:
+        logger.error("Stripe error fetching invoices for user %s: %s", user.id, e)
+        return []
 
     return [
         InvoiceResponse(
@@ -289,30 +370,55 @@ async def _downgrade_to_free(user: User, db: AsyncSession) -> SubscriptionRespon
     if not user.stripe_subscription_id:
         raise BadRequestException("No active subscription to downgrade.")
 
-    stripe.Subscription.modify(
-        user.stripe_subscription_id,
-        cancel_at_period_end=True,
-    )
+    try:
+        updated_sub = stripe.Subscription.modify(
+            user.stripe_subscription_id,
+            cancel_at_period_end=True,
+        )
+    except StripeError as e:
+        logger.error("Stripe error during downgrade to free for user %s: %s", user.id, e)
+        raise BadRequestException(f"Failed to downgrade: {e.user_message or str(e)}")
+
     user.cancel_at_period_end = True
+
+    # Also update the Subscription record
+    sub_result = await db.execute(
+        select(Subscription).where(
+            Subscription.stripe_subscription_id == user.stripe_subscription_id
+        )
+    )
+    sub_record = sub_result.scalar_one_or_none()
+    if sub_record is not None:
+        sub_record.cancel_at_period_end = True
+
     await db.commit()
 
-    return SubscriptionResponse(
-        plan=user.plan.value,
-        status=user.subscription_status,
-        cancel_at_period_end=True,
-    )
+    return _build_subscription_response(user, updated_sub)
 
 
 def _build_subscription_response(
     user: User, stripe_sub: stripe.Subscription
 ) -> SubscriptionResponse:
     """Build a SubscriptionResponse from user and Stripe subscription data."""
-    period_end = datetime.fromtimestamp(
-        stripe_sub.current_period_end, tz=timezone.utc
+    period_end_ts = getattr(stripe_sub, "current_period_end", None)
+    period_end = (
+        datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+        if period_end_ts
+        else user.plan_expires_at
     )
+
+    # Extract amount from subscription items
+    amount = None
+    items_data = getattr(stripe_sub, "items", None)
+    if items_data and items_data.data:
+        price = items_data.data[0].price
+        amount = getattr(price, "unit_amount", None)
+
     return SubscriptionResponse(
         plan=user.plan.value,
         status=stripe_sub.status or "unknown",
         current_period_end=period_end,
+        plan_expires_at=user.plan_expires_at,
         cancel_at_period_end=stripe_sub.cancel_at_period_end or False,
+        amount=amount,
     )

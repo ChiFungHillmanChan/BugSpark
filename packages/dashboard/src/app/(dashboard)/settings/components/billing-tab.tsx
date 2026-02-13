@@ -8,6 +8,7 @@ import {
   useCancelSubscription,
   useReactivateSubscription,
   useCreateCheckoutSession,
+  useChangePlan,
 } from "@/hooks/use-billing";
 import { SubscriptionCard } from "../billing/components/subscription-card";
 import { BillingAlerts } from "../billing/components/billing-alerts";
@@ -23,12 +24,14 @@ export function BillingTab() {
   const cancelMutation = useCancelSubscription();
   const reactivateMutation = useReactivateSubscription();
   const checkoutMutation = useCreateCheckoutSession();
+  const changePlanMutation = useChangePlan();
 
   const currentPlan: UserPlan = (user?.plan as UserPlan) ?? "free";
   const isFreePlan = currentPlan === "free";
 
   function handleChangePlan(plan: string, billingInterval: string) {
     if (isFreePlan) {
+      // Free → paid: redirect to Stripe Checkout
       checkoutMutation.mutate(
         { plan, billingInterval },
         {
@@ -37,6 +40,9 @@ export function BillingTab() {
           },
         },
       );
+    } else {
+      // Paid → different plan: upgrade/downgrade inline via API
+      changePlanMutation.mutate({ newPlan: plan, billingInterval });
     }
   }
 
@@ -70,7 +76,7 @@ export function BillingTab() {
 
       <PlanSelector
         currentPlan={currentPlan}
-        isChanging={checkoutMutation.isPending}
+        isChanging={checkoutMutation.isPending || changePlanMutation.isPending}
         onChangePlan={handleChangePlan}
       />
 

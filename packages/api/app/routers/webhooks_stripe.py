@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 import stripe
 from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,7 +38,15 @@ def _price_id_to_plan(price_id: str) -> tuple[Plan, str]:
         settings.STRIPE_PRICE_TEAM_MONTHLY: (Plan.TEAM, "month"),
         settings.STRIPE_PRICE_TEAM_YEARLY: (Plan.TEAM, "year"),
     }
-    return mapping.get(price_id, (Plan.FREE, "month"))
+    result = mapping.get(price_id)
+    if result is None:
+        logger.error(
+            "Unknown Stripe price ID: %s — defaulting to FREE. "
+            "Verify STRIPE_PRICE_* environment variables are configured correctly.",
+            price_id,
+        )
+        return (Plan.FREE, "month")
+    return result
 
 
 async def _find_user_by_customer_id(
@@ -92,10 +101,10 @@ async def handle_stripe_webhook(request: Request) -> dict[str, str]:
         )
     except stripe.SignatureVerificationError:
         logger.warning("Stripe webhook signature verification failed")
-        return {"status": "invalid_signature"}
+        return JSONResponse(status_code=401, content={"status": "invalid_signature"})
     except ValueError:
         logger.warning("Stripe webhook payload could not be parsed")
-        return {"status": "invalid_payload"}
+        return JSONResponse(status_code=400, content={"status": "invalid_payload"})
 
     event_id: str = event["id"]
     event_type: str = event["type"]
@@ -163,23 +172,31 @@ async def _handle_subscription_created(
             period_end_ts, tz=timezone.utc
         )
 
-    subscription = Subscription(
-        user_id=user.id,
-        stripe_subscription_id=sub_data["id"],
-        stripe_customer_id=customer_id,
-        stripe_price_id=price_id,
-        plan=plan,
-        billing_interval=interval,
-        status=sub_data["status"],
-        current_period_start=datetime.fromtimestamp(
-            period_start_ts, tz=timezone.utc
-        ) if period_start_ts else None,
-        current_period_end=datetime.fromtimestamp(
-            period_end_ts, tz=timezone.utc
-        ) if period_end_ts else None,
-        cancel_at_period_end=sub_data.get("cancel_at_period_end", False),
-    )
-    db.add(subscription)
+    # Only create Subscription record if we have required NOT NULL timestamps
+    if period_start_ts and period_end_ts:
+        subscription = Subscription(
+            user_id=user.id,
+            stripe_subscription_id=sub_data["id"],
+            stripe_customer_id=customer_id,
+            stripe_price_id=price_id,
+            plan=plan,
+            billing_interval=interval,
+            status=sub_data["status"],
+            current_period_start=datetime.fromtimestamp(
+                period_start_ts, tz=timezone.utc
+            ),
+            current_period_end=datetime.fromtimestamp(
+                period_end_ts, tz=timezone.utc
+            ),
+            cancel_at_period_end=sub_data.get("cancel_at_period_end", False),
+        )
+        db.add(subscription)
+    else:
+        logger.warning(
+            "Missing period timestamps for subscription %s — skipping record creation",
+            sub_data["id"],
+        )
+
     await db.flush()
 
     logger.info(

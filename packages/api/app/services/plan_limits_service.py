@@ -84,11 +84,34 @@ PLAN_FEATURES: dict[Plan, frozenset[str]] = {
 }
 
 
+PLAN_RANK: dict[Plan, int] = {
+    Plan.FREE: 0,
+    Plan.STARTER: 1,
+    Plan.TEAM: 2,
+    Plan.ENTERPRISE: 3,
+}
+
+
 def has_feature(user: User, feature: str) -> bool:
-    """Check if the user's plan includes the given feature."""
+    """Check if the user's plan includes the given feature.
+
+    During the grace period after a downgrade, the user retains access to
+    features from their previous higher-tier plan for up to 30 days.
+    """
     if user.role == Role.SUPERADMIN:
         return True
-    features = PLAN_FEATURES.get(user.plan, PLAN_FEATURES[Plan.FREE])
+
+    effective_plan = user.plan
+
+    if is_in_grace_period(user) and user.previous_plan:
+        try:
+            previous = Plan(user.previous_plan)
+            if PLAN_RANK.get(previous, 0) > PLAN_RANK.get(effective_plan, 0):
+                effective_plan = previous
+        except ValueError:
+            pass
+
+    features = PLAN_FEATURES.get(effective_plan, PLAN_FEATURES[Plan.FREE])
     return feature in features
 
 

@@ -23,7 +23,7 @@ export default function IntegrationsPage() {
 
   if (!projectId) {
     return (
-      <div className="max-w-xl">
+      <div className="w-full">
         <PageHeader title={t("title")} />
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {t("createProjectFirst")}
@@ -33,7 +33,7 @@ export default function IntegrationsPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full">
       <PageHeader
         title={t("title")}
         description={t("description")}

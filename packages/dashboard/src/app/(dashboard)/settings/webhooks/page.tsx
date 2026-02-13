@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { useProjects } from "@/hooks/use-projects";
 import { useWebhooks } from "@/hooks/use-webhooks";
-import { Radio } from "lucide-react";
+import { Radio, Loader2 } from "lucide-react";
 import { WebhookForm } from "../components/webhook-form";
 import { WebhookList } from "../components/webhook-list";
 
@@ -19,7 +19,7 @@ export default function WebhooksPage() {
 
   if (!projectId) {
     return (
-      <div className="max-w-xl">
+      <div className="w-full">
         <PageHeader title={t("title")} />
         <p className="text-sm text-gray-500 dark:text-gray-400">
           {t("createProjectFirst")}
@@ -29,7 +29,7 @@ export default function WebhooksPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="w-full">
       <PageHeader
         title={t("title")}
         description={t("description")}
@@ -56,8 +56,8 @@ export default function WebhooksPage() {
 
       <div className="space-y-4">
         {isLoading && (
-          <div className="bg-white dark:bg-navy-800 rounded-lg border border-gray-200 dark:border-navy-700 p-4">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t("loadingWebhooks")}</p>
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
           </div>
         )}
 

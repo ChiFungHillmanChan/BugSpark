@@ -143,7 +143,7 @@ export default function TeamSettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       <PageHeader title={t("title")} />
       <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
         {t("description")}

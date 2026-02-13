@@ -252,12 +252,13 @@ async def change_plan(
 async def _release_subscription_schedule(subscription_id: str) -> None:
     """Release any active Stripe SubscriptionSchedule tied to this subscription."""
     try:
-        schedules = stripe.SubscriptionSchedule.list(
-            subscription=subscription_id, limit=1
-        )
-        for schedule in schedules.data:
-            if schedule.status in ("not_started", "active"):
-                stripe.SubscriptionSchedule.release(schedule.id)
+        sub = stripe.Subscription.retrieve(subscription_id)
+        schedule_id = sub.get("schedule")
+        if not schedule_id:
+            return
+        schedule = stripe.SubscriptionSchedule.retrieve(schedule_id)
+        if schedule.status in ("not_started", "active"):
+            stripe.SubscriptionSchedule.release(schedule_id)
     except StripeError as e:
         logger.warning("Could not release subscription schedule: %s", e)
 

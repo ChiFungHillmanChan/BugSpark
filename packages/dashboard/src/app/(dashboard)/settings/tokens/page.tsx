@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { PageHeader } from "@/components/shared/page-header";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { useTokens, useCreateToken, useDeleteToken } from "@/hooks/use-tokens";
-import { Key, Copy, Check, Trash2, Plus, Terminal } from "lucide-react";
+import { Key, Copy, Check, Trash2, Plus, Terminal, Loader2 } from "lucide-react";
 
 const EXPIRY_OPTIONS = [
   { value: "", days: null },
@@ -73,7 +73,7 @@ export default function TokensPage() {
   }
 
   return (
-    <div className="max-w-2xl">
+    <div className="w-full">
       <PageHeader
         title={t("title")}
         actions={
@@ -201,7 +201,9 @@ export default function TokensPage() {
 
       {/* Tokens list */}
       {isLoading ? (
-        <div className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</div>
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
+        </div>
       ) : tokens.length === 0 ? (
         <div className="text-center py-12 text-gray-500 dark:text-gray-400">
           <Key className="w-10 h-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />

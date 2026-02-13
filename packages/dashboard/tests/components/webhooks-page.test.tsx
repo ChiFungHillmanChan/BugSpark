@@ -96,7 +96,8 @@ describe("WebhooksPage", () => {
     returnedWebhooks = undefined;
     renderWithIntl(<WebhooksPage />);
 
-    expect(screen.getByText("Loading webhooks...")).toBeInTheDocument();
+    const spinner = document.querySelector(".animate-spin");
+    expect(spinner).toBeInTheDocument();
   });
 
   it("shows add webhook button", () => {

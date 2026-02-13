@@ -35,7 +35,7 @@ export function IntegrationsTab() {
   ];
 
   return (
-    <div className="max-w-2xl space-y-3">
+    <div className="w-full space-y-3">
       {links.map((link) => {
         const Icon = link.icon;
         return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Bell, Loader2 } from "lucide-react";
 import apiClient from "@/lib/api-client";
 
@@ -15,6 +16,7 @@ const DEFAULT_PREFERENCES: NotificationPreferences = {
 };
 
 export function NotificationSettings() {
+  const t = useTranslations("notifications");
   const [preferences, setPreferences] = useState<NotificationPreferences>(DEFAULT_PREFERENCES);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -59,7 +61,7 @@ export function NotificationSettings() {
     return (
       <div className="flex items-center gap-2 py-4">
         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-        <span className="text-sm text-gray-500 dark:text-gray-400">Loading notification settings...</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{t("loading")}</span>
       </div>
     );
   }
@@ -68,15 +70,15 @@ export function NotificationSettings() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-3">
         <Bell className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">Email Notifications</h3>
+        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t("title")}</h3>
         {isSaving && <Loader2 className="w-3 h-3 animate-spin text-gray-400" />}
       </div>
 
       <div className="space-y-3">
         <label className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg cursor-pointer">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">Critical severity reports</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Get notified when a critical bug is reported</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t("criticalSeverity")}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("criticalSeverityDesc")}</p>
           </div>
           <button
             type="button"
@@ -97,8 +99,8 @@ export function NotificationSettings() {
 
         <label className="flex items-center justify-between px-4 py-3 bg-white dark:bg-navy-800 border border-gray-200 dark:border-navy-700 rounded-lg cursor-pointer">
           <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">High severity reports</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Get notified when a high severity bug is reported</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">{t("highSeverity")}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{t("highSeverityDesc")}</p>
           </div>
           <button
             type="button"

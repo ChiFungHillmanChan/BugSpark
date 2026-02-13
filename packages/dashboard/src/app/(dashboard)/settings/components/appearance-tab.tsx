@@ -30,7 +30,7 @@ export function AppearanceTab() {
   }
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="w-full space-y-8">
       <section>
         <h2 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t("appearance")}</h2>
         <div className="flex gap-3">

@@ -39,6 +39,7 @@ class WidgetConfigResponse(CamelModel):
     primary_color: str = "#e94560"
     show_watermark: bool = True
     enable_screenshot: bool = True
+    enable_session_recording: bool = False
     modal_title: str | None = None
     button_text: str | None = None
     logo_url: str | None = None

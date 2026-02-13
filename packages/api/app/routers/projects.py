@@ -16,12 +16,12 @@ from app.dependencies import get_accessible_project, get_active_user, get_db, ge
 from app.rate_limiter import limiter
 from app.exceptions import ForbiddenException, NotFoundException
 from app.i18n import get_locale, translate
-from app.models.enums import Role
+from app.models.enums import Plan, Role
 from app.models.project import Project
 from app.models.report import Report
 from app.models.user import User
 from app.schemas.project import ProjectCreate, ProjectResponse, ProjectUpdate, WidgetConfigResponse
-from app.services.plan_limits_service import check_project_limit
+from app.services.plan_limits_service import PLAN_FEATURES, check_project_limit
 from app.services.storage_service import delete_files
 
 logger = logging.getLogger(__name__)
@@ -83,10 +83,16 @@ async def get_widget_config(
 ) -> WidgetConfigResponse:
     settings = project.settings or {}
     owner_plan = project.owner.plan.value if project.owner else "free"
+    try:
+        plan_enum = Plan(owner_plan)
+    except ValueError:
+        plan_enum = Plan.FREE
+    enable_session = "session_replay" in PLAN_FEATURES.get(plan_enum, frozenset())
     return WidgetConfigResponse(
         primary_color=settings.get("widgetColor", "#e94560"),
         show_watermark=settings.get("showWatermark", True),
         enable_screenshot=settings.get("enableScreenshot", True),
+        enable_session_recording=enable_session,
         modal_title=settings.get("modalTitle"),
         button_text=settings.get("buttonText"),
         logo_url=settings.get("logoUrl"),

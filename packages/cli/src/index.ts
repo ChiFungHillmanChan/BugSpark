@@ -32,6 +32,11 @@ import {
   billingUpgradeCommand,
   billingCancelCommand,
 } from "./commands/billing.js";
+import {
+  configCommand,
+  configGetCommand,
+  configSetCommand,
+} from "./commands/config.js";
 
 const program = new Command();
 
@@ -199,5 +204,28 @@ billing
   .command("cancel")
   .description("Cancel your subscription")
   .action(billingCancelCommand);
+
+// ─── Config ──────────────────────────────────────────────────────────
+
+const configCmd = program
+  .command("config")
+  .description("Manage project widget settings");
+
+configCmd
+  .command("show")
+  .description("View and update widget settings interactively")
+  .action(configCommand);
+
+configCmd
+  .command("get <key>")
+  .description("Get a widget setting value")
+  .option("-p, --project <id>", "Project ID (interactive if omitted)")
+  .action(configGetCommand);
+
+configCmd
+  .command("set <key> <value>")
+  .description("Set a widget setting value")
+  .option("-p, --project <id>", "Project ID (interactive if omitted)")
+  .action(configSetCommand);
 
 program.parse();

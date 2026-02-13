@@ -22,6 +22,7 @@ export interface ProjectResponse {
   apiKey: string;
   isActive: boolean;
   createdAt: string;
+  settings: Record<string, unknown>;
 }
 
 export interface WebhookResponse {

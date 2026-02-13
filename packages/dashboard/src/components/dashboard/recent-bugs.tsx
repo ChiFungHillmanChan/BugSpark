@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "@/components/bugs/severity-badge";
 import { StatusBadge } from "@/components/bugs/status-badge";
 import { SkeletonTableRow } from "@/components/shared/skeleton-loader";
-import type { BugReport } from "@/types";
+import type { BugListItem } from "@/types";
 
 interface RecentBugsProps {
-  bugs: BugReport[] | undefined;
+  bugs: BugListItem[] | undefined;
   isLoading: boolean;
   projectMap?: Record<string, string>;
   showProject?: boolean;
@@ -24,7 +24,7 @@ export function RecentBugs({
 }: RecentBugsProps) {
   const t = useTranslations("dashboard");
   const tBugs = useTranslations("bugs");
-  const locale = useLocale();
+
   const router = useRouter();
 
   return (
@@ -82,7 +82,7 @@ export function RecentBugs({
                 <StatusBadge status={bug.status} />
               </td>
               <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                {formatDate(bug.createdAt, locale)}
+                {formatDate(bug.createdAt)}
               </td>
             </tr>
           ))}

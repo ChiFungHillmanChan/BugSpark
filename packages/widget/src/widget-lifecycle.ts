@@ -72,6 +72,12 @@ function fetchRemoteConfig(currentConfig: BugSparkConfig): void {
       if (typeof data.enableScreenshot === 'boolean') {
         config.enableScreenshot = data.enableScreenshot;
       }
+      if (typeof data.enableSessionRecording === 'boolean') {
+        config.enableSessionRecording = data.enableSessionRecording;
+        if (!data.enableSessionRecording) {
+          sessionRecorder.stop();
+        }
+      }
       if (typeof data.showWatermark === 'boolean') {
         config.branding = { ...config.branding, showWatermark: data.showWatermark };
       }

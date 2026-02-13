@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/providers/auth-provider";
 import { useAdminReports } from "@/hooks/use-admin";
 import { useProjects } from "@/hooks/use-projects";
@@ -17,7 +17,6 @@ import { FolderKanban, Bug, ArrowLeft, ChevronRight } from "lucide-react";
 export default function AdminReportsPage() {
   const t = useTranslations("admin");
   const tBugs = useTranslations("bugs");
-  const locale = useLocale();
   const { isSuperadmin, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
 
@@ -203,7 +202,7 @@ export default function AdminReportsPage() {
                     <StatusBadge status={report.status} />
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                    {formatDate(report.createdAt, locale)}
+                    {formatDate(report.createdAt)}
                   </td>
                 </tr>
               ))

@@ -1,16 +1,14 @@
 import Link from "next/link";
-import { useLocale } from "next-intl";
 import { formatDate } from "@/lib/utils";
 import { SeverityBadge } from "./severity-badge";
-import type { BugReport } from "@/types";
+import type { BugListItem } from "@/types";
 
 interface BugCardProps {
-  bug: BugReport;
+  bug: BugListItem;
   onDragStart: (event: React.DragEvent, bugId: string) => void;
 }
 
 export function BugCard({ bug, onDragStart }: BugCardProps) {
-  const locale = useLocale();
   return (
     <div
       draggable
@@ -29,7 +27,7 @@ export function BugCard({ bug, onDragStart }: BugCardProps) {
         </p>
         <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
           <span>{bug.reporterIdentifier ?? "Anonymous"}</span>
-          <span>{formatDate(bug.createdAt, locale)}</span>
+          <span>{formatDate(bug.createdAt)}</span>
         </div>
       </Link>
     </div>

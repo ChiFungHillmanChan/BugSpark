@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from datetime import date, datetime, time, timezone
+from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from sqlalchemy import func, select
@@ -17,7 +17,7 @@ from app.models.enums import Role
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
 from app.models.user import User
-from app.schemas.report import ReportCreate, ReportListResponse, ReportResponse, ReportUpdate
+from app.schemas.report import ReportCreate, ReportListItemResponse, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
 from app.services.plan_limits_service import check_report_limit
 from app.utils.sql_helpers import escape_like
@@ -69,6 +69,24 @@ async def _report_to_response(report: Report) -> ReportResponse:
         metadata=report.metadata_,
         reporter_identifier=report.reporter_identifier,
         console_logs_included=report.console_logs_included,
+        created_at=report.created_at,
+        updated_at=report.updated_at,
+    )
+
+
+def _report_to_list_item(report: Report) -> ReportListItemResponse:
+    """Build a lightweight list item — no presigned URL generation."""
+    return ReportListItemResponse(
+        id=report.id,
+        project_id=report.project_id,
+        tracking_id=report.tracking_id,
+        title=report.title,
+        description=report.description,
+        severity=report.severity.value if isinstance(report.severity, Severity) else report.severity,
+        category=report.category.value if isinstance(report.category, Category) else report.category,
+        status=report.status.value if isinstance(report.status, Status) else report.status,
+        assignee_id=report.assignee_id,
+        reporter_identifier=report.reporter_identifier,
         created_at=report.created_at,
         updated_at=report.updated_at,
     )
@@ -162,6 +180,7 @@ async def list_reports(
     status: str | None = Query(None),
     severity: str | None = Query(None),
     search: str | None = Query(None),
+    date_range: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> ReportListResponse:
@@ -190,6 +209,20 @@ async def list_reports(
         query = query.where(
             Report.title.ilike(search_filter) | Report.description.ilike(search_filter)
         )
+    if date_range is not None and date_range != "all":
+        now_utc = datetime.now(timezone.utc)
+        if date_range == "today":
+            cutoff = datetime.combine(now_utc.date(), time.min, tzinfo=timezone.utc)
+        elif date_range == "7d":
+            cutoff = now_utc - timedelta(days=7)
+        elif date_range == "30d":
+            cutoff = now_utc - timedelta(days=30)
+        elif date_range == "90d":
+            cutoff = now_utc - timedelta(days=90)
+        else:
+            cutoff = None
+        if cutoff is not None:
+            query = query.where(Report.created_at >= cutoff)
 
     count_query = select(func.count()).select_from(query.subquery())
     total_result = await db.execute(count_query)
@@ -201,7 +234,7 @@ async def list_reports(
     result = await db.execute(query)
     reports = result.scalars().all()
 
-    items = await asyncio.gather(*[_report_to_response(report) for report in reports])
+    items = [_report_to_list_item(report) for report in reports]
 
     return ReportListResponse(items=items, total=total, page=page, page_size=page_size)
 

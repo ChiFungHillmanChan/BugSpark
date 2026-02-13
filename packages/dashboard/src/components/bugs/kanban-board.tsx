@@ -7,10 +7,10 @@ import { BugCard } from "./bug-card";
 import { useUpdateBug } from "@/hooks/use-bugs";
 import { EmptyState } from "@/components/shared/empty-state";
 import { Bug } from "lucide-react";
-import type { BugReport, Status } from "@/types";
+import type { BugListItem, Status } from "@/types";
 
 interface KanbanBoardProps {
-  bugs: BugReport[] | undefined;
+  bugs: BugListItem[] | undefined;
   isLoading: boolean;
 }
 

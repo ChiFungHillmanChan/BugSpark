@@ -110,8 +110,23 @@ class ReportResponse(CamelModel):
     updated_at: datetime
 
 
+class ReportListItemResponse(CamelModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    tracking_id: str
+    title: str
+    description: str
+    severity: str
+    category: str
+    status: str
+    assignee_id: uuid.UUID | None
+    reporter_identifier: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
 class ReportListResponse(CamelModel):
-    items: list[ReportResponse]
+    items: list[ReportListItemResponse]
     total: int
     page: int
     page_size: int

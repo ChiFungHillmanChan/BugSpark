@@ -6,22 +6,14 @@ export function cn(...inputs: ClassValue[]): string {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(date: string, locale = "en"): string {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffSeconds = Math.floor(diffMs / 1000);
-  const diffMinutes = Math.floor(diffSeconds / 60);
-  const diffHours = Math.floor(diffMinutes / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
-
-  if (diffSeconds < 60) return rtf.format(0, "second"); // "now" / "剛才"
-  if (diffMinutes < 60) return rtf.format(-diffMinutes, "minute");
-  if (diffHours < 24) return rtf.format(-diffHours, "hour");
-  if (diffDays < 30) return rtf.format(-diffDays, "day");
-  return then.toLocaleDateString(locale);
+export function formatDate(date: string): string {
+  const d = new Date(date);
+  const day = d.getDate();
+  const month = d.toLocaleDateString("en-GB", { month: "short" });
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, "0");
+  const minutes = String(d.getMinutes()).padStart(2, "0");
+  return `${day} ${month} ${year} ${hours}:${minutes}`;
 }
 
 export function formatDuration(ms: number): string {

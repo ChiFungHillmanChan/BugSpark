@@ -14,6 +14,7 @@ let mockAnalysisReturn: {
 };
 
 vi.mock("@/hooks/use-analysis", () => ({
+  useAnalysis: () => ({ data: undefined, isLoading: false }),
   useAnalyzeReport: () => mockAnalysisReturn,
 }));
 

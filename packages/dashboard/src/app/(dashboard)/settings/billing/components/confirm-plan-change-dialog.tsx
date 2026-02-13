@@ -89,7 +89,7 @@ export function ConfirmPlanChangeDialog({
         </div>
 
         {/* Plan comparison cards */}
-        <div className="flex items-stretch gap-3 mb-5">
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-5">
           {/* Current plan mini card */}
           <div className="flex-1 rounded-lg border border-gray-200 dark:border-navy-700 p-4 bg-gray-50 dark:bg-navy-900/50">
             <p className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-1">
@@ -105,8 +105,8 @@ export function ConfirmPlanChangeDialog({
           </div>
 
           {/* Arrow */}
-          <div className="flex items-center">
-            <ArrowRight className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center justify-center sm:justify-start">
+            <ArrowRight className="w-5 h-5 text-gray-400 rotate-90 sm:rotate-0" />
           </div>
 
           {/* New plan mini card */}

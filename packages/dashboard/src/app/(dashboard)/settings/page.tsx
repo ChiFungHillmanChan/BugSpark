@@ -26,7 +26,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-2xl">
+    <div>
       <PageHeader title={t("title")} />
 
       <nav className="flex gap-1 overflow-x-auto pb-px mb-6 -mx-1 px-1 scrollbar-hide" role="tablist">

@@ -36,8 +36,10 @@ export function useChangePlan() {
       const { data } = await apiClient.post<SubscriptionInfo>("/billing/change-plan", params);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData<SubscriptionInfo>(queryKeys.billing.subscription, data);
       queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription });
+      queryClient.invalidateQueries({ queryKey: queryKeys.billing.invoices });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
   });
@@ -55,7 +57,13 @@ export function useCancelSubscription() {
     onSuccess: (data) => {
       queryClient.setQueryData<SubscriptionInfo>(queryKeys.billing.subscription, (old) => {
         if (!old) return old;
-        return { ...old, cancelAtPeriodEnd: true, currentPeriodEnd: old.currentPeriodEnd ?? data.cancelAt };
+        const endDate = data.cancelAt ?? old.currentPeriodEnd ?? old.planExpiresAt;
+        return {
+          ...old,
+          cancelAtPeriodEnd: true,
+          currentPeriodEnd: endDate,
+          planExpiresAt: endDate,
+        };
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription });
       queryClient.invalidateQueries({ queryKey: ["user"] });

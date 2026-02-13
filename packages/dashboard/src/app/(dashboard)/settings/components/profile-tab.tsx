@@ -6,7 +6,7 @@ import { SettingsGoogleSection } from "./settings-google-section";
 
 export function ProfileTab() {
   return (
-    <div className="space-y-8">
+    <div className="max-w-2xl space-y-8">
       <SettingsProfileForm />
       <SettingsPasswordForm />
       <SettingsGoogleSection />

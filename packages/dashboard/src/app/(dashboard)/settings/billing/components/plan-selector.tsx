@@ -81,11 +81,11 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan, pendingDow
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t("changePlan")}</h2>
 
         {/* Monthly / Yearly toggle */}
-        <div className="flex items-center bg-gray-100 dark:bg-navy-700 rounded-full p-1">
+        <div className="flex items-center bg-gray-100 dark:bg-navy-700 rounded-full p-1 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setBillingInterval("month")}
@@ -244,7 +244,7 @@ export function PlanSelector({ currentPlan, isChanging, onChangePlan, pendingDow
       {/* Enterprise banner */}
       <a
         href="mailto:sales@bugspark.dev"
-        className="mt-4 flex items-center justify-between px-5 py-4 border border-gray-200 dark:border-navy-700 rounded-xl bg-white dark:bg-navy-800 hover:border-gray-300 dark:hover:border-navy-600 transition-colors"
+        className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border border-gray-200 dark:border-navy-700 rounded-xl bg-white dark:bg-navy-800 hover:border-gray-300 dark:hover:border-navy-600 transition-colors"
       >
         <div>
           <p className="text-sm font-semibold text-gray-900 dark:text-white">{t("planEnterprise")}</p>

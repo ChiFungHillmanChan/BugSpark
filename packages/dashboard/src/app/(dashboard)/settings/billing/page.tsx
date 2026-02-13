@@ -25,7 +25,7 @@ import type { UserPlan } from "@/types";
 export default function BillingPage() {
   const t = useTranslations("billing");
   const tu = useTranslations("usage");
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { data: subscription, isLoading: isLoadingSubscription } = useSubscription();
   const { data: invoices, isLoading: isLoadingInvoices } = useInvoices();
   const { data: usage, isLoading: isLoadingUsage } = useUsage();
@@ -48,21 +48,21 @@ export default function BillingPage() {
         },
       );
     } else {
-      changePlanMutation.mutate({ newPlan: plan, billingInterval });
+      changePlanMutation.mutate({ newPlan: plan, billingInterval }, { onSuccess: refreshUser });
     }
   }
 
   function handleCancelSubscription() {
-    cancelMutation.mutate();
+    cancelMutation.mutate(undefined, { onSuccess: refreshUser });
   }
 
   function handleReactivateSubscription() {
-    reactivateMutation.mutate();
+    reactivateMutation.mutate(undefined, { onSuccess: refreshUser });
   }
 
   if (isLoadingSubscription) {
     return (
-      <div className="max-w-4xl">
+      <div className="w-full">
         <PageHeader title={t("title")} />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
@@ -72,7 +72,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="max-w-4xl">
+    <div className="w-full">
       <div className="mb-6">
         <Link
           href="/settings"

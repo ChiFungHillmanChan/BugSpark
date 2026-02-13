@@ -332,6 +332,13 @@ async def reactivate_subscription(
         raise BadRequestException("Subscription is not set to cancel.")
 
     _init_stripe()
+
+    # Release any subscription schedule before modifying cancel behavior.
+    # Stripe disallows direct cancel_at_period_end changes on schedule-managed subs.
+    await _release_subscription_schedule(user.stripe_subscription_id)
+    if user.pending_downgrade_plan:
+        user.pending_downgrade_plan = None
+
     try:
         stripe.Subscription.modify(
             user.stripe_subscription_id,
@@ -429,6 +436,11 @@ async def _downgrade_to_free(user: User, db: AsyncSession) -> SubscriptionRespon
     if not user.stripe_subscription_id:
         raise BadRequestException("No active subscription to downgrade.")
 
+    # Release any schedule before modifying cancel behavior
+    await _release_subscription_schedule(user.stripe_subscription_id)
+    if user.pending_downgrade_plan:
+        user.pending_downgrade_plan = None
+
     try:
         updated_sub = stripe.Subscription.modify(
             user.stripe_subscription_id,
@@ -484,4 +496,5 @@ def _build_subscription_response(
         plan_expires_at=user.plan_expires_at,
         cancel_at_period_end=stripe_sub.get("cancel_at_period_end") or False,
         amount=amount,
+        pending_downgrade_plan=user.pending_downgrade_plan,
     )

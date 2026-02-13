@@ -18,7 +18,7 @@ import { CancelDialog } from "../billing/components/cancel-dialog";
 import type { UserPlan } from "@/types";
 
 export function BillingTab() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { data: subscription, isLoading: isLoadingSubscription } = useSubscription();
   const { data: invoices, isLoading: isLoadingInvoices } = useInvoices();
   const cancelMutation = useCancelSubscription();
@@ -42,16 +42,16 @@ export function BillingTab() {
       );
     } else {
       // Paid → different plan: upgrade/downgrade inline via API
-      changePlanMutation.mutate({ newPlan: plan, billingInterval });
+      changePlanMutation.mutate({ newPlan: plan, billingInterval }, { onSuccess: refreshUser });
     }
   }
 
   function handleCancelSubscription() {
-    cancelMutation.mutate();
+    cancelMutation.mutate(undefined, { onSuccess: refreshUser });
   }
 
   function handleReactivateSubscription() {
-    reactivateMutation.mutate();
+    reactivateMutation.mutate(undefined, { onSuccess: refreshUser });
   }
 
   if (isLoadingSubscription) {
@@ -78,6 +78,7 @@ export function BillingTab() {
         currentPlan={currentPlan}
         isChanging={checkoutMutation.isPending || changePlanMutation.isPending}
         onChangePlan={handleChangePlan}
+        pendingDowngradePlan={subscription?.pendingDowngradePlan}
       />
 
       <InvoiceTable

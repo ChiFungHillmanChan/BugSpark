@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { cn, formatDate, formatDuration, severityColor, statusColor } from '@/lib/utils';
 
 describe('cn', () => {
@@ -16,45 +16,22 @@ describe('cn', () => {
 });
 
 describe('formatDate', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-06-15T12:00:00Z'));
+  it('formats date as "d Mon YYYY HH:MM"', () => {
+    const result = formatDate('2026-02-13T13:38:00Z');
+    // Date is rendered in local timezone; check structure
+    expect(result).toMatch(/^\d{1,2} \w{3} \d{4} \d{2}:\d{2}$/);
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+  it('uses short month name', () => {
+    const result = formatDate('2025-06-15T12:00:00Z');
+    expect(result).toContain('Jun');
+    expect(result).toContain('2025');
   });
 
-  it('returns relative time for recent dates', () => {
-    const tenSecondsAgo = new Date('2025-06-15T11:59:50Z').toISOString();
-    const result = formatDate(tenSecondsAgo);
-    // Intl.RelativeTimeFormat uses "now" for 0 seconds
-    expect(result).toMatch(/now|just now/i);
-  });
-
-  it('returns relative minutes for minutes', () => {
-    const fiveMinutesAgo = new Date('2025-06-15T11:55:00Z').toISOString();
-    const result = formatDate(fiveMinutesAgo);
-    expect(result).toMatch(/5\s*min/i);
-  });
-
-  it('returns relative hours for hours', () => {
-    const threeHoursAgo = new Date('2025-06-15T09:00:00Z').toISOString();
-    const result = formatDate(threeHoursAgo);
-    expect(result).toMatch(/3\s*hour/i);
-  });
-
-  it('returns relative days for days', () => {
-    const twoDaysAgo = new Date('2025-06-13T12:00:00Z').toISOString();
-    const result = formatDate(twoDaysAgo);
-    expect(result).toMatch(/2\s*day/i);
-  });
-
-  it('returns full date for old dates (30+ days)', () => {
-    const oldDate = new Date('2025-01-01T00:00:00Z').toISOString();
-    const result = formatDate(oldDate);
-    expect(result).not.toContain('ago');
-    expect(result).not.toBe('just now');
+  it('pads hours and minutes with leading zeros', () => {
+    const result = formatDate('2025-01-05T03:07:00Z');
+    // In UTC the time is 03:07; local may differ but format is always HH:MM
+    expect(result).toMatch(/\d{2}:\d{2}$/);
   });
 });
 

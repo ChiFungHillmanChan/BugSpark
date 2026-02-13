@@ -26,6 +26,7 @@ SUBSCRIPTION_EVENT_TYPES = frozenset({
     "customer.subscription.deleted",
     "invoice.payment_succeeded",
     "invoice.payment_failed",
+    "subscription_schedule.completed",
 })
 
 
@@ -144,6 +145,8 @@ async def _dispatch_event(
         await _handle_payment_succeeded(db, data_object)
     elif event_type == "invoice.payment_failed":
         await _handle_payment_failed(db, data_object)
+    elif event_type == "subscription_schedule.completed":
+        await _handle_schedule_completed(db, data_object)
 
 
 async def _handle_subscription_created(
@@ -246,6 +249,8 @@ async def _handle_subscription_updated(
     user.plan = plan
     user.subscription_status = sub_data["status"]
     user.cancel_at_period_end = sub_data.get("cancel_at_period_end", False)
+    # Clear pending downgrade since the plan has been synced from Stripe
+    user.pending_downgrade_plan = None
     if period_end_ts:
         user.plan_expires_at = datetime.fromtimestamp(
             period_end_ts, tz=timezone.utc
@@ -352,3 +357,34 @@ async def _handle_payment_failed(
     user.subscription_status = "past_due"
     await db.flush()
     logger.info("Payment failed for user %s — status set to past_due", user.id)
+
+
+async def _handle_schedule_completed(
+    db: AsyncSession, schedule_data: dict
+) -> None:
+    """Handle subscription_schedule.completed: clear pending_downgrade_plan.
+
+    When a Subscription Schedule completes, the subscription has transitioned
+    to the new plan phase. The subscription.updated event handles the actual
+    plan sync — this handler clears the pending_downgrade_plan field.
+    """
+    subscription_id = schedule_data.get("subscription")
+    if not subscription_id:
+        return
+
+    result = await db.execute(
+        select(User).where(User.stripe_subscription_id == subscription_id)
+    )
+    user = result.scalar_one_or_none()
+    if user is None:
+        logger.warning(
+            "No user found for subscription %s in schedule.completed", subscription_id
+        )
+        return
+
+    user.pending_downgrade_plan = None
+    await db.flush()
+    logger.info(
+        "Subscription schedule completed for user %s — cleared pending_downgrade_plan",
+        user.id,
+    )

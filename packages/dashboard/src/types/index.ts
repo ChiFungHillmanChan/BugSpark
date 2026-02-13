@@ -27,6 +27,7 @@ export interface SubscriptionInfo {
   cancelAtPeriodEnd: boolean;
   billingInterval: string | null;
   amount: number | null;
+  pendingDowngradePlan: string | null;
 }
 
 export interface InvoiceInfo {

@@ -172,6 +172,11 @@ async def change_plan(
         subscription_item_id = sub["items"]["data"][0]["id"]
 
         if is_upgrade:
+            # If there's a pending downgrade schedule, release it first
+            if user.pending_downgrade_plan:
+                await _release_subscription_schedule(user.stripe_subscription_id)
+                user.pending_downgrade_plan = None
+
             # Prorated upgrade: credit unused time on old plan, start new billing
             # cycle now. E.g. Starter→Team on day 15/30: credit ~50% of Starter,
             # charge full Team price for a new period starting today.
@@ -181,36 +186,80 @@ async def change_plan(
                 proration_behavior="always_invoice",
                 billing_cycle_anchor="now",
             )
+
+            old_plan = user.plan
+            user.plan = Plan(body.new_plan)
+            user.subscription_status = updated_sub.status
+            user.previous_plan = None
+            user.plan_downgraded_at = None
+
+            period_end_ts = updated_sub.get("current_period_end")
+            if period_end_ts:
+                user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+
+            await db.commit()
+            return _build_subscription_response(user, updated_sub)
+
         else:
-            # Downgrade between paid plans: takes effect immediately, no proration
-            updated_sub = stripe.Subscription.modify(
-                user.stripe_subscription_id,
-                items=[{"id": subscription_item_id, "price": new_price_id}],
-                proration_behavior="none",
+            # Downgrade between paid plans: defer to end of billing period
+            # using Stripe Subscription Schedules
+            current_price_id = sub["items"]["data"][0]["price"]["id"]
+            schedule = stripe.SubscriptionSchedule.create(
+                from_subscription=user.stripe_subscription_id,
             )
+
+            period_end_ts = sub.get("current_period_end")
+            stripe.SubscriptionSchedule.modify(
+                schedule.id,
+                phases=[
+                    {
+                        "items": [{"price": current_price_id, "quantity": 1}],
+                        "start_date": schedule["phases"][0]["start_date"],
+                        "end_date": period_end_ts,
+                    },
+                    {
+                        "items": [{"price": new_price_id, "quantity": 1}],
+                        "start_date": period_end_ts,
+                    },
+                ],
+            )
+
+            user.pending_downgrade_plan = body.new_plan
+
+            if period_end_ts:
+                user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+
+            await db.commit()
+
+            # Return current plan (not the new one) with pending_downgrade_plan set
+            return SubscriptionResponse(
+                plan=user.plan.value,
+                status=sub.get("status") or "active",
+                current_period_end=(
+                    datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
+                    if period_end_ts else user.plan_expires_at
+                ),
+                plan_expires_at=user.plan_expires_at,
+                cancel_at_period_end=sub.get("cancel_at_period_end") or False,
+                pending_downgrade_plan=user.pending_downgrade_plan,
+            )
+
     except StripeError as e:
         logger.error("Stripe error during plan change: %s", e)
         raise BadRequestException(f"Failed to change plan: {e.user_message or str(e)}")
 
-    # Update user plan for both upgrades and downgrades
-    old_plan = user.plan
-    user.plan = Plan(body.new_plan)
-    user.subscription_status = updated_sub.status
 
-    if is_upgrade:
-        user.previous_plan = None
-        user.plan_downgraded_at = None
-    else:
-        user.previous_plan = old_plan.value
-        user.plan_downgraded_at = datetime.now(timezone.utc)
-
-    period_end_ts = updated_sub.get("current_period_end")
-    if period_end_ts:
-        user.plan_expires_at = datetime.fromtimestamp(period_end_ts, tz=timezone.utc)
-
-    await db.commit()
-
-    return _build_subscription_response(user, updated_sub)
+async def _release_subscription_schedule(subscription_id: str) -> None:
+    """Release any active Stripe SubscriptionSchedule tied to this subscription."""
+    try:
+        schedules = stripe.SubscriptionSchedule.list(
+            subscription=subscription_id, limit=1
+        )
+        for schedule in schedules.data:
+            if schedule.status in ("not_started", "active"):
+                stripe.SubscriptionSchedule.release(schedule.id)
+    except StripeError as e:
+        logger.warning("Could not release subscription schedule: %s", e)
 
 
 @router.post("/cancel-subscription", response_model=CancelSubscriptionResponse)
@@ -225,6 +274,12 @@ async def cancel_subscription(
         raise BadRequestException("No active subscription to cancel.")
 
     _init_stripe()
+
+    # Release any pending downgrade schedule before canceling
+    if user.pending_downgrade_plan:
+        await _release_subscription_schedule(user.stripe_subscription_id)
+        user.pending_downgrade_plan = None
+
     try:
         updated_sub = stripe.Subscription.modify(
             user.stripe_subscription_id,
@@ -328,6 +383,7 @@ async def get_subscription(
             current_period_end=user.plan_expires_at,
             plan_expires_at=user.plan_expires_at,
             cancel_at_period_end=user.cancel_at_period_end,
+            pending_downgrade_plan=user.pending_downgrade_plan,
         )
 
     return SubscriptionResponse(
@@ -337,6 +393,7 @@ async def get_subscription(
         plan_expires_at=user.plan_expires_at,
         cancel_at_period_end=subscription.cancel_at_period_end,
         billing_interval=subscription.billing_interval,
+        pending_downgrade_plan=user.pending_downgrade_plan,
     )
 
 

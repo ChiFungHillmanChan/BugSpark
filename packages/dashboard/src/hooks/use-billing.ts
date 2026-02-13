@@ -52,7 +52,11 @@ export function useCancelSubscription() {
       );
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      queryClient.setQueryData<SubscriptionInfo>(queryKeys.billing.subscription, (old) => {
+        if (!old) return old;
+        return { ...old, cancelAtPeriodEnd: true, currentPeriodEnd: old.currentPeriodEnd ?? data.cancelAt };
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },
@@ -69,6 +73,10 @@ export function useReactivateSubscription() {
       return data;
     },
     onSuccess: () => {
+      queryClient.setQueryData<SubscriptionInfo>(queryKeys.billing.subscription, (old) => {
+        if (!old) return old;
+        return { ...old, cancelAtPeriodEnd: false };
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.billing.subscription });
       queryClient.invalidateQueries({ queryKey: ["user"] });
     },

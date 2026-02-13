@@ -11,6 +11,7 @@ import {
   useCancelSubscription,
   useReactivateSubscription,
   useCreateCheckoutSession,
+  useChangePlan,
 } from "@/hooks/use-billing";
 import { useUsage } from "@/hooks/use-usage";
 import { UsageCard } from "@/components/usage/usage-card";
@@ -31,6 +32,7 @@ export default function BillingPage() {
   const cancelMutation = useCancelSubscription();
   const reactivateMutation = useReactivateSubscription();
   const checkoutMutation = useCreateCheckoutSession();
+  const changePlanMutation = useChangePlan();
 
   const currentPlan: UserPlan = (user?.plan as UserPlan) ?? "free";
   const isFreePlan = currentPlan === "free";
@@ -45,6 +47,8 @@ export default function BillingPage() {
           },
         },
       );
+    } else {
+      changePlanMutation.mutate({ newPlan: plan, billingInterval });
     }
   }
 
@@ -58,7 +62,7 @@ export default function BillingPage() {
 
   if (isLoadingSubscription) {
     return (
-      <div className="max-w-xl">
+      <div className="max-w-4xl">
         <PageHeader title={t("title")} />
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-6 h-6 animate-spin text-gray-400" />
@@ -68,7 +72,7 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="max-w-xl">
+    <div className="max-w-4xl">
       <div className="mb-6">
         <Link
           href="/settings"
@@ -126,8 +130,9 @@ export default function BillingPage() {
 
         <PlanSelector
           currentPlan={currentPlan}
-          isChanging={checkoutMutation.isPending}
+          isChanging={checkoutMutation.isPending || changePlanMutation.isPending}
           onChangePlan={handleChangePlan}
+          pendingDowngradePlan={subscription?.pendingDowngradePlan}
         />
 
         <InvoiceTable

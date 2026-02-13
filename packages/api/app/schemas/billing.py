@@ -31,6 +31,7 @@ class SubscriptionResponse(CamelModel):
     cancel_at_period_end: bool
     billing_interval: str | None = None
     amount: int | None = None
+    pending_downgrade_plan: str | None = None
 
 
 class InvoiceResponse(CamelModel):

@@ -5,7 +5,7 @@ import uuid
 from datetime import date, datetime, time, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
-from sqlalchemy import func, select
+from sqlalchemy import delete as sql_delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -16,6 +16,8 @@ from app.i18n import get_locale, translate
 from app.models.enums import Role
 from app.models.project import Project
 from app.models.report import Category, Report, Severity, Status
+from app.models.report_analysis import ReportAnalysis
+from app.models.comment import Comment
 from app.models.user import User
 from app.schemas.report import ReportCreate, ReportListItemResponse, ReportListResponse, ReportResponse, ReportUpdate
 from app.schemas.similarity import SimilarReportItem, SimilarReportsResponse
@@ -327,14 +329,24 @@ async def delete_report(
         if report.project_id not in accessible_ids:
             raise ForbiddenException(translate("report.not_authorized_delete", locale))
 
-    # Clean up screenshots from R2/S3 before deleting the DB record
-    if report.screenshot_url:
-        await delete_file(report.screenshot_url)
-    if report.annotated_screenshot_url:
-        await delete_file(report.annotated_screenshot_url)
+    # Capture S3 keys before DB deletion so we can clean up after commit
+    screenshot_key = report.screenshot_url
+    annotated_key = report.annotated_screenshot_url
+
+    # Explicitly delete related records to avoid ORM cascade issues with async sessions.
+    # The DB has ON DELETE CASCADE but SQLAlchemy's eager-loaded relationships
+    # (analysis uses lazy="selectin") can cause the ORM to conflict with DB cascades.
+    await db.execute(sql_delete(ReportAnalysis).where(ReportAnalysis.report_id == report_id))
+    await db.execute(sql_delete(Comment).where(Comment.report_id == report_id))
 
     await db.delete(report)
     await db.commit()
+
+    # Clean up screenshots from R2/S3 after successful DB deletion
+    if screenshot_key:
+        await delete_file(screenshot_key)
+    if annotated_key:
+        await delete_file(annotated_key)
 
 
 @router.get("/{report_id}/similar", response_model=SimilarReportsResponse)

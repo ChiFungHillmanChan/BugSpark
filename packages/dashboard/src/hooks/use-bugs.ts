@@ -80,6 +80,13 @@ export function useDeleteBug() {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
+      // Cancel any in-flight queries for this report before deleting to prevent
+      // refetches against the soon-to-be-deleted resource (which would 404 and
+      // trigger CORS errors because the error response may lack CORS headers).
+      await queryClient.cancelQueries({ queryKey: queryKeys.bugs.detail(id) });
+      queryClient.removeQueries({ queryKey: queryKeys.bugs.detail(id) });
+      queryClient.removeQueries({ queryKey: ["analysis", id] });
+
       await apiClient.delete(`/reports/${id}`);
     },
     onSuccess: () => {
